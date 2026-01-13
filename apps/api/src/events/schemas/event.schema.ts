@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Document, Types, Schema as MongooseSchema } from 'mongoose';
 import { EventType, EventPriority, EventStatus, Location } from '@emergensee/shared';
 
 export type EventDocument = Event & Document;
@@ -22,16 +22,8 @@ export class Event {
   description: string;
 
   @Prop({
+    type: MongooseSchema.Types.Mixed,
     required: true,
-    type: {
-      type: String,
-      enum: ['Point'],
-      required: true,
-    },
-    coordinates: {
-      type: [Number],
-      required: true,
-    },
   })
   location: Location;
 
