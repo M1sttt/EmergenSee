@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { statusService } from '../services/statusService';
-import { RESPONDER_STATUS_LABELS } from '@emergensee/shared';
+import { RESPONDER_STATUS_LABELS, StatusUpdate } from '@emergensee/shared';
 import { format } from 'date-fns';
 
 export default function StatusPage() {
@@ -41,7 +41,7 @@ export default function StatusPage() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {statusUpdates.map((status: any) => (
+            {statusUpdates.map((status: StatusUpdate & { userId?: any; eventId?: any }) => (
               <tr key={status.id}>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">
@@ -50,7 +50,7 @@ export default function StatusPage() {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                    {RESPONDER_STATUS_LABELS[status.status]}
+                    {RESPONDER_STATUS_LABELS[status.status as keyof typeof RESPONDER_STATUS_LABELS]}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">

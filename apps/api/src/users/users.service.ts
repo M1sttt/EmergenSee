@@ -11,7 +11,7 @@ export class UsersService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  async create(createUserDto: CreateUserDto): Promise<UserDocument> {
     const existingUser = await this.userModel.findOne({ email: createUserDto.email });
     if (existingUser) {
       throw new ConflictException('User with this email already exists');
@@ -26,11 +26,11 @@ export class UsersService {
     return createdUser.save();
   }
 
-  async findAll(): Promise<User[]> {
+  async findAll(): Promise<UserDocument[]> {
     return this.userModel.find().select('-password').exec();
   }
 
-  async findOne(id: string): Promise<User> {
+  async findOne(id: string): Promise<UserDocument> {
     const user = await this.userModel.findById(id).select('-password').exec();
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
@@ -38,11 +38,11 @@ export class UsersService {
     return user;
   }
 
-  async findByEmail(email: string): Promise<User | null> {
+  async findByEmail(email: string): Promise<UserDocument | null> {
     return this.userModel.findOne({ email }).exec();
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<UserDocument> {
     const user = await this.userModel
       .findByIdAndUpdate(id, updateUserDto, { new: true })
       .select('-password')

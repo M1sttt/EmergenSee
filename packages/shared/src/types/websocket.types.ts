@@ -1,5 +1,5 @@
-import { Event } from './event.types';
-import { StatusUpdate } from './status.types';
+import { Event } from './event.types.js';
+import { StatusUpdate } from './status.types.js';
 
 export enum WebSocketEventType {
   // Event updates
