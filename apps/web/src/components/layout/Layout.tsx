@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { authService } from '../../services/authService';
 
 export default function Layout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
 
@@ -57,8 +58,8 @@ export default function Layout() {
                 to={item.href}
                 title={!isSidebarExpanded ? item.name : undefined}
                 className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${isActive(item.href)
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-50'
+                  ? 'bg-blue-50 text-blue-700'
+                  : 'text-gray-700 hover:bg-gray-50'
                   } ${isSidebarExpanded ? '' : 'justify-center px-2'}`}
               >
                 <span className={`${isSidebarExpanded ? 'mr-3' : ''} text-lg`}>{item.icon}</span>
@@ -69,20 +70,25 @@ export default function Layout() {
 
           {/* User info */}
           <div className={`px-4 py-4 border-t border-gray-200 ${isSidebarExpanded ? '' : 'text-center'}`}>
-            {isSidebarExpanded ? (
-              <div className="flex items-center">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">
-                    {user?.firstName} {user?.lastName}
-                  </p>
-                  <p className="text-xs text-gray-600 truncate">{user?.email}</p>
+            <button
+              onClick={() => location.pathname === '/profile' ? navigate(-1) : navigate('/profile')}
+              className={`block w-full text-left hover:bg-gray-50 rounded-lg ${isSidebarExpanded ? 'p-2 -mx-2' : ''}`}
+            >
+              {isSidebarExpanded ? (
+                <div className="flex items-center">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">
+                      {user?.firstName} {user?.lastName}
+                    </p>
+                    <p className="text-xs text-gray-600 truncate">{user?.email}</p>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-xs font-semibold text-blue-700">
-                {userInitials}
-              </div>
-            )}
+              ) : (
+                <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-xs font-semibold text-blue-700 hover:bg-blue-100">
+                  {userInitials}
+                </div>
+              )}
+            </button>
 
             <button
               onClick={() => authService.logout()}

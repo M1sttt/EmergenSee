@@ -56,6 +56,12 @@ export class UpdateUserDto {
     email?: string;
 
     @IsString()
+    @MinLength(6)
+    @IsOptional()
+    @ApiProperty({ description: 'The password of the user', minLength: 6, required: false, example: 'password123' })
+    password?: string;
+
+    @IsString()
     @IsOptional()
     @ApiProperty({ description: 'The first name of the user', required: false, example: 'John' })
     firstName?: string;

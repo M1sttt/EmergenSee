@@ -6,6 +6,7 @@ import EventsPage from './pages/EventsPage';
 import MapPage from './pages/MapPage';
 import UsersPage from './pages/UsersPage';
 import StatusPage from './pages/StatusPage';
+import ProfilePage from './pages/ProfilePage';
 import Layout from './components/layout/Layout';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -32,6 +33,7 @@ function App() {
           <Route path="map" element={<MapPage />} />
           <Route path="users" element={<UsersPage />} />
           <Route path="status" element={<StatusPage />} />
+          <Route path="profile" element={<ProfilePage />} />
         </Route>
       </Routes>
     </Router>
