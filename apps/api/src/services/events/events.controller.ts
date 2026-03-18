@@ -32,7 +32,7 @@ export class EventsController {
 
   @ApiOperation({ summary: 'Create a new event' })
   @Post()
-  @Roles(UserRole.ADMIN, UserRole.DISPATCHER, UserRole.FIELD_RESPONDER)
+  @Roles(UserRole.ADMIN, UserRole.DISPATCHER)
   create(@Body() createEventDto: CreateEventDto) {
     return this.eventsService.create(createEventDto);
   }
