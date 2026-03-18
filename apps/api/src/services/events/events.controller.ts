@@ -17,22 +17,18 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
-import { Roles } from '../../common/decorators/roles.decorator';
 import { EventsService } from './events.service';
-import { UserRole } from '@emergensee/shared';
 import { CreateEventDto, UpdateEventDto } from './events.dto';
 
 @ApiTags('Events')
 @ApiBearerAuth('access-token')
 @Controller('events')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 export class EventsController {
   constructor(private readonly eventsService: EventsService) { }
 
   @ApiOperation({ summary: 'Create a new event' })
   @Post()
-  @Roles(UserRole.ADMIN, UserRole.DISPATCHER)
   create(@Body() createEventDto: CreateEventDto) {
     return this.eventsService.create(createEventDto);
   }
@@ -70,7 +66,6 @@ export class EventsController {
   @ApiOperation({ summary: 'Update event by id' })
   @ApiParam({ name: 'id', description: 'Event id' })
   @Patch(':id')
-  @Roles(UserRole.ADMIN, UserRole.DISPATCHER)
   update(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto) {
     return this.eventsService.update(id, updateEventDto);
   }
@@ -78,7 +73,6 @@ export class EventsController {
   @ApiOperation({ summary: 'Delete event by id' })
   @ApiParam({ name: 'id', description: 'Event id' })
   @Delete(':id')
-  @Roles(UserRole.ADMIN, UserRole.DISPATCHER)
   remove(@Param('id') id: string) {
     return this.eventsService.remove(id);
   }

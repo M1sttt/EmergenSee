@@ -65,7 +65,7 @@ export class UsersService {
       firstName: profile.firstName,
       lastName: profile.lastName,
       password: Math.random().toString(36), // unusable placeholder
-      role: UserRole.FIELD_RESPONDER,
+      role: UserRole.MEMBER,
       googleId: profile.googleId,
     });
     return created.save();

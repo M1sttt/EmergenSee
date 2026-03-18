@@ -45,9 +45,8 @@ export const EVENT_STATUS_LABELS = {
 
 export const USER_ROLE_LABELS = {
   admin: 'Admin',
-  dispatcher: 'Dispatcher',
-  field_responder: 'Field Responder',
   viewer: 'Viewer',
+  member: 'Member',
 } as const;
 
 export const RESPONDER_STATUS_LABELS = {

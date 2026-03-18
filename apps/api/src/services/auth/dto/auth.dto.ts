@@ -70,7 +70,7 @@ export class UserResponseDto {
   @ApiProperty({ example: 'Levi' })
   lastName: string;
 
-  @ApiProperty({ enum: UserRole, example: UserRole.FIELD_RESPONDER })
+  @ApiProperty({ enum: UserRole, example: UserRole.MEMBER })
   role: UserRole;
 
   @ApiProperty({ enum: UserStatus, example: UserStatus.ACTIVE })

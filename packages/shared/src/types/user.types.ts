@@ -1,8 +1,7 @@
 export enum UserRole {
   ADMIN = 'admin',
-  DISPATCHER = 'dispatcher',
-  FIELD_RESPONDER = 'field_responder',
   VIEWER = 'viewer',
+  MEMBER = 'member',
 }
 
 export enum UserStatus {
