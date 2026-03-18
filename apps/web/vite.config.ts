@@ -11,6 +11,10 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    headers: {
+      // Required by Google Identity Services to allow the sign-in popup
+      'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:3001',

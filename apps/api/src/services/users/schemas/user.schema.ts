@@ -33,6 +33,9 @@ export class User {
   @Prop()
   department?: string;
 
+  @Prop({ sparse: true })
+  googleId?: string;
+
   @Prop()
   createdAt: Date;
 

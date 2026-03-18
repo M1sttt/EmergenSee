@@ -52,6 +52,15 @@ export interface LoginDto {
   password: string;
 }
 
+/** Used for self-registration — role is assigned server-side */
+export interface RegisterDto {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  firstName: string;
+  lastName: string;
+}
+
 export interface AuthResponse {
   accessToken: string;
   refreshToken: string;

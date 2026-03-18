@@ -2,9 +2,10 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
+import { OAuth2Client } from 'google-auth-library';
 import { UsersService } from '../users/users.service';
 import { UserDocument } from '../users/schemas/user.schema';
-import { AuthResponse, LoginDto } from '@emergensee/shared';
+import { AuthResponse, LoginDto, RegisterDto, UserRole } from '@emergensee/shared';
 
 @Injectable()
 export class AuthService {
@@ -12,7 +13,7 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private configService: ConfigService,
-  ) {}
+  ) { }
 
   async validateUser(email: string, password: string): Promise<UserDocument | null> {
     const user = await this.usersService.findByEmail(email);
@@ -33,7 +34,54 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
+    return this.generateAuthResponse(user);
+  }
 
+  async register(registerDto: RegisterDto): Promise<AuthResponse> {
+    const user = await this.usersService.create({
+      email: registerDto.email,
+      password: registerDto.password,
+      firstName: registerDto.firstName,
+      lastName: registerDto.lastName,
+      role: UserRole.FIELD_RESPONDER, // default role for self-registration
+    });
+    return this.generateAuthResponse(user);
+  }
+
+  /**
+   * Verifies the id_token issued by Google Identity Services and returns
+   * the same AuthResponse shape as email/password login.
+   */
+  async loginWithGoogleToken(idToken: string): Promise<AuthResponse> {
+    const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
+    const client = new OAuth2Client(clientId);
+
+    let payload: any;
+    try {
+      const ticket = await client.verifyIdToken({
+        idToken,
+        audience: clientId,
+      });
+      payload = ticket.getPayload();
+    } catch {
+      throw new UnauthorizedException('Invalid Google token');
+    }
+
+    if (!payload?.email) {
+      throw new UnauthorizedException('Google token missing email claim');
+    }
+
+    const user = await this.usersService.findOrCreateGoogleUser({
+      googleId: payload.sub as string,
+      email: payload.email as string,
+      firstName: (payload.given_name as string) ?? '',
+      lastName: (payload.family_name as string) ?? '',
+    });
+
+    return this.generateAuthResponse(user);
+  }
+
+  private generateAuthResponse(user: UserDocument): AuthResponse {
     const payload = { sub: user._id.toString(), email: user.email, role: user.role };
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(payload, {

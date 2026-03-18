@@ -1,6 +1,3 @@
-export const API_VERSION = 'v1';
-export const API_PREFIX = `/api/${API_VERSION}`;
-
 export const JWT_EXPIRATION = '15m';
 export const JWT_REFRESH_EXPIRATION = '7d';
 
