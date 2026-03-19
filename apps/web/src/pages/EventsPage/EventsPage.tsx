@@ -11,12 +11,16 @@ import {
 } from '@emergensee/shared';
 import { useWebSocket } from 'hooks/useWebSocket';
 import { WebSocketEventType } from '@emergensee/shared';
+import { FiEdit, FiCheckCircle } from 'react-icons/fi';
 import EventForm from '@/components/EventForm';
+import { ConfirmModal } from '@/components/common/ConfirmModal';
+import { Loader } from '@/components/common/Loader';
 
 export default function EventsPage() {
 	const queryClient = useQueryClient();
 	const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 	const [isFormOpen, setIsFormOpen] = useState(false);
+	const [eventToClose, setEventToClose] = useState<string | null>(null);
 
 	const { data: events = [], isLoading } = useQuery({
 		queryKey: ['events'],
@@ -58,10 +62,19 @@ export default function EventsPage() {
 	};
 
 	const handleCloseEvent = (id: string) => {
-		if (window.confirm('Are you sure you want to close this event?')) {
-			updateMutation.mutate({ id, data: { status: EventStatus.RESOLVED } });
-		}
+		setEventToClose(id);
 	};
+
+	const confirmCloseEvent = useCallback(() => {
+		if (eventToClose) {
+			updateMutation.mutate({ id: eventToClose, data: { status: EventStatus.RESOLVED } });
+			setEventToClose(null);
+		}
+	}, [updateMutation, eventToClose]);
+
+	const cancelCloseEvent = useCallback(() => {
+		setEventToClose(null);
+	}, []);
 
 	const handleFormClose = () => {
 		setIsFormOpen(false);
@@ -95,10 +108,6 @@ export default function EventsPage() {
 				return 'bg-gray-100 text-gray-800';
 		}
 	};
-
-	if (isLoading) {
-		return <div className="p-6">Loading...</div>;
-	}
 
 	return (
 		<div className="p-6">
@@ -134,59 +143,81 @@ export default function EventsPage() {
 						</tr>
 					</thead>
 					<tbody className="bg-white divide-y divide-gray-200">
-						{events.map(event => {
-							const eventId = event.id || (event as any)._id;
-							return (
-								<tr key={eventId}>
-									<td className="px-6 py-4 whitespace-nowrap">
-										<div
-											className="text-sm font-medium text-gray-900 truncate max-w-[150px]"
-											title={event.title}
-										>
-											{event.title}
-										</div>
-									</td>
-									<td className="px-6 py-4 whitespace-nowrap">
-										<div className="text-sm text-gray-900">{EVENT_TYPE_LABELS[event.type]}</div>
-									</td>
-									<td className="px-6 py-4 whitespace-nowrap">
-										<span
-											className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getPriorityColor(event.priority)}`}
-										>
-											{EVENT_PRIORITY_LABELS[event.priority]}
-										</span>
-									</td>
-									<td className="px-6 py-4 whitespace-nowrap">
-										<span
-											className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(event.status)}`}
-										>
-											{EVENT_STATUS_LABELS[event.status]}
-										</span>
-									</td>
-									<td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-										<button
-											onClick={() => handleEdit(event)}
-											className="text-blue-600 hover:text-blue-900 mr-4"
-											title="Edit"
-										>
-											✏️
-										</button>
-										<button
-											onClick={() => handleCloseEvent(eventId)}
-											className="text-green-600 hover:text-green-900"
-											title="Close Event"
-										>
-											✅
-										</button>
-									</td>
-								</tr>
-							);
-						})}
+						{isLoading ? (
+							<tr>
+								<td colSpan={5} className="py-8">
+									<Loader />
+								</td>
+							</tr>
+						) : events.length === 0 ? (
+							<tr>
+								<td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
+									No events found.
+								</td>
+							</tr>
+						) : (
+							events.map(event => {
+								const eventId = event.id || (event as any)._id;
+								return (
+									<tr key={eventId}>
+										<td className="px-6 py-4 whitespace-nowrap">
+											<div
+												className="text-sm font-medium text-gray-900 truncate max-w-[150px]"
+												title={event.title}
+											>
+												{event.title}
+											</div>
+										</td>
+										<td className="px-6 py-4 whitespace-nowrap">
+											<div className="text-sm text-gray-900">{EVENT_TYPE_LABELS[event.type]}</div>
+										</td>
+										<td className="px-6 py-4 whitespace-nowrap">
+											<span
+												className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getPriorityColor(event.priority)}`}
+											>
+												{EVENT_PRIORITY_LABELS[event.priority]}
+											</span>
+										</td>
+										<td className="px-6 py-4 whitespace-nowrap">
+											<span
+												className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(event.status)}`}
+											>
+												{EVENT_STATUS_LABELS[event.status]}
+											</span>
+										</td>
+										<td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+											<button
+												onClick={() => handleEdit(event)}
+												className="mr-4"
+												title="Edit"
+											>
+												<FiEdit size={18} />
+											</button>
+											<button
+												onClick={() => handleCloseEvent(eventId)}
+												className="text-green-600 hover:text-green-900"
+												title="Close Event"
+											>
+												<FiCheckCircle size={18} />
+											</button>
+										</td>
+									</tr>
+								);
+							})
+						)}
 					</tbody>
 				</table>
 			</div>
 
 			{isFormOpen && <EventForm event={selectedEvent} onClose={handleFormClose} />}
+
+			{eventToClose && (
+				<ConfirmModal
+					message="Are you sure you want to close this event?"
+					onConfirm={confirmCloseEvent}
+					onCancel={cancelCloseEvent}
+				/>
+			)}
 		</div>
 	);
 }

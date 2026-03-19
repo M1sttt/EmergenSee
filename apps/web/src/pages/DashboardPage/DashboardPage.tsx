@@ -8,6 +8,7 @@ import { MdEvent, MdWarning, MdError, MdNotificationImportant } from 'react-icon
 import { DASHBOARD_STRINGS } from './strings';
 import { RECENT_ITEMS_LIMIT, QUERY_KEYS, PRIORITY_STYLES, COMMON_STATUS_STYLE } from './consts';
 import { getActiveEventsCount, getEventsByPriorityCount } from './utils';
+import { Loader } from '@/components/common/Loader';
 
 const DashboardPage: React.FC = () => {
 	const {
@@ -54,9 +55,7 @@ const DashboardPage: React.FC = () => {
 	const recentEvents = useMemo(() => events.slice(0, RECENT_ITEMS_LIMIT), [events]);
 	const recentStatusUpdates = useMemo(() => statusUpdates.slice(0, RECENT_ITEMS_LIMIT), [statusUpdates]);
 
-	if (isLoadingEvents || isLoadingStatus) {
-		return <div className="p-6">{DASHBOARD_STRINGS.LOADING_EVENTS}</div>;
-	}
+	const isLoading = isLoadingEvents || isLoadingStatus;
 
 	if (isErrorEvents || isErrorStatus) {
 		return <div className="p-6 text-red-600">{DASHBOARD_STRINGS.ERROR_EVENTS}</div>;
@@ -106,23 +105,29 @@ const DashboardPage: React.FC = () => {
 						<h2 className="text-xl font-semibold text-gray-900">{DASHBOARD_STRINGS.RECENT_EVENTS}</h2>
 					</div>
 					<div className="p-6">
-						{recentEvents.map(event => (
-							<div
-								key={event.id}
-								className="mb-4 pb-4 border-b border-gray-200 last:border-0 hover:bg-gray-50 transition-colors"
-							>
-								<div className="flex justify-between items-start">
-									<div>
-										<h3 className="font-semibold text-gray-900">{event.title}</h3>
+						{isLoading ? (
+							<Loader />
+						) : recentEvents.length === 0 ? (
+							<div className="text-gray-500">No recent events.</div>
+						) : (
+							recentEvents.map(event => (
+								<div
+									key={event.id}
+									className="mb-4 pb-4 border-b border-gray-200 last:border-0 hover:bg-gray-50 transition-colors"
+								>
+									<div className="flex justify-between items-start">
+										<div>
+											<h3 className="font-semibold text-gray-900">{event.title}</h3>
+										</div>
+										<span
+											className={`px-2 py-1 text-xs font-semibold rounded ${PRIORITY_STYLES[event.priority] || 'bg-gray-100 text-gray-800'}`}
+										>
+											{event.priority}
+										</span>
 									</div>
-									<span
-										className={`px-2 py-1 text-xs font-semibold rounded ${PRIORITY_STYLES[event.priority] || 'bg-gray-100 text-gray-800'}`}
-									>
-										{event.priority}
-									</span>
 								</div>
-							</div>
-						))}
+							))
+						)}
 					</div>
 				</div>
 
@@ -131,20 +136,26 @@ const DashboardPage: React.FC = () => {
 						<h2 className="text-xl font-semibold text-gray-900">{DASHBOARD_STRINGS.RECENT_STATUS_UPDATES}</h2>
 					</div>
 					<div className="p-6">
-						{recentStatusUpdates.map(status => (
-							<div
-								key={status.id}
-								className="mb-4 pb-4 border-b border-gray-200 last:border-0 hover:bg-gray-50 transition-colors"
-							>
-								<div className="flex justify-between items-start">
-									<div>
-										<h3 className="font-semibold text-gray-900">{DASHBOARD_STRINGS.STATUS_UPDATE}</h3>
-										<p className="text-sm text-gray-600">{status.notes || DASHBOARD_STRINGS.NO_NOTES}</p>
+						{isLoading ? (
+							<Loader />
+						) : recentStatusUpdates.length === 0 ? (
+							<div className="text-gray-500">No recent status updates.</div>
+						) : (
+							recentStatusUpdates.map(status => (
+								<div
+									key={status.id}
+									className="mb-4 pb-4 border-b border-gray-200 last:border-0 hover:bg-gray-50 transition-colors"
+								>
+									<div className="flex justify-between items-start">
+										<div>
+											<h3 className="font-semibold text-gray-900">{DASHBOARD_STRINGS.STATUS_UPDATE}</h3>
+											<p className="text-sm text-gray-600">{status.notes || DASHBOARD_STRINGS.NO_NOTES}</p>
+										</div>
+										<span className={COMMON_STATUS_STYLE}>{status.status}</span>
 									</div>
-									<span className={COMMON_STATUS_STYLE}>{status.status}</span>
 								</div>
-							</div>
-						))}
+							))
+						)}
 					</div>
 				</div>
 			</div>

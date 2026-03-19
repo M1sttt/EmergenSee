@@ -7,6 +7,9 @@ import { usersService } from 'services/usersService';
 import { useAuthStore } from 'store/authStore';
 import { EventStatus, RESPONDER_STATUS_LABELS, ResponderStatus, UserRole } from '@emergensee/shared';
 import { format } from 'date-fns';
+import { FiCheckCircle, FiAlertTriangle } from 'react-icons/fi';
+import { RiUserUnfollowLine } from 'react-icons/ri';
+import { Loader } from '@/components/common/Loader';
 
 export default function StatusPage() {
 	const queryClient = useQueryClient();
@@ -97,10 +100,6 @@ export default function StatusPage() {
 
 	const isLoading = isLoadingEvents || isLoadingDepts || isLoadingUsers || isLoadingStatus;
 
-	if (isLoading) {
-		return <div className="p-6">Loading...</div>;
-	}
-
 	return (
 		<div className="p-6">
 			<div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
@@ -169,80 +168,102 @@ export default function StatusPage() {
 							</tr>
 						</thead>
 						<tbody className="bg-white divide-y divide-gray-200">
-							{displayUsers.map(({ user, status }) => {
-								const canReport =
-									isGlobalAdmin ||
-									(isDeptAdmin &&
-										user.departments.some((ud: string) =>
-											userAdminDepts.map((d: any) => d.id || d._id).includes(ud),
-										));
-
-								return (
-									<tr key={user.id}>
-										<td className="px-6 py-4 whitespace-nowrap">
-											<div className="text-sm font-medium text-gray-900">
-												{user.firstName} {user.lastName}
-											</div>
-											<div className="text-sm text-gray-500">{user.email}</div>
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap">
-											{status && status.status !== ResponderStatus.UNKNOWN ? (
-												<span
-													className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${status.status === ResponderStatus.SAFE ? 'bg-green-100 text-green-800' : status.status === ResponderStatus.NEED_HELP ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}
-												>
-													{RESPONDER_STATUS_LABELS[status.status as keyof typeof RESPONDER_STATUS_LABELS] ||
-														status.status}
-												</span>
-											) : (
-												<span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-													{RESPONDER_STATUS_LABELS[
-														ResponderStatus.UNKNOWN as keyof typeof RESPONDER_STATUS_LABELS
-													] || 'Unknown'}
-												</span>
-											)}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-											{status ? format(new Date(status.createdAt), 'MMM d, HH:mm') : '-'}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-											{canReport && (
-												<div className="flex justify-end gap-2">
-													<button
-														onClick={() =>
-															reportMutation.mutate({
-																status: ResponderStatus.SAFE,
-																userId: user.id,
-																eventId: selectedEventId,
-															})
-														}
-														className="bg-green-50 text-green-700 hover:bg-green-100 px-3 py-1 rounded text-xs font-medium transition"
-													>
-														Mark Safe
-													</button>
-													<button
-														onClick={() =>
-															reportMutation.mutate({
-																status: ResponderStatus.NEED_HELP,
-																userId: user.id,
-																eventId: selectedEventId,
-															})
-														}
-														className="bg-red-50 text-red-700 hover:bg-red-100 px-3 py-1 rounded text-xs font-medium transition"
-													>
-														Mark Need Help
-													</button>
-												</div>
-											)}
-										</td>
-									</tr>
-								);
-							})}
-							{displayUsers.length === 0 && (
+							{isLoading ? (
+								<tr>
+									<td colSpan={4} className="py-8">
+										<Loader />
+									</td>
+								</tr>
+							) : displayUsers.length === 0 ? (
 								<tr>
 									<td colSpan={4} className="px-6 py-4 text-center text-gray-500">
 										No users found for the selected criteria.
 									</td>
 								</tr>
+							) : (
+								displayUsers.map(({ user, status }) => {
+									const canReport =
+										isGlobalAdmin ||
+										(isDeptAdmin &&
+											user.departments.some((ud: string) =>
+												userAdminDepts.map((d: any) => d.id || d._id).includes(ud),
+											));
+
+									return (
+										<tr key={user.id}>
+											<td className="px-6 py-4 whitespace-nowrap">
+												<div className="text-sm font-medium text-gray-900">
+													{user.firstName} {user.lastName}
+												</div>
+												<div className="text-sm text-gray-500">{user.email}</div>
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap">
+												{status && status.status !== ResponderStatus.UNKNOWN ? (
+													<span
+														className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${status.status === ResponderStatus.SAFE ? 'bg-green-100 text-green-800' : status.status === ResponderStatus.NEED_HELP ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}
+													>
+														{RESPONDER_STATUS_LABELS[status.status as keyof typeof RESPONDER_STATUS_LABELS] ||
+															status.status}
+													</span>
+												) : (
+													<span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+														{RESPONDER_STATUS_LABELS[
+															ResponderStatus.UNKNOWN as keyof typeof RESPONDER_STATUS_LABELS
+														] || 'Unknown'}
+													</span>
+												)}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+												{status ? format(new Date(status.createdAt), 'MMM d, HH:mm') : '-'}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+												{canReport && (
+													<div className="flex justify-end gap-3">
+														<button
+															onClick={() =>
+																reportMutation.mutate({
+																	status: ResponderStatus.SAFE,
+																	userId: user.id,
+																	eventId: selectedEventId,
+																})
+															}
+															className="text-green-600 hover:text-green-800 transition"
+															title="Mark Safe"
+														>
+															<FiCheckCircle size={20} />
+														</button>
+														<button
+															onClick={() =>
+																reportMutation.mutate({
+																	status: ResponderStatus.NEED_HELP,
+																	userId: user.id,
+																	eventId: selectedEventId,
+																})
+															}
+															className="text-red-600 hover:text-red-800 transition"
+															title="Mark Need Help"
+														>
+															<FiAlertTriangle size={20} />
+														</button>
+														<button
+															onClick={() =>
+																reportMutation.mutate({
+																	status: ResponderStatus.AWAY,
+																	userId: user.id,
+																	eventId: selectedEventId,
+																})
+															}
+															className="hover:text-orange-700 transition"
+															title="Mark Away"
+														>
+															<RiUserUnfollowLine size={20} />
+														</button>
+													</div>
+												)}
+											</td>
+										</tr>
+									);
+								})
 							)}
 						</tbody>
 					</table>

@@ -5,10 +5,12 @@ import { departmentsService } from 'services/departmentsService';
 import { useAuthStore } from 'store/authStore';
 import { User, USER_ROLE_LABELS, Department } from '@emergensee/shared';
 import UserForm from 'components/users/UserForm';
-import { FiEdit2, FiTrash2, FiChevronDown } from 'react-icons/fi';
+import { FiEdit, FiTrash2, FiChevronDown } from 'react-icons/fi';
+import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { STRINGS } from './strings';
 import { CONSTS } from './consts';
 import { isGlobalAdmin, getAdminDepartments, filterDepartments, filterUsers, getStatusColors } from './utils';
+import { Loader } from '@/components/common/Loader';
 
 const UsersPage = () => {
 	const queryClient = useQueryClient();
@@ -19,6 +21,7 @@ const UsersPage = () => {
 	const [selectedDeptId, setSelectedDeptId] = useState<string>(CONSTS.ALL_DEPTS_ID);
 	const [isDeptDropdownOpen, setIsDeptDropdownOpen] = useState(false);
 	const [deptSearchTerm, setDeptSearchTerm] = useState('');
+	const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
 	const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -78,12 +81,21 @@ const UsersPage = () => {
 
 	const handleDelete = useCallback(
 		(id: string) => {
-			if (window.confirm(STRINGS.CONFIRM_DELETE)) {
-				deleteMutation.mutate(id);
-			}
+			setUserToDelete(id);
 		},
-		[deleteMutation],
+		[],
 	);
+
+	const confirmDelete = useCallback(() => {
+		if (userToDelete) {
+			deleteMutation.mutate(userToDelete);
+			setUserToDelete(null);
+		}
+	}, [deleteMutation, userToDelete]);
+
+	const cancelDelete = useCallback(() => {
+		setUserToDelete(null);
+	}, []);
 
 	const handleFormClose = useCallback(() => {
 		setIsFormOpen(false);
@@ -99,9 +111,7 @@ const UsersPage = () => {
 	);
 	const displayedUsers = useMemo(() => filterUsers(users, selectedDeptId), [users, selectedDeptId]);
 
-	if (isLoadingUsers || isLoadingDepartments) {
-		return <div className="p-6">{STRINGS.LOADING}</div>;
-	}
+	const isLoading = isLoadingUsers || isLoadingDepartments;
 
 	if (isErrorUsers || isErrorDepts) {
 		return <div className="p-6 text-red-600">{STRINGS.ERROR}</div>;
@@ -121,8 +131,8 @@ const UsersPage = () => {
 								{selectedDeptId === CONSTS.ALL_DEPTS_ID
 									? STRINGS.ALL_DEPARTMENTS
 									: availableDepartments.find(
-											(d: Department) => (d.id || (d as unknown as { _id?: string })._id) === selectedDeptId,
-										)?.name || STRINGS.SELECT_DEPARTMENT}
+										(d: Department) => (d.id || (d as unknown as { _id?: string })._id) === selectedDeptId,
+									)?.name || STRINGS.SELECT_DEPARTMENT}
 							</span>
 							<FiChevronDown
 								className={`w-4 h-4 text-gray-400 transition-transform ${isDeptDropdownOpen ? 'transform rotate-180' : ''}`}
@@ -216,88 +226,110 @@ const UsersPage = () => {
 						</tr>
 					</thead>
 					<tbody className="bg-white divide-y divide-gray-200">
-						{displayedUsers.map(user => {
-							const statusColors = getStatusColors(user.status);
-							const userId = user.id || (user as unknown as { _id?: string })._id;
+						{isLoading ? (
+							<tr>
+								<td colSpan={canCreateUser ? 6 : 5} className="py-8">
+									<Loader />
+								</td>
+							</tr>
+						) : displayedUsers.length === 0 ? (
+							<tr>
+								<td colSpan={canCreateUser ? 6 : 5} className="px-6 py-4 text-center text-sm text-gray-500">
+									No users found.
+								</td>
+							</tr>
+						) : (
+							displayedUsers.map(user => {
+								const statusColors = getStatusColors(user.status);
+								const userId = user.id || (user as unknown as { _id?: string })._id;
 
-							const canEdit =
-								isAdmin ||
-								(user.departments &&
-									user.departments.some((deptId: string | Department) =>
-										myAdminDepartments.some(
-											d =>
-												(d.id || (d as unknown as { _id?: string })._id) ===
-												(typeof deptId === 'string'
-													? deptId
-													: (deptId as unknown as { _id?: string })._id || deptId.id),
-										),
-									));
+								const canEdit =
+									isAdmin ||
+									(user.departments &&
+										user.departments.some((deptId: string | Department) =>
+											myAdminDepartments.some(
+												d =>
+													(d.id || (d as unknown as { _id?: string })._id) ===
+													(typeof deptId === 'string'
+														? deptId
+														: (deptId as unknown as { _id?: string })._id || deptId.id),
+											),
+										));
 
-							return (
-								<tr key={userId}>
-									<td className="px-6 py-4 whitespace-nowrap">
-										<div
-											className={`text-sm font-medium text-gray-900 truncate ${CONSTS.MAX_WIDTH_CLASSES.NAME_COL}`}
-											title={`${user.firstName} ${user.lastName}`}
-										>
-											{user.firstName} {user.lastName}
-										</div>
-									</td>
-									<td className="px-6 py-4 whitespace-nowrap">
-										<div
-											className={`text-sm text-gray-900 truncate ${CONSTS.MAX_WIDTH_CLASSES.EMAIL_COL}`}
-											title={user.email}
-										>
-											{user.email}
-										</div>
-									</td>
-									<td className="px-6 py-4 whitespace-nowrap">
-										<span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-											{USER_ROLE_LABELS[user.role]}
-										</span>
-									</td>
-									<td className="px-6 py-4 whitespace-nowrap">
-										<span
-											className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors.bg} ${statusColors.text}`}
-										>
-											{user.status}
-										</span>
-									</td>
-									<td className="px-6 py-4 whitespace-nowrap">
-										<div className="text-sm text-gray-900">{user.phoneNumber || STRINGS.EMPTY_PHONE}</div>
-									</td>
-									{canCreateUser && (
-										<td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-											{(canEdit || userId === currentUser?.id) && (
-												<>
-													<button
-														onClick={() => handleEdit(user)}
-														className="text-blue-600 hover:text-blue-900 mr-4"
-														title={STRINGS.ACTION_EDIT}
-													>
-														<FiEdit2 />
-													</button>
-													{isAdmin && (
-														<button
-															onClick={() => handleDelete(userId!)}
-															className="text-red-600 hover:text-red-900"
-															title={STRINGS.ACTION_DELETE}
-														>
-															<FiTrash2 />
-														</button>
-													)}
-												</>
-											)}
+								return (
+									<tr key={userId}>
+										<td className="px-6 py-4 whitespace-nowrap">
+											<div
+												className={`text-sm font-medium text-gray-900 truncate ${CONSTS.MAX_WIDTH_CLASSES.NAME_COL}`}
+												title={`${user.firstName} ${user.lastName}`}
+											>
+												{user.firstName} {user.lastName}
+											</div>
 										</td>
-									)}
-								</tr>
-							);
-						})}
+										<td className="px-6 py-4 whitespace-nowrap">
+											<div
+												className={`text-sm text-gray-900 truncate ${CONSTS.MAX_WIDTH_CLASSES.EMAIL_COL}`}
+												title={user.email}
+											>
+												{user.email}
+											</div>
+										</td>
+										<td className="px-6 py-4 whitespace-nowrap">
+											<span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+												{USER_ROLE_LABELS[user.role]}
+											</span>
+										</td>
+										<td className="px-6 py-4 whitespace-nowrap">
+											<span
+												className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors.bg} ${statusColors.text}`}
+											>
+												{user.status}
+											</span>
+										</td>
+										<td className="px-6 py-4 whitespace-nowrap">
+											<div className="text-sm text-gray-900">{user.phoneNumber || STRINGS.EMPTY_PHONE}</div>
+										</td>
+										{canCreateUser && (
+											<td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+												{(canEdit || userId === currentUser?.id) && (
+													<>
+														<button
+															onClick={() => handleEdit(user)}
+															className="mr-4"
+															title={STRINGS.ACTION_EDIT}
+														>
+															<FiEdit />
+														</button>
+														{isAdmin && (
+															<button
+																onClick={() => handleDelete(userId!)}
+																className="text-red-600 hover:text-red-900"
+																title={STRINGS.ACTION_DELETE}
+															>
+																<FiTrash2 />
+															</button>
+														)}
+													</>
+												)}
+											</td>
+										)}
+									</tr>
+								);
+							})
+						)}
 					</tbody>
 				</table>
 			</div>
 
 			{isFormOpen && <UserForm user={selectedUser} onClose={handleFormClose} />}
+
+			{userToDelete !== null && (
+				<ConfirmModal
+					message={STRINGS.CONFIRM_DELETE}
+					onConfirm={confirmDelete}
+					onCancel={cancelDelete}
+				/>
+			)}
 		</div>
 	);
 };

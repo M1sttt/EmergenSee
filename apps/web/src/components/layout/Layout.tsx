@@ -1,15 +1,15 @@
 import { useState, useMemo } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useAuthStore } from '../../store/authStore';
-import { authService } from '../../services/authService';
-import { eventsService } from '../../services/eventsService';
-import { statusService } from '../../services/statusService';
+import { useAuthStore } from 'store/authStore';
+import { authService } from 'services/authService';
+import { eventsService } from 'services/eventsService';
+import { statusService } from 'services/statusService';
 import { WebSocketEventType } from '@emergensee/shared';
-import { useWebSocket } from '../../hooks/useWebSocket';
+import { useWebSocket } from 'hooks/useWebSocket';
 import { CONSTS } from './consts';
 import { STRINGS } from './strings';
-import logo from '../../assets/logo.png';
+import logo from 'assets/logo.png';
 import { getRelevantOngoingEvent, hasUserReportedForEvent, getNavigationLinks } from './utils';
 
 export default function Layout() {
@@ -84,12 +84,9 @@ export default function Layout() {
               : CONSTS.CLASSES.LOGO_CONTAINER_COLLAPSED
               }`}
           >
-            <div className='flex items-center gap-2'>
-              <img src={logo} alt={STRINGS.APP_NAME} className='h-12' />
-              <h1
-                className={CONSTS.CLASSES.LOGO_TEXT_EXPANDED}>
-                {isSidebarExpanded && STRINGS.APP_NAME}
-              </h1>
+            <div className="flex items-center gap-2">
+              <img src={logo} alt={STRINGS.APP_NAME} className="h-12" />
+              <h1 className={CONSTS.CLASSES.LOGO_TEXT_EXPANDED}>{isSidebarExpanded && STRINGS.APP_NAME}</h1>
             </div>
             {isSidebarExpanded && <p className={CONSTS.CLASSES.SUBTITLE}>{STRINGS.APP_SUBTITLE}</p>}
           </div>

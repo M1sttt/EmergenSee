@@ -9,8 +9,7 @@ import {
 	FaChevronRight,
 	FaSignOutAlt,
 } from 'react-icons/fa';
-import { AiFillAlert } from "react-icons/ai";
-
+import { AiFillAlert } from 'react-icons/ai';
 
 export const CONSTS = {
 	ROUTES: {
