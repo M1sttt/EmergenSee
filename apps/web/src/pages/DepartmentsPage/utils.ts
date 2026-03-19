@@ -1,5 +1,5 @@
 import { Department, User, UserRole } from '@emergensee/shared';
-import { STRINGS } from './strings';
+import * as strings from './strings';
 
 export const filterDepartments = (departments: Department[], searchQuery: string): Department[] => {
     if (!searchQuery.trim()) return departments;
@@ -10,7 +10,7 @@ export const filterDepartments = (departments: Department[], searchQuery: string
 };
 
 export const formatAdmins = (adminsIds: string[] | undefined, users: User[]): string => {
-    if (!adminsIds?.length) return STRINGS.NO_ADMINS;
+    if (!adminsIds?.length) return strings.noAdmins;
 
     return adminsIds
         .map(id => {
@@ -18,7 +18,7 @@ export const formatAdmins = (adminsIds: string[] | undefined, users: User[]): st
                 const userId = u.id || ('_id' in u ? (u as unknown as { _id: string })._id : undefined);
                 return userId === id;
             });
-            return user ? `${user.firstName}(${id})` : `${STRINGS.UNKNOWN_ADMIN}(${id})`;
+            return user ? `${user.firstName}(${id})` : `${strings.unknownAdmin}(${id})`;
         })
         .join(', ');
 };

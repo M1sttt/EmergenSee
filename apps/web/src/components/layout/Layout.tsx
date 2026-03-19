@@ -6,10 +6,10 @@ import { authService } from 'services/authService';
 import { WebSocketEventType } from '@emergensee/shared';
 import { useWebSocket } from 'hooks/useWebSocket';
 import { LAYOUT_QUERY_KEYS, useLayoutEventsQuery, useLayoutUserStatusesQuery } from 'hooks/data/useLayoutData';
-import { CONSTS } from './consts';
-import { STRINGS } from './strings';
+import * as consts from './consts';
+import * as strings from './strings';
 import logo from 'assets/logo.png';
-import { getRelevantOngoingEvent, hasUserReportedForEvent, getNavigationLinks } from './utils';
+import * as utils from './utils';
 
 export default function Layout() {
   const location = useLocation();
@@ -36,71 +36,71 @@ export default function Layout() {
   const { data: myStatuses = [] } = useLayoutUserStatusesQuery(user?.id);
 
   const relevantOngoingEvent = useMemo(() => {
-    return getRelevantOngoingEvent(events as any, user);
+    return utils.getRelevantOngoingEvent(events as any, user);
   }, [events, user]);
 
   const hasRelevantOngoingEvent = !!relevantOngoingEvent;
   const hasReportedForEvent = useMemo(() => {
     if (!relevantOngoingEvent) return false;
     const eventId = relevantOngoingEvent.id || (relevantOngoingEvent as any)._id;
-    return hasUserReportedForEvent(eventId, myStatuses);
+    return utils.hasUserReportedForEvent(eventId, myStatuses);
   }, [relevantOngoingEvent, myStatuses]);
 
-  const navigation = getNavigationLinks(hasRelevantOngoingEvent, hasReportedForEvent);
+  const navigation = utils.getNavigationLinks(hasRelevantOngoingEvent, hasReportedForEvent);
   const isActive = (path: string) => location.pathname === path;
   const userInitials = `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}`.toUpperCase() || 'U';
 
-  const CollapseIcon = CONSTS.ICONS.COLLAPSE;
-  const ExpandIcon = CONSTS.ICONS.EXPAND;
-  const LogoutIcon = CONSTS.ICONS.LOGOUT;
+  const CollapseIcon = consts.collapseIcon;
+  const ExpandIcon = consts.expandIcon;
+  const LogoutIcon = consts.logoutIcon;
 
   return (
-    <div className={CONSTS.CLASSES.LAYOUT_CONTAINER}>
+    <div className={consts.layoutContainer}>
       <div
-        className={`${CONSTS.CLASSES.SIDEBAR_BASE} ${isSidebarExpanded ? CONSTS.CLASSES.SIDEBAR_EXPANDED : CONSTS.CLASSES.SIDEBAR_COLLAPSED
+        className={`${consts.sidebarBase} ${isSidebarExpanded ? consts.sidebarExpanded : consts.sidebarCollapsed
           }`}
       >
         <button
           type="button"
-          aria-label={isSidebarExpanded ? STRINGS.COLLAPSE_SIDEBAR : STRINGS.EXPAND_SIDEBAR}
+          aria-label={isSidebarExpanded ? strings.collapseSidebar : strings.expandSidebar}
           onClick={() => setIsSidebarExpanded(prev => !prev)}
-          className={CONSTS.CLASSES.SIDEBAR_BTN}
+          className={consts.sidebarBtn}
         >
           {isSidebarExpanded ? <CollapseIcon /> : <ExpandIcon />}
         </button>
 
-        <div className={CONSTS.CLASSES.SIDEBAR_WRAPPER}>
+        <div className={consts.sidebarWrapper}>
           <div
-            className={`${CONSTS.CLASSES.LOGO_CONTAINER_BASE} ${isSidebarExpanded
-              ? CONSTS.CLASSES.LOGO_CONTAINER_EXPANDED
-              : CONSTS.CLASSES.LOGO_CONTAINER_COLLAPSED
+            className={`${consts.logoContainerBase} ${isSidebarExpanded
+              ? consts.logoContainerExpanded
+              : consts.logoContainerCollapsed
               }`}
           >
             <div className="flex items-center gap-2">
-              <img src={logo} alt={STRINGS.APP_NAME} className="h-12" />
-              <h1 className={CONSTS.CLASSES.LOGO_TEXT_EXPANDED}>{isSidebarExpanded && STRINGS.APP_NAME}</h1>
+              <img src={logo} alt={strings.appName} className="h-12" />
+              <h1 className={consts.logoTextExpanded}>{isSidebarExpanded && strings.appName}</h1>
             </div>
-            {isSidebarExpanded && <p className={CONSTS.CLASSES.SUBTITLE}>{STRINGS.APP_SUBTITLE}</p>}
+            {isSidebarExpanded && <p className={consts.subtitle}>{strings.appSubtitle}</p>}
           </div>
 
           <nav
-            className={`${CONSTS.CLASSES.NAV_CONTAINER_BASE} ${isSidebarExpanded ? CONSTS.CLASSES.NAV_CONTAINER_EXPANDED : CONSTS.CLASSES.NAV_CONTAINER_COLLAPSED}`}
+            className={`${consts.navContainerBase} ${isSidebarExpanded ? consts.navContainerExpanded : consts.navContainerCollapsed}`}
           >
             {navigation.map(item => {
               const active = isActive(item.href);
               const isEmergency = (item as any).isEmergency;
               const needsPulse = (item as any).needsPulse;
 
-              let baseClasses = CONSTS.CLASSES.NAV_LINK_BASE;
+              let baseClasses = consts.navLinkBase;
               if (isEmergency) {
                 baseClasses +=
                   ' ' +
                   (active
-                    ? CONSTS.CLASSES.EMERGENCY_MSG_ACTIVE
-                    : `${CONSTS.CLASSES.EMERGENCY_MSG_INACTIVE} ${needsPulse ? CONSTS.CLASSES.EMERGENCY_PULSE : ''}`);
+                    ? consts.emergencyMsgActive
+                    : `${consts.emergencyMsgInactive} ${needsPulse ? consts.emergencyPulse : ''}`);
               } else {
                 baseClasses +=
-                  ' ' + (active ? CONSTS.CLASSES.NORMAL_MSG_ACTIVE : CONSTS.CLASSES.NORMAL_MSG_INACTIVE);
+                  ' ' + (active ? consts.normalMsgActive : consts.normalMsgInactive);
               }
 
               const { Icon } = item;
@@ -110,7 +110,7 @@ export default function Layout() {
                   key={item.name}
                   to={item.href}
                   title={!isSidebarExpanded ? item.name : undefined}
-                  className={`${baseClasses} ${isSidebarExpanded ? '' : CONSTS.CLASSES.NAV_LINK_COLLAPSED_EXTRA}`}
+                  className={`${baseClasses} ${isSidebarExpanded ? '' : consts.navLinkCollapsedExtra}`}
                 >
                   <span className={`${isSidebarExpanded ? 'mr-3' : ''} text-lg`}>
                     <Icon />
@@ -122,38 +122,38 @@ export default function Layout() {
           </nav>
 
           <div
-            className={`${CONSTS.CLASSES.USER_INFO_CONTAINER_BASE} ${isSidebarExpanded ? '' : CONSTS.CLASSES.USER_INFO_CONTAINER_COLLAPSED}`}
+            className={`${consts.userInfoContainerBase} ${isSidebarExpanded ? '' : consts.userInfoContainerCollapsed}`}
           >
             <button
               onClick={() =>
-                location.pathname === CONSTS.ROUTES.PROFILE ? navigate(-1) : navigate(CONSTS.ROUTES.PROFILE)
+                location.pathname === consts.profileRoute ? navigate(-1) : navigate(consts.profileRoute)
               }
-              className={`${CONSTS.CLASSES.USER_BTN_BASE} ${isSidebarExpanded ? CONSTS.CLASSES.USER_BTN_EXPANDED_EXTRA : ''}`}
+              className={`${consts.userBtnBase} ${isSidebarExpanded ? consts.userBtnExpandedExtra : ''}`}
             >
               {isSidebarExpanded ? (
-                <div className={CONSTS.CLASSES.USER_FLEX}>
-                  <div className={CONSTS.CLASSES.USER_DETAILS}>
-                    <p className={CONSTS.CLASSES.USER_NAME_TEXT}>
+                <div className={consts.userFlex}>
+                  <div className={consts.userDetails}>
+                    <p className={consts.userNameText}>
                       {user?.firstName} {user?.lastName}
                     </p>
-                    <p className={CONSTS.CLASSES.USER_EMAIL_TEXT}>{user?.email}</p>
+                    <p className={consts.userEmailText}>{user?.email}</p>
                   </div>
                 </div>
               ) : (
-                <div className={CONSTS.CLASSES.USER_AVATAR}>{userInitials}</div>
+                <div className={consts.userAvatar}>{userInitials}</div>
               )}
             </button>
 
             <button
               onClick={() => authService.logout()}
-              className={`${CONSTS.CLASSES.LOGOUT_BTN_BASE} ${isSidebarExpanded ? CONSTS.CLASSES.LOGOUT_BTN_EXPANDED : CONSTS.CLASSES.LOGOUT_BTN_COLLAPSED
+              className={`${consts.logoutBtnBase} ${isSidebarExpanded ? consts.logoutBtnExpanded : consts.logoutBtnCollapsed
                 }`}
-              title={!isSidebarExpanded ? STRINGS.LOGOUT_TITLE : undefined}
+              title={!isSidebarExpanded ? strings.logoutTitle : undefined}
             >
               {isSidebarExpanded ? (
                 <>
                   <LogoutIcon />
-                  {STRINGS.LOGOUT_TEXT}
+                  {strings.logoutText}
                 </>
               ) : (
                 <LogoutIcon />
@@ -164,7 +164,7 @@ export default function Layout() {
       </div>
 
       {/* Main content */}
-      <div className={CONSTS.CLASSES.MAIN_CONTENT}>
+      <div className={consts.mainContent}>
         <Outlet />
       </div>
     </div>

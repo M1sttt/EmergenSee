@@ -1,5 +1,5 @@
 import { User, UserRole, UserStatus, Department } from '@emergensee/shared';
-import { CONSTS } from './consts';
+import * as consts from './consts';
 
 export const isGlobalAdmin = (userRole?: UserRole): boolean => userRole === UserRole.ADMIN;
 
@@ -14,7 +14,7 @@ export const filterDepartments = (departments: Department[], searchTerm: string)
 };
 
 export const filterUsers = (users: User[], selectedDeptId: string): User[] => {
-	if (selectedDeptId === CONSTS.ALL_DEPTS_ID) return users;
+	if (selectedDeptId === consts.allDeptsId) return users;
 	return users.filter(user => {
 		return user.departments?.some(deptId => {
 			const idStr = typeof deptId === 'string' ? deptId : (deptId as any)._id || (deptId as any).id;
@@ -26,10 +26,10 @@ export const filterUsers = (users: User[], selectedDeptId: string): User[] => {
 export const getStatusColors = (status: UserStatus) => {
 	switch (status) {
 		case UserStatus.ACTIVE:
-			return CONSTS.COLORS.ACTIVE;
+			return { bg: consts.activeStatusBgClass, text: consts.activeStatusTextClass };
 		case UserStatus.INACTIVE:
-			return CONSTS.COLORS.INACTIVE;
+			return { bg: consts.inactiveStatusBgClass, text: consts.inactiveStatusTextClass };
 		default:
-			return CONSTS.COLORS.SUSPENDED;
+			return { bg: consts.suspendedStatusBgClass, text: consts.suspendedStatusTextClass };
 	}
 };

@@ -1,6 +1,4 @@
-export const strings = {
-	authFailed: 'Authentication failed � missing tokens. Please try again.',
-	profileLoadFailed: 'Could not load your profile. Please try logging in again.',
-	backToLogin: 'Back to login',
-	signingIn: 'Signing you in�',
-};
+export const authFailed = 'Authentication failed - missing tokens. Please try again.';
+export const profileLoadFailed = 'Could not load your profile. Please try logging in again.';
+export const backToLogin = 'Back to login';
+export const signingIn = 'Signing you in...';

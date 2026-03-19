@@ -1,5 +1,5 @@
 import { FiAlertTriangle } from 'react-icons/fi';
-import { CONSTS } from './consts';
+import * as consts from './consts';
 
 export interface ConfirmModalProps {
     title?: string;
@@ -50,14 +50,14 @@ export const ConfirmModal = ({
                     <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                         <button
                             type="button"
-                            className={CONSTS.CONFIRM_BUTTON_CLASS}
+                            className={consts.confirmButtonClass}
                             onClick={onConfirm}
                         >
                             {confirmText}
                         </button>
                         <button
                             type="button"
-                            className={CONSTS.CANCEL_BUTTON_CLASS}
+                            className={consts.cancelButtonClass}
                             onClick={onCancel}
                         >
                             {cancelText}

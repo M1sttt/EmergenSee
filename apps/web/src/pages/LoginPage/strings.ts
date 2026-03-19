@@ -1,30 +1,28 @@
-﻿export const STRINGS = {
-	login: 'login' as const,
-	register: 'register' as const,
-	email: 'Email',
-	password: 'Password',
-	firstName: 'First name',
-	lastName: 'Last name',
-	confirmPassword: 'Confirm password',
-	title: 'EmergenSee',
-	subtitle: 'Emergency Response System',
-	orEmail: 'or use email',
-	loggingIn: 'Logging in...',
-	logIn: 'Log in',
-	dontHaveAccount: "Don't have an account? ",
-	registerBtn: 'Register',
-	creatingAccount: 'Creating account...',
-	createAccount: 'Create account',
-	alreadyHaveAccount: 'Already have an account? ',
-	passwordsDoNotMatch: 'Passwords do not match',
-	min8Chars: '(min. 8 characters)',
-	emailRequired: 'Email is required',
-	passwordRequired: 'Password is required',
-	firstNameRequired: 'Required',
-	lastNameRequired: 'Required',
-	passwordConfirmRequired: 'Please confirm your password',
-	min8CharsMessage: 'Minimum 8 characters',
-	googleSignInFailed: 'Google sign-in failed. Please try again.',
-	loginFailed: 'Login failed. Please try again.',
-	registrationFailed: 'Registration failed. Please try again.',
-};
+﻿export const login = 'login' as const;
+export const register = 'register' as const;
+export const email = 'Email';
+export const password = 'Password';
+export const firstName = 'First name';
+export const lastName = 'Last name';
+export const confirmPassword = 'Confirm password';
+export const title = 'EmergenSee';
+export const subtitle = 'Emergency Response System';
+export const orEmail = 'or use email';
+export const loggingIn = 'Logging in...';
+export const logIn = 'Log in';
+export const dontHaveAccount = "Don't have an account? ";
+export const registerBtn = 'Register';
+export const creatingAccount = 'Creating account...';
+export const createAccount = 'Create account';
+export const alreadyHaveAccount = 'Already have an account? ';
+export const passwordsDoNotMatch = 'Passwords do not match';
+export const min8Chars = '(min. 8 characters)';
+export const emailRequired = 'Email is required';
+export const passwordRequired = 'Password is required';
+export const firstNameRequired = 'Required';
+export const lastNameRequired = 'Required';
+export const passwordConfirmRequired = 'Please confirm your password';
+export const min8CharsMessage = 'Minimum 8 characters';
+export const googleSignInFailed = 'Google sign-in failed. Please try again.';
+export const loginFailed = 'Login failed. Please try again.';
+export const registrationFailed = 'Registration failed. Please try again.';

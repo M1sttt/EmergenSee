@@ -5,9 +5,9 @@ import UserForm from 'components/users/UserForm';
 import { FiEdit, FiTrash2, FiChevronDown } from 'react-icons/fi';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { ActionIcon } from '@/components/common/ActionIcon';
-import { STRINGS } from './strings';
-import { CONSTS } from './consts';
-import { isGlobalAdmin, getAdminDepartments, filterDepartments, filterUsers, getStatusColors } from './utils';
+import * as strings from './strings';
+import * as consts from './consts';
+import * as utils from './utils';
 import { Loader } from '@/components/common/Loader';
 import {
 	useUsersPageDepartmentsQuery,
@@ -20,7 +20,7 @@ const UsersPage = () => {
 
 	const [selectedUser, setSelectedUser] = useState<User | null>(null);
 	const [isFormOpen, setIsFormOpen] = useState(false);
-	const [selectedDeptId, setSelectedDeptId] = useState<string>(CONSTS.ALL_DEPTS_ID);
+	const [selectedDeptId, setSelectedDeptId] = useState<string>(consts.allDeptsId);
 	const [isDeptDropdownOpen, setIsDeptDropdownOpen] = useState(false);
 	const [deptSearchTerm, setDeptSearchTerm] = useState('');
 	const [userToDelete, setUserToDelete] = useState<string | null>(null);
@@ -49,9 +49,9 @@ const UsersPage = () => {
 		isError: isErrorDepts,
 	} = useUsersPageDepartmentsQuery();
 
-	const isAdmin = isGlobalAdmin(currentUser?.role);
+	const isAdmin = utils.isGlobalAdmin(currentUser?.role);
 	const myAdminDepartments = useMemo(
-		() => getAdminDepartments(departments, currentUser?.id),
+		() => utils.getAdminDepartments(departments, currentUser?.id),
 		[departments, currentUser?.id],
 	);
 	const isDepartmentAdmin = myAdminDepartments.length > 0;
@@ -91,33 +91,33 @@ const UsersPage = () => {
 
 	const availableDepartments = isAdmin ? departments : myAdminDepartments;
 	const filteredDepts = useMemo(
-		() => filterDepartments(availableDepartments, deptSearchTerm),
+		() => utils.filterDepartments(availableDepartments, deptSearchTerm),
 		[availableDepartments, deptSearchTerm],
 	);
-	const displayedUsers = useMemo(() => filterUsers(users, selectedDeptId), [users, selectedDeptId]);
+	const displayedUsers = useMemo(() => utils.filterUsers(users, selectedDeptId), [users, selectedDeptId]);
 
 	const isLoading = isLoadingUsers || isLoadingDepartments;
 
 	if (isErrorUsers || isErrorDepts) {
-		return <div className="p-6 text-red-600">{STRINGS.ERROR}</div>;
+		return <div className="p-6 text-red-600">{strings.error}</div>;
 	}
 
 	return (
 		<div className="p-6">
 			<div className="flex justify-between items-center mb-6">
 				<div className="flex items-center gap-6">
-					<h1 className="text-3xl font-bold text-gray-900">{STRINGS.TITLE}</h1>
+					<h1 className="text-3xl font-bold text-gray-900">{strings.title}</h1>
 					<div className="relative w-64" ref={dropdownRef}>
 						<div
 							className="px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm cursor-pointer flex justify-between items-center hover:bg-gray-50 transition-colors"
 							onClick={toggleDropdown}
 						>
 							<span className="truncate text-sm font-medium text-gray-700">
-								{selectedDeptId === CONSTS.ALL_DEPTS_ID
-									? STRINGS.ALL_DEPARTMENTS
+								{selectedDeptId === consts.allDeptsId
+									? strings.allDepartments
 									: availableDepartments.find(
 										(d: Department) => (d.id || (d as unknown as { _id?: string })._id) === selectedDeptId,
-									)?.name || STRINGS.SELECT_DEPARTMENT}
+									)?.name || strings.selectDepartment}
 							</span>
 							<FiChevronDown
 								className={`w-4 h-4 text-gray-400 transition-transform ${isDeptDropdownOpen ? 'transform rotate-180' : ''}`}
@@ -129,7 +129,7 @@ const UsersPage = () => {
 								<div className="p-2 border-b border-gray-100 bg-gray-50">
 									<input
 										type="text"
-										placeholder={STRINGS.SEARCH_DEPARTMENTS}
+										placeholder={strings.searchDepartments}
 										className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
 										value={deptSearchTerm}
 										onChange={e => setDeptSearchTerm(e.target.value)}
@@ -138,14 +138,14 @@ const UsersPage = () => {
 								</div>
 								<ul className="max-h-60 overflow-y-auto">
 									<li
-										className={`px-4 py-2 text-sm cursor-pointer hover:bg-blue-50 ${selectedDeptId === CONSTS.ALL_DEPTS_ID ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'}`}
+										className={`px-4 py-2 text-sm cursor-pointer hover:bg-blue-50 ${selectedDeptId === consts.allDeptsId ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'}`}
 										onClick={() => {
-											setSelectedDeptId(CONSTS.ALL_DEPTS_ID);
+											setSelectedDeptId(consts.allDeptsId);
 											setIsDeptDropdownOpen(false);
 											setDeptSearchTerm('');
 										}}
 									>
-										{STRINGS.ALL_DEPARTMENTS}
+										{strings.allDepartments}
 									</li>
 									{filteredDepts.map((dept: Department) => {
 										const id = (dept.id || (dept as unknown as { _id?: string })._id) as string;
@@ -165,7 +165,7 @@ const UsersPage = () => {
 									})}
 									{filteredDepts.length === 0 && (
 										<li className="px-4 py-3 text-sm text-gray-500 text-center italic">
-											{STRINGS.NO_DEPARTMENTS}
+											{strings.noDepartments}
 										</li>
 									)}
 								</ul>
@@ -179,7 +179,7 @@ const UsersPage = () => {
 						onClick={() => setIsFormOpen(true)}
 						className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
-						{STRINGS.CREATE_USER}
+						{strings.createUser}
 					</button>
 				)}
 			</div>
@@ -189,23 +189,23 @@ const UsersPage = () => {
 					<thead className="bg-gray-50">
 						<tr>
 							<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-								{STRINGS.COLUMNS.NAME}
+								{strings.columnName}
 							</th>
 							<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-								{STRINGS.COLUMNS.EMAIL}
+								{strings.columnEmail}
 							</th>
 							<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-								{STRINGS.COLUMNS.ROLE}
+								{strings.columnRole}
 							</th>
 							<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-								{STRINGS.COLUMNS.STATUS}
+								{strings.columnStatus}
 							</th>
 							<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-								{STRINGS.COLUMNS.PHONE_NUMBER}
+								{strings.columnPhoneNumber}
 							</th>
 							{canCreateUser && (
 								<th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-									{STRINGS.COLUMNS.ACTIONS}
+									{strings.columnActions}
 								</th>
 							)}
 						</tr>
@@ -225,7 +225,7 @@ const UsersPage = () => {
 							</tr>
 						) : (
 							displayedUsers.map(user => {
-								const statusColors = getStatusColors(user.status);
+								const statusColors = utils.getStatusColors(user.status);
 								const userId = user.id || (user as unknown as { _id?: string })._id;
 
 								const canEdit =
@@ -245,7 +245,7 @@ const UsersPage = () => {
 									<tr key={userId}>
 										<td className="px-6 py-4 whitespace-nowrap">
 											<div
-												className={`text-sm font-medium text-gray-900 truncate ${CONSTS.MAX_WIDTH_CLASSES.NAME_COL}`}
+												className={`text-sm font-medium text-gray-900 truncate ${consts.nameColMaxWidthClass}`}
 												title={`${user.firstName} ${user.lastName}`}
 											>
 												{user.firstName} {user.lastName}
@@ -253,7 +253,7 @@ const UsersPage = () => {
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap">
 											<div
-												className={`text-sm text-gray-900 truncate ${CONSTS.MAX_WIDTH_CLASSES.EMAIL_COL}`}
+												className={`text-sm text-gray-900 truncate ${consts.emailColMaxWidthClass}`}
 												title={user.email}
 											>
 												{user.email}
@@ -272,7 +272,7 @@ const UsersPage = () => {
 											</span>
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap">
-											<div className="text-sm text-gray-900">{user.phoneNumber || STRINGS.EMPTY_PHONE}</div>
+											<div className="text-sm text-gray-900">{user.phoneNumber || strings.emptyPhone}</div>
 										</td>
 										{canCreateUser && (
 											<td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -281,7 +281,7 @@ const UsersPage = () => {
 														<ActionIcon
 															onClick={() => handleEdit(user)}
 															className="mr-2 text-blue-600"
-															tooltipText={STRINGS.ACTION_EDIT}
+															tooltipText={strings.actionEdit}
 														>
 															<FiEdit size={16} />
 														</ActionIcon>
@@ -289,7 +289,7 @@ const UsersPage = () => {
 															<ActionIcon
 																onClick={() => handleDelete(userId!)}
 																className="text-red-600"
-																tooltipText={STRINGS.ACTION_DELETE}
+																tooltipText={strings.actionDelete}
 															>
 																<FiTrash2 size={16} />
 															</ActionIcon>
@@ -310,7 +310,7 @@ const UsersPage = () => {
 
 			{userToDelete !== null && (
 				<ConfirmModal
-					message={STRINGS.CONFIRM_DELETE}
+					message={strings.confirmDelete}
 					onConfirm={confirmDelete}
 					onCancel={cancelDelete}
 				/>

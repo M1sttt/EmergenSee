@@ -8,9 +8,9 @@ import {
 	useEventFormDepartmentsQuery,
 	useEventFormUpdateMutation,
 } from 'hooks/data/useEventFormData';
-import { EventFormStrings } from './strings';
-import { EventFormConsts } from './consts';
-import { prepareEventFormData, getDefaultValues } from './utils';
+import * as strings from './strings';
+import * as consts from './consts';
+import * as utils from './utils';
 
 interface EventFormProps {
 	event?: Event | null;
@@ -24,7 +24,7 @@ const EventForm: React.FC<EventFormProps> = ({ event, onClose }) => {
 		isError: isErrorDeps,
 	} = useEventFormDepartmentsQuery();
 
-	const defaultValues = getDefaultValues(event);
+	const defaultValues = utils.getDefaultValues(event);
 
 	const {
 		register,
@@ -45,7 +45,7 @@ const EventForm: React.FC<EventFormProps> = ({ event, onClose }) => {
 
 	const onSubmit = useCallback(
 		(data: CreateEventDto) => {
-			const formData = prepareEventFormData(data);
+			const formData = utils.prepareEventFormData(data);
 			if (event) {
 				updateMutation.mutate({ id: event.id, data: formData });
 			} else {
@@ -58,59 +58,59 @@ const EventForm: React.FC<EventFormProps> = ({ event, onClose }) => {
 	const isLoading = createMutation.isPending || updateMutation.isPending;
 
 	return (
-		<div className={EventFormConsts.STYLES.CONTAINER}>
-			<div className={EventFormConsts.STYLES.FORM_CARD}>
-				<h2 className={EventFormConsts.STYLES.TITLE}>
-					{event ? EventFormStrings.TITLE_EDIT : EventFormStrings.TITLE_CREATE}
+		<div className={consts.containerClass}>
+			<div className={consts.formCardClass}>
+				<h2 className={consts.titleClass}>
+					{event ? strings.titleEdit : strings.titleCreate}
 				</h2>
 
 				{isLoadingDeps ? (
-					<div className={EventFormConsts.STYLES.LOADING_CONTAINER}>
-						<p>{EventFormStrings.LOADING_DEPARTMENTS}</p>
+					<div className={consts.loadingContainerClass}>
+						<p>{strings.loadingDepartments}</p>
 					</div>
 				) : isErrorDeps ? (
-					<div className={EventFormConsts.STYLES.ERROR_CONTAINER}>
+					<div className={consts.errorContainerClass}>
 						<p className="flex items-center justify-center gap-2">
 							<FiAlertCircle />
-							{EventFormStrings.ERROR_DEPARTMENTS}
+							{strings.errorDepartments}
 						</p>
 					</div>
 				) : (
 					<form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 						<div>
-							<label className={EventFormConsts.STYLES.LABEL}>{EventFormStrings.LABEL_TITLE}</label>
+							<label className={consts.labelClass}>{strings.labelTitle}</label>
 							<input
-								{...register('title', { required: EventFormStrings.ERR_TITLE_REQUIRED })}
+								{...register('title', { required: strings.errTitleRequired })}
 								type="text"
-								className={EventFormConsts.STYLES.INPUT}
+								className={consts.inputClass}
 							/>
-							{errors.title && <p className={EventFormConsts.STYLES.ERROR}>{errors.title.message}</p>}
+							{errors.title && <p className={consts.errorClass}>{errors.title.message}</p>}
 						</div>
 
 						<div>
-							<label className={EventFormConsts.STYLES.LABEL}>{EventFormStrings.LABEL_TYPE}</label>
+							<label className={consts.labelClass}>{strings.labelType}</label>
 							<Controller
 								name="type"
 								control={control}
-								rules={{ required: EventFormStrings.ERR_TYPE_REQUIRED }}
+								rules={{ required: strings.errTypeRequired }}
 								render={({ field }) => (
 									<SelectDropdown
 										{...field}
 										options={Object.values(EventType).map(type => ({ value: type, label: type }))}
-										placeholder={EventFormStrings.PLACEHOLDER_SELECT_TYPE}
+										placeholder={strings.placeholderSelectType}
 										error={errors.type?.message}
 									/>
 								)}
 							/>
-							{errors.type && <p className={EventFormConsts.STYLES.ERROR}>{errors.type.message}</p>}
+							{errors.type && <p className={consts.errorClass}>{errors.type.message}</p>}
 						</div>
 
 						<div>
-							<label className={EventFormConsts.STYLES.LABEL}>{EventFormStrings.LABEL_PRIORITY}</label>
+							<label className={consts.labelClass}>{strings.labelPriority}</label>
 							<Controller
 								name="priority"
 								control={control}
-								rules={{ required: EventFormStrings.ERR_PRIORITY_REQUIRED }}
+								rules={{ required: strings.errPriorityRequired }}
 								render={({ field }) => (
 									<SelectDropdown
 										{...field}
@@ -118,20 +118,20 @@ const EventForm: React.FC<EventFormProps> = ({ event, onClose }) => {
 											value: priority,
 											label: priority,
 										}))}
-										placeholder={EventFormStrings.PLACEHOLDER_SELECT_PRIORITY}
+										placeholder={strings.placeholderSelectPriority}
 										error={errors.priority?.message}
 									/>
 								)}
 							/>
-							{errors.priority && <p className={EventFormConsts.STYLES.ERROR}>{errors.priority.message}</p>}
+							{errors.priority && <p className={consts.errorClass}>{errors.priority.message}</p>}
 						</div>
 
 						<div>
-							<label className={EventFormConsts.STYLES.LABEL}>{EventFormStrings.LABEL_DEPARTMENTS}</label>
+							<label className={consts.labelClass}>{strings.labelDepartments}</label>
 							<Controller
 								name="departments"
 								control={control}
-								rules={{ required: EventFormStrings.ERR_DEPARTMENTS_REQUIRED }}
+								rules={{ required: strings.errDepartmentsRequired }}
 								render={({ field }) => (
 									<SelectDropdown
 										{...field}
@@ -140,46 +140,46 @@ const EventForm: React.FC<EventFormProps> = ({ event, onClose }) => {
 											value: dept.id || (dept as { _id?: string })._id || '',
 											label: dept.name,
 										}))}
-										placeholder={EventFormStrings.LABEL_DEPARTMENTS}
+										placeholder={strings.labelDepartments}
 										error={errors.departments?.message}
 									/>
 								)}
 							/>
 							{errors.departments && (
-								<p className={EventFormConsts.STYLES.ERROR}>{errors.departments.message}</p>
+								<p className={consts.errorClass}>{errors.departments.message}</p>
 							)}
 						</div>
 
 						<div>
-							<label className={EventFormConsts.STYLES.LABEL}>{EventFormStrings.LABEL_DESCRIPTION}</label>
+							<label className={consts.labelClass}>{strings.labelDescription}</label>
 							<textarea
 								{...register('description', {
-									required: EventFormStrings.ERR_DESCRIPTION_REQUIRED,
+									required: strings.errDescriptionRequired,
 								})}
 								rows={3}
-								className={EventFormConsts.STYLES.TEXTAREA}
+								className={consts.textareaClass}
 							/>
 							{errors.description && (
-								<p className={EventFormConsts.STYLES.ERROR}>{errors.description.message}</p>
+								<p className={consts.errorClass}>{errors.description.message}</p>
 							)}
 						</div>
 
-						<div className={EventFormConsts.STYLES.BUTTON_GROUP}>
+						<div className={consts.buttonGroupClass}>
 							<button
 								type="button"
 								onClick={onClose}
 								disabled={isLoading}
-								className={`${EventFormConsts.STYLES.BTN_CANCEL} ${isLoading ? EventFormConsts.STYLES.BTN_LOADING : ''}`}
+								className={`${consts.btnCancelClass} ${isLoading ? consts.btnLoadingClass : ''}`}
 							>
-								<FiX className="w-4 h-4" /> {EventFormStrings.BTN_CANCEL}
+								<FiX className="w-4 h-4" /> {strings.btnCancel}
 							</button>
 							<button
 								type="submit"
 								disabled={isLoading}
-								className={`${EventFormConsts.STYLES.BTN_SUBMIT} ${isLoading ? EventFormConsts.STYLES.BTN_LOADING : ''}`}
+								className={`${consts.btnSubmitClass} ${isLoading ? consts.btnLoadingClass : ''}`}
 							>
 								<FiSave className="w-4 h-4" />{' '}
-								{event ? EventFormStrings.BTN_UPDATE : EventFormStrings.BTN_CREATE}
+								{event ? strings.btnUpdate : strings.btnCreate}
 							</button>
 						</div>
 					</form>

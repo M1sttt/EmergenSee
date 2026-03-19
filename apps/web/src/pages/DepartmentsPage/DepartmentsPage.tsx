@@ -6,9 +6,9 @@ import DepartmentMembersModal from '@/components/DepartmentMembersModal';
 import { Loader } from '@/components/common/Loader';
 import { useAuthStore } from 'store/authStore';
 
-import { STRINGS } from './strings';
-import { CLASSES } from './consts';
-import { filterDepartments, formatAdmins, checkIsAdmin } from './utils';
+import * as strings from './strings';
+import * as consts from './consts';
+import * as utils from './utils';
 import { ActionIcon } from '@/components/common/ActionIcon';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { UserRole } from '@emergensee/shared';
@@ -36,7 +36,7 @@ const DepartmentsPage: React.FC = () => {
     const { data: users = [] } = useDepartmentsPageUsersQuery();
 
     const filteredDepartments = useMemo(
-        () => filterDepartments(departments, searchQuery),
+        () => utils.filterDepartments(departments, searchQuery),
         [departments, searchQuery],
     );
 
@@ -85,40 +85,40 @@ const DepartmentsPage: React.FC = () => {
     }, []);
 
     if (isError) {
-        return <div className={CLASSES.ERROR_TEXT}>{STRINGS.ERROR}</div>;
+        return <div className={consts.errorTextClass}>{strings.error}</div>;
     }
 
     return (
-        <div className={CLASSES.PAGE_CONTAINER}>
-            <div className={CLASSES.HEADER_WRAPPER}>
-                <h1 className={CLASSES.PAGE_TITLE}>{STRINGS.PAGE_TITLE}</h1>
-                <div className={CLASSES.SEARCH_CONTAINER}>
+        <div className={consts.pageContainerClass}>
+            <div className={consts.headerWrapperClass}>
+                <h1 className={consts.pageTitleClass}>{strings.pageTitle}</h1>
+                <div className={consts.searchContainerClass}>
                     <input
                         type="text"
-                        placeholder={STRINGS.SEARCH_PLACEHOLDER}
+                        placeholder={strings.searchPlaceholder}
                         value={searchQuery}
                         onChange={handleSearchChange}
-                        className={CLASSES.SEARCH_INPUT}
+                        className={consts.searchInputClass}
                     />
                     {currentUser?.role === UserRole.ADMIN && (
-                        <button onClick={handleCreateClick} className={CLASSES.CREATE_BUTTON}>
-                            {STRINGS.CREATE_BUTTON}
+                        <button onClick={handleCreateClick} className={consts.createButtonClass}>
+                            {strings.createButton}
                         </button>
                     )}
                 </div>
             </div>
 
-            <div className={CLASSES.TABLE_CONTAINER}>
-                <table className={CLASSES.TABLE}>
-                    <thead className={CLASSES.THEAD}>
+            <div className={consts.tableContainerClass}>
+                <table className={consts.tableClass}>
+                    <thead className={consts.theadClass}>
                         <tr>
-                            <th className={CLASSES.TH}>Name</th>
-                            <th className={CLASSES.TH}>Description</th>
-                            <th className={CLASSES.TH}>Admins</th>
-                            <th className={CLASSES.TH_LAST}>Actions</th>
+                            <th className={consts.thClass}>Name</th>
+                            <th className={consts.thClass}>Description</th>
+                            <th className={consts.thClass}>Admins</th>
+                            <th className={consts.thLastClass}>Actions</th>
                         </tr>
                     </thead>
-                    <tbody className={CLASSES.TBODY}>
+                    <tbody className={consts.tbodyClass}>
                         {isLoading ? (
                             <tr>
                                 <td colSpan={4} className="py-8">
@@ -127,33 +127,33 @@ const DepartmentsPage: React.FC = () => {
                             </tr>
                         ) : filteredDepartments.length === 0 ? (
                             <tr>
-                                <td colSpan={4} className={CLASSES.EMPTY_ROW}>
-                                    {STRINGS.NO_DEPARTMENTS}
+                                <td colSpan={4} className={consts.emptyRowClass}>
+                                    {strings.noDepartments}
                                 </td>
                             </tr>
                         ) : (
                             filteredDepartments.map(department => {
-                                const isAdmin = checkIsAdmin(department, currentUser);
-                                const adminsDisplay = formatAdmins(department.admins, users);
+                                const isAdmin = utils.checkIsAdmin(department, currentUser);
+                                const adminsDisplay = utils.formatAdmins(department.admins, users);
 
                                 return (
                                     <tr key={department.id}>
-                                        <td className={CLASSES.TD}>
-                                            <div className={CLASSES.TD_TEXT} title={department.name}>
+                                        <td className={consts.tdClass}>
+                                            <div className={consts.tdTextClass} title={department.name}>
                                                 {department.name}
                                             </div>
                                         </td>
-                                        <td className={CLASSES.TD}>
-                                            <div className={CLASSES.TD_DESC} title={department.description}>
+                                        <td className={consts.tdClass}>
+                                            <div className={consts.tdDescClass} title={department.description}>
                                                 {department.description}
                                             </div>
                                         </td>
-                                        <td className={CLASSES.TD}>
-                                            <div className={CLASSES.TD_ADMINS} title={adminsDisplay}>
+                                        <td className={consts.tdClass}>
+                                            <div className={consts.tdAdminsClass} title={adminsDisplay}>
                                                 {adminsDisplay}
                                             </div>
                                         </td>
-                                        <td className={CLASSES.TD_ACTIONS}>
+                                        <td className={consts.tdActionsClass}>
                                             {isAdmin && (
                                                 <div className="flex justify-end gap-2">
                                                     <ActionIcon
@@ -196,7 +196,7 @@ const DepartmentsPage: React.FC = () => {
 
             {departmentToDelete !== null && (
                 <ConfirmModal
-                    message={STRINGS.CONFIRM_DELETE}
+                    message={strings.confirmDelete}
                     onConfirm={confirmDelete}
                     onCancel={cancelDelete}
                 />

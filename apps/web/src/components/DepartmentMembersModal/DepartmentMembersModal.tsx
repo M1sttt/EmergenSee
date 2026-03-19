@@ -5,9 +5,9 @@ import {
 	useDepartmentMembersModalUpdateMutation,
 	useDepartmentMembersModalUsersQuery,
 } from 'hooks/data/useDepartmentMembersModalData';
-import { STRINGS } from './strings';
-import { CONSTS } from './consts';
-import { filterUsers, toggleSelection } from './utils';
+import * as strings from './strings';
+import * as consts from './consts';
+import * as utils from './utils';
 
 interface DepartmentMembersModalProps {
 	department: Department;
@@ -17,8 +17,8 @@ interface DepartmentMembersModalProps {
 const DepartmentMembersModal: React.FC<DepartmentMembersModalProps> = ({ department, onClose }) => {
 	const [searchQuery, setSearchQuery] = useState('');
 	const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
-	const [activeTab, setActiveTab] = useState<typeof CONSTS.TABS.ADD | typeof CONSTS.TABS.REMOVE>(
-		CONSTS.TABS.ADD,
+	const [activeTab, setActiveTab] = useState<typeof consts.addTab | typeof consts.removeTab>(
+		consts.addTab,
 	);
 
 	const {
@@ -28,68 +28,68 @@ const DepartmentMembersModal: React.FC<DepartmentMembersModalProps> = ({ departm
 	} = useDepartmentMembersModalUsersQuery();
 
 	const displayedUsers = useMemo(
-		() => filterUsers(users, department.id, activeTab, searchQuery),
+		() => utils.filterUsers(users, department.id, activeTab, searchQuery),
 		[users, department.id, activeTab, searchQuery],
 	);
 
 	const handleToggleUser = useCallback((userId: string) => {
-		setSelectedUserIds(prev => toggleSelection(prev, userId));
+		setSelectedUserIds(prev => utils.toggleSelection(prev, userId));
 	}, []);
 
 	const handleTabChangeAdd = useCallback(() => {
-		setActiveTab(CONSTS.TABS.ADD);
+		setActiveTab(consts.addTab);
 		setSelectedUserIds(new Set());
 	}, []);
 
 	const handleTabChangeRemove = useCallback(() => {
-		setActiveTab(CONSTS.TABS.REMOVE);
+		setActiveTab(consts.removeTab);
 		setSelectedUserIds(new Set());
 	}, []);
 
 	const updateMutation = useDepartmentMembersModalUpdateMutation();
 
 	return (
-		<div className={CONSTS.CLASSES.MODAL_CONTAINER}>
-			<div className={CONSTS.CLASSES.MODAL_WRAPPER}>
-				<div className={CONSTS.CLASSES.OVERLAY} onClick={onClose} />
+		<div className={consts.modalContainerClass}>
+			<div className={consts.modalWrapperClass}>
+				<div className={consts.overlayClass} onClick={onClose} />
 
-				<div className={CONSTS.CLASSES.MODAL_CONTENT}>
-					<div className={CONSTS.CLASSES.HEADER}>
-						<h3 className={CONSTS.CLASSES.TITLE}>
-							{STRINGS.MANAGE_MEMBERS} {department.name}
+				<div className={consts.modalContentClass}>
+					<div className={consts.headerClass}>
+						<h3 className={consts.titleClass}>
+							{strings.manageMembers} {department.name}
 						</h3>
 
-						<div className={CONSTS.CLASSES.TAB_CONTAINER}>
+						<div className={consts.tabContainerClass}>
 							<button
-								className={`${CONSTS.CLASSES.TAB_BASE} ${activeTab === CONSTS.TABS.ADD ? CONSTS.CLASSES.TAB_ACTIVE : CONSTS.CLASSES.TAB_INACTIVE}`}
+								className={`${consts.tabBaseClass} ${activeTab === consts.addTab ? consts.tabActiveClass : consts.tabInactiveClass}`}
 								onClick={handleTabChangeAdd}
 							>
-								{STRINGS.ADD_MEMBERS}
+								{strings.addMembers}
 							</button>
 							<button
-								className={`${CONSTS.CLASSES.TAB_BASE} ${activeTab === CONSTS.TABS.REMOVE ? CONSTS.CLASSES.TAB_ACTIVE : CONSTS.CLASSES.TAB_INACTIVE}`}
+								className={`${consts.tabBaseClass} ${activeTab === consts.removeTab ? consts.tabActiveClass : consts.tabInactiveClass}`}
 								onClick={handleTabChangeRemove}
 							>
-								{STRINGS.REMOVE_MEMBERS}
+								{strings.removeMembers}
 							</button>
 						</div>
 
 						<input
 							type="text"
-							placeholder={STRINGS.SEARCH_PLACEHOLDER}
+							placeholder={strings.searchPlaceholder}
 							value={searchQuery}
 							onChange={e => setSearchQuery(e.target.value)}
-							className={CONSTS.CLASSES.SEARCH_INPUT}
+							className={consts.searchInputClass}
 						/>
 					</div>
 
-					<div className={CONSTS.CLASSES.LIST_CONTAINER}>
+					<div className={consts.listContainerClass}>
 						{isLoading ? (
-							<div className="text-center py-4 text-gray-500">{STRINGS.LOADING_USERS}</div>
+							<div className="text-center py-4 text-gray-500">{strings.loadingUsers}</div>
 						) : isError ? (
-							<div className="text-center py-4 text-red-500">{STRINGS.ERROR}</div>
+							<div className="text-center py-4 text-red-500">{strings.errorText}</div>
 						) : displayedUsers.length === 0 ? (
-							<div className="text-center py-4 text-gray-500">{STRINGS.NO_USERS_FOUND}</div>
+							<div className="text-center py-4 text-gray-500">{strings.noUsersFound}</div>
 						) : (
 							<ul className="space-y-2">
 								{displayedUsers.map(user => {
@@ -98,16 +98,16 @@ const DepartmentMembersModal: React.FC<DepartmentMembersModalProps> = ({ departm
 										<li
 											key={user.id}
 											onClick={() => handleToggleUser(user.id)}
-											className={`${CONSTS.CLASSES.LIST_ITEM_BASE} ${isSelected ? CONSTS.CLASSES.LIST_ITEM_SELECTED : CONSTS.CLASSES.LIST_ITEM_UNSELECTED}`}
+											className={`${consts.listItemBaseClass} ${isSelected ? consts.listItemSelectedClass : consts.listItemUnselectedClass}`}
 										>
 											<div>
-												<p className={CONSTS.CLASSES.USER_NAME}>
+												<p className={consts.userNameClass}>
 													{user.firstName} {user.lastName}
 												</p>
-												<p className={CONSTS.CLASSES.USER_EMAIL}>{user.email}</p>
+												<p className={consts.userEmailClass}>{user.email}</p>
 											</div>
 											<div
-												className={`${CONSTS.CLASSES.CHECKBOX_BASE} ${isSelected ? CONSTS.CLASSES.CHECKBOX_SELECTED : CONSTS.CLASSES.CHECKBOX_UNSELECTED}`}
+												className={`${consts.checkboxBaseClass} ${isSelected ? consts.checkboxSelectedClass : consts.checkboxUnselectedClass}`}
 											>
 												{isSelected && <FaCheck className="w-3 h-3" />}
 											</div>
@@ -118,7 +118,7 @@ const DepartmentMembersModal: React.FC<DepartmentMembersModalProps> = ({ departm
 						)}
 					</div>
 
-					<div className={CONSTS.CLASSES.FOOTER}>
+					<div className={consts.footerClass}>
 						<button
 							onClick={() =>
 								updateMutation.mutate(
@@ -137,16 +137,16 @@ const DepartmentMembersModal: React.FC<DepartmentMembersModalProps> = ({ departm
 								)
 							}
 							disabled={selectedUserIds.size === 0 || updateMutation.isPending}
-							className={`${CONSTS.CLASSES.BTN_PRIMARY} ${activeTab === CONSTS.TABS.ADD ? CONSTS.CLASSES.BTN_ADD : CONSTS.CLASSES.BTN_REMOVE}`}
+							className={`${consts.btnPrimaryClass} ${activeTab === consts.addTab ? consts.btnAddClass : consts.btnRemoveClass}`}
 						>
 							{updateMutation.isPending
-								? STRINGS.PROCESSING
-								: activeTab === CONSTS.TABS.ADD
-									? `${STRINGS.ADD_SELECTED} (${selectedUserIds.size})`
-									: `${STRINGS.REMOVE_SELECTED} (${selectedUserIds.size})`}
+								? strings.processing
+								: activeTab === consts.addTab
+									? `${strings.addSelected} (${selectedUserIds.size})`
+									: `${strings.removeSelected} (${selectedUserIds.size})`}
 						</button>
-						<button onClick={onClose} className={CONSTS.CLASSES.BTN_CLOSE}>
-							{STRINGS.CLOSE}
+						<button onClick={onClose} className={consts.btnCloseClass}>
+							{strings.closeText}
 						</button>
 					</div>
 				</div>

@@ -8,10 +8,9 @@ import {
 	useDepartmentFormDepartmentsQuery,
 	useDepartmentFormSaveMutation,
 } from 'hooks/data/useDepartmentFormData';
-
-import { STRINGS } from './strings';
-import { CONSTS } from './consts';
-import { getAvailableSubDepartments } from './utils';
+import * as strings from './strings';
+import * as consts from './consts';
+import * as utils from './utils';
 
 interface DepartmentFormProps {
 	department: Department | null;
@@ -40,7 +39,7 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ department, onClose }) 
 	}, [allDepartmentsResponse]);
 
 	const availableSubDepartments = useMemo(
-		() => getAvailableSubDepartments(allDepartments, department),
+		() => utils.getAvailableSubDepartments(allDepartments, department),
 		[allDepartments, department],
 	);
 
@@ -72,7 +71,7 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ department, onClose }) 
 		currentUserId: currentUser?.id,
 		onSuccess: onClose,
 		onError: message => {
-			setError(message || STRINGS.DEFAULT_ERROR);
+			setError(message || strings.defaultError);
 		},
 	});
 
@@ -85,9 +84,9 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ department, onClose }) 
 
 	if (isLoading) {
 		return (
-			<div className={CONSTS.UI_CLASSES.MODAL_CONTAINER}>
-				<div className={CONSTS.UI_CLASSES.MODAL_WRAPPER}>
-					<div className={CONSTS.UI_CLASSES.OVERLAY} />
+			<div className={consts.modalContainerClass}>
+				<div className={consts.modalWrapperClass}>
+					<div className={consts.overlayClass} />
 					<div className="relative transform overflow-hidden rounded-lg bg-white p-6 shadow-xl text-center z-10">
 						Loading...
 					</div>
@@ -98,13 +97,13 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ department, onClose }) 
 
 	if (isError) {
 		return (
-			<div className={CONSTS.UI_CLASSES.MODAL_CONTAINER}>
-				<div className={CONSTS.UI_CLASSES.MODAL_WRAPPER}>
-					<div className={CONSTS.UI_CLASSES.OVERLAY} />
+			<div className={consts.modalContainerClass}>
+				<div className={consts.modalWrapperClass}>
+					<div className={consts.overlayClass} />
 					<div className="relative transform overflow-hidden rounded-lg bg-white p-6 shadow-xl text-center z-10 text-red-600 flex items-center gap-2">
 						<FiAlertCircle /> Failed to load departments
-						<button onClick={onClose} className={CONSTS.UI_CLASSES.CANCEL_BUTTON}>
-							{STRINGS.CANCEL}
+						<button onClick={onClose} className={consts.cancelButtonClass}>
+							{strings.cancelText}
 						</button>
 					</div>
 				</div>
@@ -113,21 +112,21 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ department, onClose }) 
 	}
 
 	return (
-		<div className={CONSTS.UI_CLASSES.MODAL_CONTAINER}>
-			<div className={CONSTS.UI_CLASSES.MODAL_WRAPPER}>
-				<div className={CONSTS.UI_CLASSES.OVERLAY} onClick={onClose} />
+		<div className={consts.modalContainerClass}>
+			<div className={consts.modalWrapperClass}>
+				<div className={consts.overlayClass} onClick={onClose} />
 
-				<div className={CONSTS.UI_CLASSES.MODAL_CONTENT}>
-					<div className={CONSTS.UI_CLASSES.MODAL_BODY}>
+				<div className={consts.modalContentClass}>
+					<div className={consts.modalBodyClass}>
 						<div className="sm:flex sm:items-start">
-							<div className={CONSTS.UI_CLASSES.FORM_CONTAINER}>
-								<h3 className={CONSTS.UI_CLASSES.HEADING}>
-									{department ? STRINGS.EDIT_DEPARTMENT : STRINGS.CREATE_DEPARTMENT}
+							<div className={consts.formContainerClass}>
+								<h3 className={consts.headingClass}>
+									{department ? strings.editDepartment : strings.createDepartment}
 								</h3>
 
-								<form onSubmit={handleSubmit(onSubmit)} className={CONSTS.UI_CLASSES.FORM_LAYOUT}>
+								<form onSubmit={handleSubmit(onSubmit)} className={consts.formLayoutClass}>
 									{error && (
-										<div className={CONSTS.UI_CLASSES.ERROR_BOX}>
+										<div className={consts.errorBoxClass}>
 											<div className="flex items-center gap-2">
 												<FiAlertCircle />
 												<span>{error}</span>
@@ -136,31 +135,31 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ department, onClose }) 
 									)}
 
 									<div>
-										<label className={CONSTS.UI_CLASSES.LABEL}>{STRINGS.NAME_LABEL}</label>
-										<input type="text" {...register('name')} className={CONSTS.UI_CLASSES.INPUT_BASE} />
+										<label className={consts.labelClass}>{strings.nameLabel}</label>
+										<input type="text" {...register('name')} className={consts.inputBaseClass} />
 										{errors.name && (
-											<p className={CONSTS.UI_CLASSES.ERROR_TEXT}>{errors.name.message as string}</p>
+											<p className={consts.errorTextClass}>{errors.name.message as string}</p>
 										)}
 									</div>
 
 									<div>
-										<label className={CONSTS.UI_CLASSES.LABEL}>{STRINGS.DESCRIPTION_LABEL}</label>
+										<label className={consts.labelClass}>{strings.descriptionLabel}</label>
 										<textarea
 											{...register('description')}
 											rows={3}
-											className={CONSTS.UI_CLASSES.INPUT_BASE}
+											className={consts.inputBaseClass}
 										/>
 										{errors.description && (
-											<p className={CONSTS.UI_CLASSES.ERROR_TEXT}>{errors.description.message as string}</p>
+											<p className={consts.errorTextClass}>{errors.description.message as string}</p>
 										)}
 									</div>
 
 									<div>
-										<label className={CONSTS.UI_CLASSES.LABEL}>{STRINGS.SUB_DEPARTMENTS_LABEL}</label>
+										<label className={consts.labelClass}>{strings.subDepartmentsLabel}</label>
 										<select
 											multiple
 											{...register('subDepartments')}
-											className={CONSTS.UI_CLASSES.SELECT_MULTIPLE}
+											className={consts.selectMultipleClass}
 										>
 											{availableSubDepartments.map(dept => (
 												<option key={dept.id} value={dept.id}>
@@ -169,20 +168,20 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ department, onClose }) 
 											))}
 										</select>
 										{errors.subDepartments && (
-											<p className={CONSTS.UI_CLASSES.ERROR_TEXT}>
+											<p className={consts.errorTextClass}>
 												{errors.subDepartments.message as string}
 											</p>
 										)}
 									</div>
 
-									<div className={CONSTS.UI_CLASSES.ACTIONS_CONTAINER}>
-										<button type="submit" disabled={isSubmitting} className={CONSTS.UI_CLASSES.SAVE_BUTTON}>
+									<div className={consts.actionsContainerClass}>
+										<button type="submit" disabled={isSubmitting} className={consts.saveButtonClass}>
 											<FiSave className="mr-2 h-4 w-4" />
-											{isSubmitting ? STRINGS.SAVING : STRINGS.SAVE}
+											{isSubmitting ? strings.savingText : strings.saveText}
 										</button>
-										<button type="button" onClick={onClose} className={CONSTS.UI_CLASSES.CANCEL_BUTTON}>
+										<button type="button" onClick={onClose} className={consts.cancelButtonClass}>
 											<FiX className="mr-2 h-4 w-4" />
-											{STRINGS.CANCEL}
+											{strings.cancelText}
 										</button>
 									</div>
 								</form>

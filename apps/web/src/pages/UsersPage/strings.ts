@@ -1,22 +1,18 @@
-export const STRINGS = {
-	TITLE: 'Users',
-	LOADING: 'Loading...',
-	ALL_DEPARTMENTS: 'All Departments',
-	SELECT_DEPARTMENT: 'Select Department',
-	SEARCH_DEPARTMENTS: 'Search departments...',
-	NO_DEPARTMENTS: 'No departments found',
-	CREATE_USER: 'Create User',
-	CONFIRM_DELETE: 'Are you sure you want to delete this user?',
-	COLUMNS: {
-		NAME: 'Name',
-		EMAIL: 'Email',
-		ROLE: 'Role',
-		STATUS: 'Status',
-		PHONE_NUMBER: 'Phone Number',
-		ACTIONS: 'Actions',
-	},
-	EMPTY_PHONE: '-',
-	ACTION_EDIT: 'Edit',
-	ACTION_DELETE: 'Delete',
-	ERROR: 'Error loading data',
-};
+export const title = 'Users';
+export const loading = 'Loading...';
+export const allDepartments = 'All Departments';
+export const selectDepartment = 'Select Department';
+export const searchDepartments = 'Search departments...';
+export const noDepartments = 'No departments found';
+export const createUser = 'Create User';
+export const confirmDelete = 'Are you sure you want to delete this user?';
+export const columnName = 'Name';
+export const columnEmail = 'Email';
+export const columnRole = 'Role';
+export const columnStatus = 'Status';
+export const columnPhoneNumber = 'Phone Number';
+export const columnActions = 'Actions';
+export const emptyPhone = '-';
+export const actionEdit = 'Edit';
+export const actionDelete = 'Delete';
+export const error = 'Error loading data';

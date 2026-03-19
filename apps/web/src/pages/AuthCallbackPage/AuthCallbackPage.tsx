@@ -2,9 +2,9 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from 'store/authStore';
 import { MdErrorOutline, MdArrowBack } from 'react-icons/md';
-import { fetchUserProfile, getAuthTokensFromUrl } from './utils';
-import { strings } from './strings';
-import { ROUTES, CLASSES } from './consts';
+import * as utils from './utils';
+import * as strings from './strings';
+import * as consts from './consts';
 
 const AuthCallbackPage: React.FC = () => {
 	const navigate = useNavigate();
@@ -13,7 +13,7 @@ const AuthCallbackPage: React.FC = () => {
 	const [error, setError] = useState<string | null>(null);
 
 	const handleAuth = useCallback(async () => {
-		const { accessToken, refreshToken } = getAuthTokensFromUrl();
+		const { accessToken, refreshToken } = utils.getAuthTokensFromUrl();
 
 		if (!accessToken || !refreshToken) {
 			setError(strings.authFailed);
@@ -23,9 +23,9 @@ const AuthCallbackPage: React.FC = () => {
 		updateToken(accessToken);
 
 		try {
-			const user = await fetchUserProfile(accessToken);
+			const user = await utils.fetchUserProfile(accessToken);
 			setAuth(user, accessToken, refreshToken);
-			navigate(ROUTES.DASHBOARD, { replace: true });
+			navigate(consts.dashboardRoute, { replace: true });
 		} catch (err) {
 			setError(strings.profileLoadFailed);
 		}
@@ -35,15 +35,15 @@ const AuthCallbackPage: React.FC = () => {
 		handleAuth();
 	}, [handleAuth]);
 
-	const errorContainerClasses = useMemo(() => CLASSES.MAIN_CONTAINER, []);
-	const errorCardClasses = useMemo(() => CLASSES.ERROR_CARD, []);
-	const errorTextClasses = useMemo(() => CLASSES.ERROR_TEXT, []);
-	const backToLoginClasses = useMemo(() => CLASSES.BACK_LINK, []);
-	const loadingContainerClasses = useMemo(() => CLASSES.MAIN_CONTAINER, []);
-	const loadingWrapperClasses = useMemo(() => CLASSES.LOADING_WRAPPER, []);
-	const loadingSpinnerClasses = useMemo(() => CLASSES.LOADING_SPINNER, []);
-	const loadingTextClasses = useMemo(() => CLASSES.LOADING_TEXT, []);
-	const errorIconClasses = useMemo(() => CLASSES.ERROR_ICON, []);
+	const errorContainerClasses = useMemo(() => consts.mainContainerClass, []);
+	const errorCardClasses = useMemo(() => consts.errorCardClass, []);
+	const errorTextClasses = useMemo(() => consts.errorTextClass, []);
+	const backToLoginClasses = useMemo(() => consts.backLinkClass, []);
+	const loadingContainerClasses = useMemo(() => consts.mainContainerClass, []);
+	const loadingWrapperClasses = useMemo(() => consts.loadingWrapperClass, []);
+	const loadingSpinnerClasses = useMemo(() => consts.loadingSpinnerClass, []);
+	const loadingTextClasses = useMemo(() => consts.loadingTextClass, []);
+	const errorIconClasses = useMemo(() => consts.errorIconClass, []);
 
 	if (error) {
 		return (
@@ -51,7 +51,7 @@ const AuthCallbackPage: React.FC = () => {
 				<div className={errorCardClasses}>
 					<MdErrorOutline className={errorIconClasses} />
 					<p className={errorTextClasses}>{error}</p>
-					<a href={ROUTES.LOGIN} className={backToLoginClasses}>
+					<a href={consts.loginRoute} className={backToLoginClasses}>
 						<MdArrowBack /> {strings.backToLogin}
 					</a>
 				</div>

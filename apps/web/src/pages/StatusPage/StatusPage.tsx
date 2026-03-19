@@ -13,6 +13,8 @@ import {
   useStatusPageStatusUpdatesQuery,
   useStatusPageUsersQuery,
 } from 'hooks/data/useStatusPageData';
+import * as strings from './strings';
+import * as consts from './consts';
 
 export default function StatusPage() {
   const currentUser = useAuthStore(state => state.user);
@@ -83,20 +85,20 @@ export default function StatusPage() {
   const isLoading = isLoadingEvents || isLoadingDepts || isLoadingUsers || isLoadingStatus;
 
   return (
-    <div className="p-6">
+    <div className={consts.containerClass}>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h1 className="text-3xl font-bold text-gray-900">Status Tracker</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{strings.title}</h1>
 
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700">Active Event:</label>
+            <label className="text-sm font-medium text-gray-700">{strings.activeEventLabel}</label>
             <select
               value={selectedEventId}
               onChange={event => setSelectedEventId(event.target.value)}
               className="border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm p-2 bg-white"
             >
               <option value="" disabled>
-                Select an event
+                {strings.selectEventPlaceholder}
               </option>
               {activeEvents.map(event => {
                 const eventId = event.id || (event as any)._id;
@@ -111,13 +113,13 @@ export default function StatusPage() {
 
           {(isGlobalAdmin || isDeptAdmin) && (
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">Department:</label>
+              <label className="text-sm font-medium text-gray-700">{strings.departmentLabel}</label>
               <select
                 value={selectedDeptId}
                 onChange={event => setSelectedDeptId(event.target.value)}
                 className="border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm p-2 bg-white"
               >
-                <option value="all">All Departments</option>
+                <option value={consts.allDeptsValue}>{strings.allDepartments}</option>
                 {validDepartments.map(department => {
                   const departmentId = department.id || (department as any)._id;
                   return (
@@ -134,7 +136,7 @@ export default function StatusPage() {
 
       {!selectedEventId ? (
         <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
-          No active events found, or none selected.
+          {strings.noActiveEvents}
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -142,16 +144,16 @@ export default function StatusPage() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  User
+                  {strings.columnUser}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
+                  {strings.columnStatus}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Last Updated
+                  {strings.columnLastUpdated}
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
+                  {strings.columnActions}
                 </th>
               </tr>
             </thead>
@@ -165,7 +167,7 @@ export default function StatusPage() {
               ) : displayUsers.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
-                    No users found for the selected criteria.
+                    {strings.noUsersFound}
                   </td>
                 </tr>
               ) : (
@@ -190,13 +192,7 @@ export default function StatusPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         {status && status.status !== ResponderStatus.UNKNOWN ? (
                           <span
-                            className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                              status.status === ResponderStatus.SAFE
-                                ? 'bg-green-100 text-green-800'
-                                : status.status === ResponderStatus.NEED_HELP
-                                  ? 'bg-red-100 text-red-800'
-                                  : 'bg-gray-100 text-gray-800'
-                            }`}
+                            className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${consts.getStatusStyle(status.status)}`}
                           >
                             {RESPONDER_STATUS_LABELS[
                               status.status as keyof typeof RESPONDER_STATUS_LABELS
@@ -206,12 +202,12 @@ export default function StatusPage() {
                           <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
                             {RESPONDER_STATUS_LABELS[
                               ResponderStatus.UNKNOWN as keyof typeof RESPONDER_STATUS_LABELS
-                            ] || 'Unknown'}
+                            ] || strings.unknownStatus}
                           </span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {status ? format(new Date((status as any).createdAt), 'MMM d, HH:mm') : '-'}
+                        {status ? format(new Date((status as any).createdAt), consts.dateFormat) : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         {canReport && (
@@ -225,7 +221,7 @@ export default function StatusPage() {
                                 })
                               }
                               className="text-green-600"
-                              tooltipText="Mark Safe"
+                              tooltipText={strings.markSafe}
                             >
                               <FiCheckCircle size={16} />
                             </ActionIcon>
@@ -238,7 +234,7 @@ export default function StatusPage() {
                                 })
                               }
                               className="text-red-600"
-                              tooltipText="Mark Need Help"
+                              tooltipText={strings.markNeedHelp}
                             >
                               <FiAlertTriangle size={16} />
                             </ActionIcon>

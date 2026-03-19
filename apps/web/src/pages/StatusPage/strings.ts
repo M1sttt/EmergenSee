@@ -1,18 +1,16 @@
-export const STATUS_PAGE_STRINGS = {
-	TITLE: 'Status Tracker',
-	ACTIVE_EVENT_LABEL: 'Active Event:',
-	SELECT_EVENT_PLACEHOLDER: 'Select an event',
-	DEPARTMENT_LABEL: 'Department:',
-	ALL_DEPARTMENTS: 'All Departments',
-	NO_ACTIVE_EVENTS: 'No active events found, or none selected.',
-	COLUMN_USER: 'User',
-	COLUMN_STATUS: 'Status',
-	COLUMN_LAST_UPDATED: 'Last Updated',
-	COLUMN_ACTIONS: 'Actions',
-	UNKNOWN_STATUS: 'Unknown',
-	MARK_SAFE: 'Mark Safe',
-	MARK_NEED_HELP: 'Mark Need Help',
-	NO_USERS_FOUND: 'No users found for the selected criteria.',
-	LOADING: 'Loading...',
-	ERROR: 'Error loading data. Please try again later.',
-};
+export const title = 'Status Tracker';
+export const activeEventLabel = 'Active Event:';
+export const selectEventPlaceholder = 'Select an event';
+export const departmentLabel = 'Department:';
+export const allDepartments = 'All Departments';
+export const noActiveEvents = 'No active events found, or none selected.';
+export const columnUser = 'User';
+export const columnStatus = 'Status';
+export const columnLastUpdated = 'Last Updated';
+export const columnActions = 'Actions';
+export const unknownStatus = 'Unknown';
+export const markSafe = 'Mark Safe';
+export const markNeedHelp = 'Mark Need Help';
+export const noUsersFound = 'No users found for the selected criteria.';
+export const loading = 'Loading...';
+export const error = 'Error loading data. Please try again later.';

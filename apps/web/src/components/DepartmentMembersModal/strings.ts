@@ -1,13 +1,11 @@
-export const STRINGS = {
-	MANAGE_MEMBERS: 'Manage Members:',
-	ADD_MEMBERS: 'Add Members',
-	REMOVE_MEMBERS: 'Remove Members',
-	SEARCH_PLACEHOLDER: 'Search users by name or email...',
-	LOADING_USERS: 'Loading users...',
-	NO_USERS_FOUND: 'No users found.',
-	PROCESSING: 'Processing...',
-	ADD_SELECTED: 'Add Selected',
-	REMOVE_SELECTED: 'Remove Selected',
-	CLOSE: 'Close',
-	ERROR: 'Error loading users.',
-};
+export const manageMembers = 'Manage Members:';
+export const addMembers = 'Add Members';
+export const removeMembers = 'Remove Members';
+export const searchPlaceholder = 'Search users by name or email...';
+export const loadingUsers = 'Loading users...';
+export const noUsersFound = 'No users found.';
+export const processing = 'Processing...';
+export const addSelected = 'Add Selected';
+export const removeSelected = 'Remove Selected';
+export const closeText = 'Close';
+export const errorText = 'Error loading users.';

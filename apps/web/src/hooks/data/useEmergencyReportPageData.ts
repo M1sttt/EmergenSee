@@ -4,26 +4,26 @@ import { eventsService } from 'services/eventsService';
 import { statusService } from 'services/statusService';
 
 export const EMERGENCY_REPORT_QUERY_KEYS = {
-	events: ['events'] as const,
+    events: ['events'] as const,
 };
 
 export function useEmergencyReportEventsQuery() {
-	return useQuery<Event[]>({
-		queryKey: EMERGENCY_REPORT_QUERY_KEYS.events,
-		queryFn: eventsService.getAll,
-	});
+    return useQuery<Event[]>({
+        queryKey: EMERGENCY_REPORT_QUERY_KEYS.events,
+        queryFn: eventsService.getAll,
+    });
 }
 
 export function useEmergencyReportCreateStatusMutation(
-	onSuccess?: (status: ResponderStatus) => void,
+    onSuccess?: (status: ResponderStatus) => void,
 ) {
-	return useMutation({
-		mutationFn: ({ status, eventId }: { status: ResponderStatus; eventId: string }) => {
-			const payload: CreateStatusUpdateDto = { status, eventId };
-			return statusService.create(payload);
-		},
-		onSuccess: (_, variables) => {
-			onSuccess?.(variables.status);
-		},
-	});
+    return useMutation({
+        mutationFn: ({ status, eventId }: { status: ResponderStatus; eventId: string }) => {
+            const payload: CreateStatusUpdateDto = { status, eventId };
+            return statusService.create(payload);
+        },
+        onSuccess: (_, variables) => {
+            onSuccess?.(variables.status);
+        },
+    });
 }

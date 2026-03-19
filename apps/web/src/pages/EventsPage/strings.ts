@@ -1,18 +1,12 @@
-﻿export const EVENTS_PAGE_STRINGS = {
-	TITLE: 'Events',
-	LOADING: 'Loading...',
-	ERROR: 'Failed to load events.',
-	CREATE_BTN: 'Create Event',
-	CONFIRM_CLOSE: 'Are you sure you want to close this event?',
-	COLUMNS: {
-		TITLE: 'Title',
-		TYPE: 'Type',
-		PRIORITY: 'Priority',
-		STATUS: 'Status',
-		ACTIONS: 'Actions',
-	},
-	TOOLTIPS: {
-		EDIT: 'Edit',
-		CLOSE_EVENT: 'Close Event',
-	},
-} as const;
+﻿export const title = 'Events';
+export const loading = 'Loading...';
+export const error = 'Failed to load events.';
+export const createBtn = 'Create Event';
+export const confirmClose = 'Are you sure you want to close this event?';
+export const columnTitle = 'Title';
+export const columnType = 'Type';
+export const columnPriority = 'Priority';
+export const columnStatus = 'Status';
+export const columnActions = 'Actions';
+export const tooltipEdit = 'Edit';
+export const tooltipCloseEvent = 'Close Event';

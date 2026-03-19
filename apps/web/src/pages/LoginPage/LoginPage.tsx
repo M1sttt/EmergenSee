@@ -5,13 +5,11 @@ import { LoginDto, RegisterDto } from '@emergensee/shared';
 import { authService } from 'services/authService';
 import { useAuthStore } from 'store/authStore';
 import { useGoogleGSI } from 'hooks/useGoogleGSI';
+import * as strings from './strings';
+import * as consts from './consts';
+import * as utils from './utils';
 
 type Mode = 'login' | 'register';
-
-// ─── Shared field classes ─────────────────────────────────────────────────────
-const inputCls =
-	'mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm';
-const errorCls = 'mt-1 text-xs text-red-600';
 
 export default function LoginPage() {
 	const navigate = useNavigate();
@@ -32,10 +30,10 @@ export default function LoginPage() {
 			try {
 				const response = await authService.loginWithGoogleToken(credential);
 				setAuth(response.user, response.accessToken, response.refreshToken);
-				const destination = location.state?.from?.pathname || '/dashboard';
+				const destination = location.state?.from?.pathname || consts.defaultNextRoute;
 				navigate(destination, { replace: true });
 			} catch (err: any) {
-				setError(err.response?.data?.message || 'Google sign-in failed. Please try again.');
+				setError(err.response?.data?.message || strings.googleSignInFailed);
 			} finally {
 				setIsLoading(false);
 			}
@@ -47,8 +45,7 @@ export default function LoginPage() {
 	useGoogleGSI(gsiContainerRef, handleGoogleCredential);
 
 	// ── Login form ──────────────────────────────────────────────────────────────
-	const savedCredsStr = localStorage.getItem('last_login_creds');
-	const savedCreds = savedCredsStr ? JSON.parse(savedCredsStr) : { email: '', password: '' };
+	const savedCreds = utils.getSavedCredentials();
 
 	const loginForm = useForm<LoginDto>({
 		defaultValues: {
@@ -62,15 +59,12 @@ export default function LoginPage() {
 		setError(null);
 		try {
 			const response = await authService.login(data);
-			localStorage.setItem(
-				'last_login_creds',
-				JSON.stringify({ email: data.email, password: data.password }),
-			);
+			utils.saveCredentials(data.email, data.password);
 			setAuth(response.user, response.accessToken, response.refreshToken);
-			const destination = location.state?.from?.pathname || '/dashboard';
+			const destination = location.state?.from?.pathname || consts.defaultNextRoute;
 			navigate(destination, { replace: true });
 		} catch (err: any) {
-			setError(err.response?.data?.message || 'Login failed. Please try again.');
+			setError(utils.extractErrorMessage(err, strings.loginFailed));
 		} finally {
 			setIsLoading(false);
 		}
@@ -84,15 +78,12 @@ export default function LoginPage() {
 		setError(null);
 		try {
 			const response = await authService.register(data);
-			localStorage.setItem(
-				'last_login_creds',
-				JSON.stringify({ email: data.email, password: data.password }),
-			);
+			utils.saveCredentials(data.email, data.password);
 			setAuth(response.user, response.accessToken, response.refreshToken);
-			const destination = location.state?.from?.pathname || '/dashboard';
+			const destination = location.state?.from?.pathname || consts.defaultNextRoute;
 			navigate(destination, { replace: true });
 		} catch (err: any) {
-			setError(err.response?.data?.message || 'Registration failed. Please try again.');
+			setError(utils.extractErrorMessage(err, strings.registrationFailed));
 		} finally {
 			setIsLoading(false);
 		}
@@ -110,8 +101,8 @@ export default function LoginPage() {
 			<div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
 				{/* Header */}
 				<div className="text-center mb-6">
-					<h1 className="text-3xl font-bold text-gray-900">EmergenSee</h1>
-					<p className="text-gray-600 mt-1">Emergency Response System</p>
+					<h1 className="text-3xl font-bold text-gray-900">{strings.title}</h1>
+					<p className="text-gray-600 mt-1">{strings.subtitle}</p>
 				</div>
 
 				{/* Error banner */}
@@ -133,7 +124,7 @@ export default function LoginPage() {
 						<div className="w-full border-t border-gray-200" />
 					</div>
 					<div className="relative flex justify-center text-xs">
-						<span className="px-2 bg-white text-gray-400">or use email</span>
+						<span className="px-2 bg-white text-gray-400">{strings.orEmail}</span>
 					</div>
 				</div>
 
@@ -142,33 +133,33 @@ export default function LoginPage() {
 					<form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-5">
 						<div>
 							<label htmlFor="email" className="block text-sm font-medium text-gray-700">
-								Email
+								{strings.email}
 							</label>
 							<input
-								{...loginForm.register('email', { required: 'Email is required' })}
+								{...loginForm.register('email', { required: strings.emailRequired })}
 								type="email"
 								id="email"
-								className={inputCls}
+								className={consts.inputCls}
 								autoComplete="email"
 							/>
 							{loginForm.formState.errors.email && (
-								<p className={errorCls}>{loginForm.formState.errors.email.message}</p>
+								<p className={consts.errorCls}>{loginForm.formState.errors.email.message}</p>
 							)}
 						</div>
 
 						<div>
 							<label htmlFor="password" className="block text-sm font-medium text-gray-700">
-								Password
+								{strings.password}
 							</label>
 							<input
-								{...loginForm.register('password', { required: 'Password is required' })}
+								{...loginForm.register('password', { required: strings.passwordRequired })}
 								type="password"
 								id="password"
-								className={inputCls}
+								className={consts.inputCls}
 								autoComplete="current-password"
 							/>
 							{loginForm.formState.errors.password && (
-								<p className={errorCls}>{loginForm.formState.errors.password.message}</p>
+								<p className={consts.errorCls}>{loginForm.formState.errors.password.message}</p>
 							)}
 						</div>
 
@@ -177,17 +168,17 @@ export default function LoginPage() {
 							disabled={isLoading}
 							className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
 						>
-							{isLoading ? 'Logging in…' : 'Log in'}
+							{isLoading ? strings.loggingIn : strings.logIn}
 						</button>
 
 						<p className="text-center text-sm text-gray-500">
-							Don't have an account?{' '}
+							{strings.dontHaveAccount}
 							<button
 								type="button"
 								onClick={() => switchMode('register')}
 								className="text-blue-600 hover:underline font-medium"
 							>
-								Register
+								{strings.registerBtn}
 							</button>
 						</p>
 					</form>
@@ -199,88 +190,88 @@ export default function LoginPage() {
 						<div className="grid grid-cols-2 gap-4">
 							<div>
 								<label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-									First name
+									{strings.firstName}
 								</label>
 								<input
-									{...registerForm.register('firstName', { required: 'Required' })}
+									{...registerForm.register('firstName', { required: strings.firstNameRequired })}
 									type="text"
 									id="firstName"
-									className={inputCls}
+									className={consts.inputCls}
 									autoComplete="given-name"
 								/>
 								{registerForm.formState.errors.firstName && (
-									<p className={errorCls}>{registerForm.formState.errors.firstName.message}</p>
+									<p className={consts.errorCls}>{registerForm.formState.errors.firstName.message}</p>
 								)}
 							</div>
 
 							<div>
 								<label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-									Last name
+									{strings.lastName}
 								</label>
 								<input
-									{...registerForm.register('lastName', { required: 'Required' })}
+									{...registerForm.register('lastName', { required: strings.lastNameRequired })}
 									type="text"
 									id="lastName"
-									className={inputCls}
+									className={consts.inputCls}
 									autoComplete="family-name"
 								/>
 								{registerForm.formState.errors.lastName && (
-									<p className={errorCls}>{registerForm.formState.errors.lastName.message}</p>
+									<p className={consts.errorCls}>{registerForm.formState.errors.lastName.message}</p>
 								)}
 							</div>
 						</div>
 
 						<div>
 							<label htmlFor="reg-email" className="block text-sm font-medium text-gray-700">
-								Email
+								{strings.email}
 							</label>
 							<input
-								{...registerForm.register('email', { required: 'Email is required' })}
+								{...registerForm.register('email', { required: strings.emailRequired })}
 								type="email"
 								id="reg-email"
-								className={inputCls}
+								className={consts.inputCls}
 								autoComplete="email"
 							/>
 							{registerForm.formState.errors.email && (
-								<p className={errorCls}>{registerForm.formState.errors.email.message}</p>
+								<p className={consts.errorCls}>{registerForm.formState.errors.email.message}</p>
 							)}
 						</div>
 
 						<div>
 							<label htmlFor="reg-password" className="block text-sm font-medium text-gray-700">
-								Password <span className="text-gray-400 font-normal">(min. 8 characters)</span>
+								{strings.password} <span className="text-gray-400 font-normal">{strings.min8Chars}</span>
 							</label>
 							<input
 								{...registerForm.register('password', {
-									required: 'Password is required',
-									minLength: { value: 8, message: 'Minimum 8 characters' },
+									required: strings.passwordRequired,
+									minLength: { value: consts.minPasswordLength, message: strings.min8CharsMessage },
 								})}
 								type="password"
 								id="reg-password"
-								className={inputCls}
+								className={consts.inputCls}
 								autoComplete="new-password"
 							/>
 							{registerForm.formState.errors.password && (
-								<p className={errorCls}>{registerForm.formState.errors.password.message}</p>
+								<p className={consts.errorCls}>{registerForm.formState.errors.password.message}</p>
 							)}
 						</div>
 
 						<div>
 							<label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-								Confirm password
+								{strings.confirmPassword}
 							</label>
 							<input
 								{...registerForm.register('confirmPassword', {
-									required: 'Please confirm your password',
-									validate: val => val === registerForm.watch('password') || 'Passwords do not match',
+									required: strings.passwordConfirmRequired,
+									validate: val => val === registerForm.watch('password') || strings.passwordsDoNotMatch,
 								})}
 								type="password"
 								id="confirmPassword"
-								className={inputCls}
+								className={consts.inputCls}
 								autoComplete="new-password"
 							/>
 							{registerForm.formState.errors.confirmPassword && (
-								<p className={errorCls}>{registerForm.formState.errors.confirmPassword.message}</p>
+								<p className={consts.errorCls}>{registerForm.formState.errors.confirmPassword.message}</p>
 							)}
 						</div>
 
@@ -289,17 +280,17 @@ export default function LoginPage() {
 							disabled={isLoading}
 							className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
 						>
-							{isLoading ? 'Creating account…' : 'Create account'}
+							{isLoading ? strings.creatingAccount : strings.createAccount}
 						</button>
 
 						<p className="text-center text-sm text-gray-500">
-							Already have an account?{' '}
+							{strings.alreadyHaveAccount}
 							<button
 								type="button"
 								onClick={() => switchMode('login')}
 								className="text-blue-600 hover:underline font-medium"
 							>
-								Log in
+								{strings.logIn}
 							</button>
 						</p>
 					</form>

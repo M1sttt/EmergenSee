@@ -3,9 +3,9 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { EVENT_PRIORITY_LABELS, EVENT_STATUS_LABELS, EVENT_TYPE_LABELS } from '@emergensee/shared';
 import 'leaflet/dist/leaflet.css';
 
-import { MAP_STRINGS } from './strings';
-import { MAP_CLASSES, MAP_CONFIG } from './consts';
-import { createDefaultIcon, getLatLng } from './utils';
+import * as strings from './strings';
+import * as consts from './consts';
+import * as utils from './utils';
 import { useMapPageEventsQuery } from 'hooks/data/useMapPageData';
 
 const MapPage: React.FC = () => {
@@ -15,40 +15,40 @@ const MapPage: React.FC = () => {
 		isError,
 	} = useMapPageEventsQuery();
 
-	const defaultIcon = useMemo(() => createDefaultIcon(), []);
+	const defaultIcon = useMemo(() => utils.createDefaultIcon(), []);
 
 	if (isLoading) {
-		return <div className={MAP_CLASSES.LOADING_CONTAINER}>{MAP_STRINGS.LOADING}</div>;
+		return <div className={consts.loadingContainerClass}>{strings.loading}</div>;
 	}
 
 	if (isError) {
-		return <div className={MAP_CLASSES.ERROR_CONTAINER}>{MAP_STRINGS.ERROR}</div>;
+		return <div className={consts.errorContainerClass}>{strings.error}</div>;
 	}
 
 	return (
-		<div className={MAP_CLASSES.CONTAINER}>
+		<div className={consts.containerClass}>
 			<MapContainer
-				center={MAP_CONFIG.DEFAULT_CENTER}
-				zoom={MAP_CONFIG.DEFAULT_ZOOM}
+				center={consts.defaultCenter}
+				zoom={consts.defaultZoom}
 				style={{ height: '100%', width: '100%' }}
 			>
-				<TileLayer attribution={MAP_STRINGS.ATTRIBUTION} url={MAP_CONFIG.TILE_URL} />
+				<TileLayer attribution={strings.attribution} url={consts.tileUrl} />
 				{events.map(event => (
-					<Marker key={event.id} position={getLatLng(event)} icon={defaultIcon}>
+					<Marker key={event.id} position={utils.getLatLng(event)} icon={defaultIcon}>
 						<Popup>
-							<div className={MAP_CLASSES.POPUP_CONTAINER}>
-								<h3 className={MAP_CLASSES.POPUP_TITLE}>{event.title}</h3>
-								<div className={MAP_CLASSES.POPUP_DETAILS}>
+							<div className={consts.popupContainerClass}>
+								<h3 className={consts.popupTitleClass}>{event.title}</h3>
+								<div className={consts.popupDetailsClass}>
 									<p>
-										<strong>{MAP_STRINGS.TYPE}</strong> {EVENT_TYPE_LABELS[event.type]}
+										<strong>{strings.type}</strong> {EVENT_TYPE_LABELS[event.type]}
 									</p>
 									<p>
-										<strong>{MAP_STRINGS.PRIORITY}</strong> {EVENT_PRIORITY_LABELS[event.priority]}
+										<strong>{strings.priority}</strong> {EVENT_PRIORITY_LABELS[event.priority]}
 									</p>
 									<p>
-										<strong>{MAP_STRINGS.STATUS}</strong> {EVENT_STATUS_LABELS[event.status]}
+										<strong>{strings.status}</strong> {EVENT_STATUS_LABELS[event.status]}
 									</p>
-									<p className={MAP_CLASSES.POPUP_DESCRIPTION}>{event.description}</p>
+									<p className={consts.popupDescriptionClass}>{event.description}</p>
 								</div>
 							</div>
 						</Popup>

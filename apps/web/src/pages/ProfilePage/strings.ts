@@ -1,15 +1,13 @@
-export const PROFILE_TITLE = 'Profile Settings';
-export const PROFILE_DESCRIPTION = 'Update your personal information and password.';
-export const FIRST_NAME_LABEL = 'First Name';
-export const LAST_NAME_LABEL = 'Last Name';
-export const NEW_PASSWORD_LABEL = 'New Password (leave blank to keep current)';
-export const PASSWORD_PLACEHOLDER = '••••••••';
-export const SAVE_BUTTON_TEXT = 'Save Changes';
-export const SAVING_BUTTON_TEXT = 'Saving...';
-export const SUCCESS_MESSAGE = 'Profile updated successfully!';
-export const DEFAULT_ERROR_MESSAGE = 'Failed to update profile';
-export const ERRORS = {
-	FIRST_NAME_REQUIRED: 'First name is required',
-	LAST_NAME_REQUIRED: 'Last name is required',
-	PASSWORD_MIN_LENGTH: 'Password must be at least 8 characters',
-};
+export const profileTitle = 'Profile Settings';
+export const profileDescription = 'Update your personal information and password.';
+export const firstNameLabel = 'First Name';
+export const lastNameLabel = 'Last Name';
+export const newPasswordLabel = 'New Password (leave blank to keep current)';
+export const passwordPlaceholder = '••••••••';
+export const saveButtonText = 'Save Changes';
+export const savingButtonText = 'Saving...';
+export const successMessage = 'Profile updated successfully!';
+export const defaultErrorMessage = 'Failed to update profile';
+export const firstNameRequiredError = 'First name is required';
+export const lastNameRequiredError = 'Last name is required';
+export const passwordMinLengthError = 'Password must be at least 8 characters';

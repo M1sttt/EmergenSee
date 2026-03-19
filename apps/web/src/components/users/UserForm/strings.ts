@@ -1,22 +1,20 @@
-export const STRINGS = {
-	TITLE_EDIT: 'Edit User',
-	TITLE_CREATE: 'Create User',
-	FIRST_NAME: 'First Name',
-	FIRST_NAME_REQ: 'First name is required',
-	LAST_NAME: 'Last Name',
-	LAST_NAME_REQ: 'Last name is required',
-	EMAIL: 'Email',
-	EMAIL_REQ: 'Email is required',
-	PASSWORD: 'Password',
-	PASSWORD_REQ: 'Password is required',
-	ROLE: 'Role',
-	ROLE_REQ: 'Role is required',
-	SELECT_ROLE: 'Select role',
-	PHONE_NUMBER: 'Phone Number',
-	DEPARTMENTS: 'Departments',
-	BTN_CANCEL: 'Cancel',
-	BTN_UPDATE: 'Update',
-	BTN_CREATE: 'Create',
-	LOADING: 'Loading departments...',
-	ERROR: 'Error loading departments.',
-};
+export const titleEdit = 'Edit User';
+export const titleCreate = 'Create User';
+export const firstName = 'First Name';
+export const firstNameReq = 'First name is required';
+export const lastName = 'Last Name';
+export const lastNameReq = 'Last name is required';
+export const email = 'Email';
+export const emailReq = 'Email is required';
+export const password = 'Password';
+export const passwordReq = 'Password is required';
+export const role = 'Role';
+export const roleReq = 'Role is required';
+export const selectRole = 'Select role';
+export const phoneNumber = 'Phone Number';
+export const departments = 'Departments';
+export const btnCancel = 'Cancel';
+export const btnUpdate = 'Update';
+export const btnCreate = 'Create';
+export const loading = 'Loading departments...';
+export const error = 'Error loading departments.';

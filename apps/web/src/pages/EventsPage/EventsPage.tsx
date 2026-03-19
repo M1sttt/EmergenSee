@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
 	Event,
-	EventPriority,
 	EventStatus,
 	EVENT_PRIORITY_LABELS,
 	EVENT_STATUS_LABELS,
@@ -20,6 +19,8 @@ import {
 	useEventsPageQuery,
 	useEventsPageUpdateMutation,
 } from 'hooks/data/useEventsPageData';
+import * as strings from './strings';
+import * as utils from './utils';
 
 export default function EventsPage() {
 	const queryClient = useQueryClient();
@@ -78,43 +79,15 @@ export default function EventsPage() {
 		setSelectedEvent(null);
 	};
 
-	const getPriorityColor = (priority: EventPriority) => {
-		switch (priority) {
-			case EventPriority.CRITICAL:
-				return 'bg-red-100 text-red-800';
-			case EventPriority.HIGH:
-				return 'bg-orange-100 text-orange-800';
-			case EventPriority.MEDIUM:
-				return 'bg-yellow-100 text-yellow-800';
-			case EventPriority.LOW:
-				return 'bg-green-100 text-green-800';
-			default:
-				return 'bg-gray-100 text-gray-800';
-		}
-	};
-
-	const getStatusColor = (status: EventStatus) => {
-		switch (status) {
-			case EventStatus.ONGOING:
-				return 'bg-blue-100 text-blue-800';
-			case EventStatus.RESOLVED:
-				return 'bg-green-100 text-green-800';
-			case EventStatus.CANCELLED:
-				return 'bg-red-100 text-red-800';
-			default:
-				return 'bg-gray-100 text-gray-800';
-		}
-	};
-
 	return (
 		<div className="p-6">
 			<div className="flex justify-between items-center mb-6">
-				<h1 className="text-3xl font-bold text-gray-900">Events</h1>
+				<h1 className="text-3xl font-bold text-gray-900">{strings.title}</h1>
 				<button
 					onClick={() => setIsFormOpen(true)}
 					className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
 				>
-					Create Event
+					{strings.createBtn}
 				</button>
 			</div>
 
@@ -123,19 +96,19 @@ export default function EventsPage() {
 					<thead className="bg-gray-50">
 						<tr>
 							<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-								Title
+								{strings.columnTitle}
 							</th>
 							<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-								Type
+								{strings.columnType}
 							</th>
 							<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-								Priority
+								{strings.columnPriority}
 							</th>
 							<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-								Status
+								{strings.columnStatus}
 							</th>
 							<th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-								Actions
+								{strings.columnActions}
 							</th>
 						</tr>
 					</thead>
@@ -170,14 +143,14 @@ export default function EventsPage() {
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap">
 											<span
-												className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getPriorityColor(event.priority)}`}
+												className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${utils.getPriorityColor(event.priority)}`}
 											>
 												{EVENT_PRIORITY_LABELS[event.priority]}
 											</span>
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap">
 											<span
-												className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(event.status)}`}
+												className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${utils.getStatusColor(event.status)}`}
 											>
 												{EVENT_STATUS_LABELS[event.status]}
 											</span>
@@ -187,14 +160,14 @@ export default function EventsPage() {
 												<ActionIcon
 													onClick={() => handleEdit(event)}
 													className="text-blue-600"
-													tooltipText="Edit"
+													tooltipText={strings.tooltipEdit}
 												>
 													<FiEdit size={16} />
 												</ActionIcon>
 												<ActionIcon
 													onClick={() => handleCloseEvent(eventId)}
 													className="text-green-600"
-													tooltipText="Close Event"
+													tooltipText={strings.tooltipCloseEvent}
 												>
 													<FiCheckCircle size={16} />
 												</ActionIcon>
@@ -212,7 +185,7 @@ export default function EventsPage() {
 
 			{eventToClose && (
 				<ConfirmModal
-					message="Are you sure you want to close this event?"
+					message={strings.confirmClose}
 					onConfirm={confirmCloseEvent}
 					onCancel={cancelCloseEvent}
 				/>

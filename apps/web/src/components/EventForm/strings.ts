@@ -1,21 +1,19 @@
-export const EventFormStrings = {
-	TITLE_EDIT: 'Edit Event',
-	TITLE_CREATE: 'Create Event',
-	LABEL_TITLE: 'Title',
-	LABEL_TYPE: 'Type',
-	LABEL_PRIORITY: 'Priority',
-	LABEL_DEPARTMENTS: 'Departments (Hold Ctrl/Cmd to select multiple)',
-	LABEL_DESCRIPTION: 'Description',
-	BTN_CANCEL: 'Cancel',
-	BTN_UPDATE: 'Update',
-	BTN_CREATE: 'Create',
-	PLACEHOLDER_SELECT_TYPE: 'Select type',
-	PLACEHOLDER_SELECT_PRIORITY: 'Select priority',
-	ERR_TITLE_REQUIRED: 'Title is required',
-	ERR_TYPE_REQUIRED: 'Type is required',
-	ERR_PRIORITY_REQUIRED: 'Priority is required',
-	ERR_DEPARTMENTS_REQUIRED: 'At least one department is required',
-	ERR_DESCRIPTION_REQUIRED: 'Description is required',
-	LOADING_DEPARTMENTS: 'Loading departments...',
-	ERROR_DEPARTMENTS: 'Error loading departments!',
-};
+export const titleEdit = 'Edit Event';
+export const titleCreate = 'Create Event';
+export const labelTitle = 'Title';
+export const labelType = 'Type';
+export const labelPriority = 'Priority';
+export const labelDepartments = 'Departments (Hold Ctrl/Cmd to select multiple)';
+export const labelDescription = 'Description';
+export const btnCancel = 'Cancel';
+export const btnUpdate = 'Update';
+export const btnCreate = 'Create';
+export const placeholderSelectType = 'Select type';
+export const placeholderSelectPriority = 'Select priority';
+export const errTitleRequired = 'Title is required';
+export const errTypeRequired = 'Type is required';
+export const errPriorityRequired = 'Priority is required';
+export const errDepartmentsRequired = 'At least one department is required';
+export const errDescriptionRequired = 'Description is required';
+export const loadingDepartments = 'Loading departments...';
+export const errorDepartments = 'Error loading departments!';

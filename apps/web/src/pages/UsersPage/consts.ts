@@ -1,12 +1,10 @@
-export const CONSTS = {
-	ALL_DEPTS_ID: 'all',
-	MAX_WIDTH_CLASSES: {
-		NAME_COL: 'max-w-[150px]',
-		EMAIL_COL: 'max-w-[200px]',
-	},
-	COLORS: {
-		ACTIVE: { bg: 'bg-green-100', text: 'text-green-800' },
-		INACTIVE: { bg: 'bg-gray-100', text: 'text-gray-800' },
-		SUSPENDED: { bg: 'bg-red-100', text: 'text-red-800' },
-	},
-};
+export const allDeptsId = 'all';
+export const nameColMaxWidthClass = 'max-w-[150px]';
+export const emailColMaxWidthClass = 'max-w-[200px]';
+
+export const activeStatusBgClass = 'bg-green-100';
+export const activeStatusTextClass = 'text-green-800';
+export const inactiveStatusBgClass = 'bg-gray-100';
+export const inactiveStatusTextClass = 'text-gray-800';
+export const suspendedStatusBgClass = 'bg-red-100';
+export const suspendedStatusTextClass = 'text-red-800';

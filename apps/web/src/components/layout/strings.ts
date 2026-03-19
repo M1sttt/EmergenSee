@@ -1,15 +1,13 @@
-export const STRINGS = {
-	APP_NAME: 'EmergenSee',
-	APP_SUBTITLE: 'Emergency Response',
-	EXPAND_SIDEBAR: 'Expand sidebar',
-	COLLAPSE_SIDEBAR: 'Collapse sidebar',
-	LOGOUT_TITLE: 'Logout',
-	LOGOUT_TEXT: 'Logout',
-	DASHBOARD: 'Dashboard',
-	EVENTS: 'Events',
-	MAP: 'Map',
-	USERS: 'Users',
-	DEPARTMENTS: 'Departments',
-	STATUS: 'Status',
-	EMERGENCY_REPORT: 'Emergency Report',
-};
+export const appName = 'EmergenSee';
+export const appSubtitle = 'Emergency Response';
+export const expandSidebar = 'Expand sidebar';
+export const collapseSidebar = 'Collapse sidebar';
+export const logoutTitle = 'Logout';
+export const logoutText = 'Logout';
+export const dashboard = 'Dashboard';
+export const events = 'Events';
+export const map = 'Map';
+export const users = 'Users';
+export const departments = 'Departments';
+export const status = 'Status';
+export const emergencyReport = 'Emergency Report';
