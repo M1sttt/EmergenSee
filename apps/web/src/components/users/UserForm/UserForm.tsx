@@ -1,8 +1,9 @@
 import React, { useMemo, useCallback } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { User, UpdateUserDto, UserRole, CreateUserDto } from '@emergensee/shared';
 import { useAuthStore } from 'store/authStore';
 import { FiSave, FiX } from 'react-icons/fi';
+import SelectDropdown from '@/components/SelectDropdown';
 import {
   useUserFormCreateMutation,
   useUserFormDepartmentsQuery,
@@ -58,11 +59,26 @@ function UserForm({ user, onClose }: UserFormProps) {
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<UserFormData>({
     defaultValues: defaultValues as any,
   });
+
+  const roleOptions = useMemo(
+    () => Object.values(UserRole).map(role => ({ value: role, label: role })),
+    [],
+  );
+
+  const departmentOptions = useMemo(
+    () =>
+      managedDepartments.map(dept => ({
+        value: dept.id || (dept as any)._id || '',
+        label: dept.name,
+      })),
+    [managedDepartments],
+  );
 
   const invalidateAndClose = useCallback(() => {
     onClose();
@@ -153,20 +169,19 @@ function UserForm({ user, onClose }: UserFormProps) {
             {isGlobalAdmin && (
               <div>
                 <label className={consts.labelClass}>{strings.role}</label>
-                <select
-                  {...register('role', { required: strings.roleReq })}
-                  className={consts.inputClass}
-                >
-                  <option value="">{strings.selectRole}</option>
-                  {Object.values(UserRole).map(role => (
-                    <option key={role} value={role}>
-                      {role}
-                    </option>
-                  ))}
-                </select>
-                {errors.role && (
-                  <p className={consts.errorTextClass}>{errors.role.message as string}</p>
-                )}
+                <Controller
+                  name="role"
+                  control={control}
+                  rules={{ required: strings.roleReq }}
+                  render={({ field }) => (
+                    <SelectDropdown
+                      {...field}
+                      options={roleOptions}
+                      placeholder={strings.selectRole}
+                      error={errors.role?.message as string | undefined}
+                    />
+                  )}
+                />
               </div>
             )}
 
@@ -178,13 +193,19 @@ function UserForm({ user, onClose }: UserFormProps) {
 
               <div>
                 <label className={consts.labelClass}>{strings.departments}</label>
-                <select multiple {...register('departments')} className={consts.selectDeptsClass}>
-                  {managedDepartments.map(dept => (
-                    <option key={dept.id || (dept as any)._id} value={dept.id || (dept as any)._id}>
-                      {dept.name}
-                    </option>
-                  ))}
-                </select>
+                <Controller
+                  name="departments"
+                  control={control}
+                  render={({ field }) => (
+                    <SelectDropdown
+                      {...field}
+                      isMulti
+                      options={departmentOptions}
+                      placeholder={strings.departments}
+                      closeMenuOnSelect={false}
+                    />
+                  )}
+                />
               </div>
             </div>
 

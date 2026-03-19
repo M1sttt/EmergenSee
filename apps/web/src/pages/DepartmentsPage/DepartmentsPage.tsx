@@ -3,6 +3,7 @@ import { FiEdit, FiTrash2, FiUsers } from 'react-icons/fi';
 import { Department } from '@emergensee/shared';
 import DepartmentForm from '@/components/DepartmentForm';
 import DepartmentMembersModal from '@/components/DepartmentMembersModal';
+import GenericTable, { type GenericTableColumn } from '@/components/common/GenericTable';
 import { Loader } from '@/components/common/Loader';
 import { useAuthStore } from 'store/authStore';
 
@@ -84,6 +85,79 @@ const DepartmentsPage: React.FC = () => {
         setSearchQuery(e.target.value);
     }, []);
 
+    const departmentColumns = useMemo<GenericTableColumn<Department>[]>(
+        () => [
+            {
+                id: 'name',
+                header: strings.columnName,
+                renderCell: department => (
+                    <div className={consts.tdTextClass} title={department.name}>
+                        {department.name}
+                    </div>
+                ),
+            },
+            {
+                id: 'description',
+                header: strings.columnDescription,
+                renderCell: department => (
+                    <div className={consts.tdDescClass} title={department.description}>
+                        {department.description}
+                    </div>
+                ),
+            },
+            {
+                id: 'admins',
+                header: strings.columnAdmins,
+                renderCell: department => {
+                    const adminsDisplay = utils.formatAdmins(department.admins, users);
+                    return (
+                        <div className={consts.tdAdminsClass} title={adminsDisplay}>
+                            {adminsDisplay}
+                        </div>
+                    );
+                },
+            },
+            {
+                id: 'actions',
+                header: strings.columnActions,
+                headerClassName: consts.thLastClass,
+                cellClassName: consts.tdActionsClass,
+                renderCell: department => {
+                    const canManageDepartment = utils.checkIsAdmin(department, currentUser);
+
+                    if (!canManageDepartment) return null;
+
+                    return (
+                        <div className="flex justify-end gap-2">
+                            <ActionIcon
+                                onClick={() => handleManageMembers(department)}
+                                className="text-blue-600"
+                                tooltipText={strings.tooltipManageMembers}
+                            >
+                                <FiUsers size={16} />
+                            </ActionIcon>
+                            <ActionIcon
+                                onClick={() => handleEdit(department)}
+                                className="text-blue-600"
+                                tooltipText={strings.tooltipEdit}
+                            >
+                                <FiEdit size={16} />
+                            </ActionIcon>
+                            <ActionIcon
+                                onClick={() => handleDelete(department.id)}
+                                className="text-red-600"
+                                tooltipText={strings.tooltipDelete}
+                            >
+                                <FiTrash2 size={16} />
+                            </ActionIcon>
+                        </div>
+                    );
+                },
+            },
+        ],
+        [currentUser, handleDelete, handleEdit, handleManageMembers, users],
+    );
+
     if (isError) {
         return <div className={consts.errorTextClass}>{strings.error}</div>;
     }
@@ -108,85 +182,18 @@ const DepartmentsPage: React.FC = () => {
                 </div>
             </div>
 
-            <div className={consts.tableContainerClass}>
-                <table className={consts.tableClass}>
-                    <thead className={consts.theadClass}>
-                        <tr>
-                            <th className={consts.thClass}>Name</th>
-                            <th className={consts.thClass}>Description</th>
-                            <th className={consts.thClass}>Admins</th>
-                            <th className={consts.thLastClass}>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className={consts.tbodyClass}>
-                        {isLoading ? (
-                            <tr>
-                                <td colSpan={4} className="py-8">
-                                    <Loader />
-                                </td>
-                            </tr>
-                        ) : filteredDepartments.length === 0 ? (
-                            <tr>
-                                <td colSpan={4} className={consts.emptyRowClass}>
-                                    {strings.noDepartments}
-                                </td>
-                            </tr>
-                        ) : (
-                            filteredDepartments.map(department => {
-                                const isAdmin = utils.checkIsAdmin(department, currentUser);
-                                const adminsDisplay = utils.formatAdmins(department.admins, users);
-
-                                return (
-                                    <tr key={department.id}>
-                                        <td className={consts.tdClass}>
-                                            <div className={consts.tdTextClass} title={department.name}>
-                                                {department.name}
-                                            </div>
-                                        </td>
-                                        <td className={consts.tdClass}>
-                                            <div className={consts.tdDescClass} title={department.description}>
-                                                {department.description}
-                                            </div>
-                                        </td>
-                                        <td className={consts.tdClass}>
-                                            <div className={consts.tdAdminsClass} title={adminsDisplay}>
-                                                {adminsDisplay}
-                                            </div>
-                                        </td>
-                                        <td className={consts.tdActionsClass}>
-                                            {isAdmin && (
-                                                <div className="flex justify-end gap-2">
-                                                    <ActionIcon
-                                                        onClick={() => handleManageMembers(department)}
-                                                        className="text-blue-600"
-                                                        tooltipText="Manage Members"
-                                                    >
-                                                        <FiUsers size={16} />
-                                                    </ActionIcon>
-                                                    <ActionIcon
-                                                        onClick={() => handleEdit(department)}
-                                                        className="text-blue-600"
-                                                        tooltipText="Edit"
-                                                    >
-                                                        <FiEdit size={16} />
-                                                    </ActionIcon>
-                                                    <ActionIcon
-                                                        onClick={() => handleDelete(department.id)}
-                                                        className="text-red-600"
-                                                        tooltipText="Delete"
-                                                    >
-                                                        <FiTrash2 size={16} />
-                                                    </ActionIcon>
-                                                </div>
-                                            )}
-                                        </td>
-                                    </tr>
-                                );
-                            })
-                        )}
-                    </tbody>
-                </table>
-            </div>
+            <GenericTable
+                columns={departmentColumns}
+                rows={filteredDepartments}
+                getRowKey={department => department.id}
+                isLoading={isLoading}
+                loadingContent={
+                    <div className="py-8">
+                        <Loader />
+                    </div>
+                }
+                emptyContent={strings.noDepartments}
+            />
 
             {isFormOpen && <DepartmentForm department={selectedDepartment} onClose={handleCloseModals} />}
 

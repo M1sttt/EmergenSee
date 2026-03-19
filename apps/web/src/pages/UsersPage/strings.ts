@@ -12,6 +12,7 @@ export const columnRole = 'Role';
 export const columnStatus = 'Status';
 export const columnPhoneNumber = 'Phone Number';
 export const columnActions = 'Actions';
+export const noUsersFound = 'No users found.';
 export const emptyPhone = '-';
 export const actionEdit = 'Edit';
 export const actionDelete = 'Delete';

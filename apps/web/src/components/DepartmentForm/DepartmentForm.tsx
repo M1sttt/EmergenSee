@@ -1,9 +1,10 @@
 import React, { useEffect, useCallback, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FiSave, FiX, FiAlertCircle } from 'react-icons/fi';
 import { Department, createDepartmentSchema, updateDepartmentSchema } from '@emergensee/shared';
 import { useAuthStore } from 'store/authStore';
+import SelectDropdown from '@/components/SelectDropdown';
 import {
 	useDepartmentFormDepartmentsQuery,
 	useDepartmentFormSaveMutation,
@@ -47,6 +48,7 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ department, onClose }) 
 
 	const {
 		register,
+		control,
 		handleSubmit,
 		formState: { errors, isSubmitting },
 		reset,
@@ -80,6 +82,15 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ department, onClose }) 
 			mutation.mutate(data);
 		},
 		[mutation],
+	);
+
+	const subDepartmentOptions = useMemo(
+		() =>
+			availableSubDepartments.map(dept => ({
+				value: dept.id,
+				label: dept.name,
+			})),
+		[availableSubDepartments],
 	);
 
 	if (isLoading) {
@@ -156,22 +167,20 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ department, onClose }) 
 
 									<div>
 										<label className={consts.labelClass}>{strings.subDepartmentsLabel}</label>
-										<select
-											multiple
-											{...register('subDepartments')}
-											className={consts.selectMultipleClass}
-										>
-											{availableSubDepartments.map(dept => (
-												<option key={dept.id} value={dept.id}>
-													{dept.name}
-												</option>
-											))}
-										</select>
-										{errors.subDepartments && (
-											<p className={consts.errorTextClass}>
-												{errors.subDepartments.message as string}
-											</p>
-										)}
+										<Controller
+											name="subDepartments"
+											control={control}
+											render={({ field }) => (
+												<SelectDropdown
+													{...field}
+													isMulti
+													options={subDepartmentOptions}
+													placeholder={strings.subDepartmentsLabel}
+													closeMenuOnSelect={false}
+													error={errors.subDepartments?.message as string | undefined}
+												/>
+											)}
+										/>
 									</div>
 
 									<div className={consts.actionsContainerClass}>

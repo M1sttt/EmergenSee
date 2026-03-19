@@ -8,5 +8,6 @@ export const columnType = 'Type';
 export const columnPriority = 'Priority';
 export const columnStatus = 'Status';
 export const columnActions = 'Actions';
+export const noEventsFound = 'No events found.';
 export const tooltipEdit = 'Edit';
 export const tooltipCloseEvent = 'Close Event';
