@@ -20,7 +20,6 @@ export default function LoginPage() {
 	const [error, setError] = useState<string | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
 
-	// ── GSI button container ─────────────────────────────────────────────────────
 	const gsiContainerRef = useRef<HTMLDivElement>(null);
 
 	const handleGoogleCredential = useCallback(
@@ -41,10 +40,8 @@ export default function LoginPage() {
 		[navigate, setAuth],
 	);
 
-	// Loads the GSI script and renders the official button into gsiContainerRef
 	useGoogleGSI(gsiContainerRef, handleGoogleCredential);
 
-	// ── Login form ──────────────────────────────────────────────────────────────
 	const savedCreds = utils.getSavedCredentials();
 
 	const loginForm = useForm<LoginDto>({
@@ -70,7 +67,6 @@ export default function LoginPage() {
 		}
 	};
 
-	// ── Register form ───────────────────────────────────────────────────────────
 	const registerForm = useForm<RegisterDto>();
 
 	const onRegister = async (data: RegisterDto) => {
@@ -99,26 +95,21 @@ export default function LoginPage() {
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-gray-100">
 			<div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
-				{/* Header */}
 				<div className="text-center mb-6">
 					<h1 className="text-3xl font-bold text-gray-900">{strings.title}</h1>
 					<p className="text-gray-600 mt-1">{strings.subtitle}</p>
 				</div>
 
-				{/* Error banner */}
 				{error && (
 					<div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
 						{error}
 					</div>
 				)}
 
-				{/* ── Official GSI button (rendered by the hook) ────────────────────────── */}
 				<div className="flex justify-center mb-4">
-					{/* GSI injects a button element inside this div */}
 					<div ref={gsiContainerRef} className="w-full" />
 				</div>
 
-				{/* Divider */}
 				<div className="relative mb-4">
 					<div className="absolute inset-0 flex items-center">
 						<div className="w-full border-t border-gray-200" />
@@ -128,7 +119,6 @@ export default function LoginPage() {
 					</div>
 				</div>
 
-				{/* ── LOGIN form ──────────────────────────────────────────────────────── */}
 				{mode === 'login' && (
 					<form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-5">
 						<div>
@@ -184,7 +174,6 @@ export default function LoginPage() {
 					</form>
 				)}
 
-				{/* ── REGISTER form ────────────────────────────────────────────────────── */}
 				{mode === 'register' && (
 					<form onSubmit={registerForm.handleSubmit(onRegister)} className="space-y-4">
 						<div className="grid grid-cols-2 gap-4">

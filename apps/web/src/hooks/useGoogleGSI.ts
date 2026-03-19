@@ -1,17 +1,5 @@
-/**
- * useGoogleGSI
- *
- * Loads the Google Identity Services script, initialises it with the app's
- * client ID, and renders the *official* branded button into a container
- * element that you supply via a React ref.
- *
- * The `onCredential` callback receives the raw id_token string that your
- * backend should verify with google-auth-library.
- */
-
 import { useCallback, useEffect, useRef } from 'react';
 
-// ─── Window type augmentation ────────────────────────────────────────────────
 declare global {
 	interface Window {
 		google?: {
@@ -28,7 +16,6 @@ declare global {
 						options: {
 							theme?: 'outline' | 'filled_blue' | 'filled_black';
 							size?: 'large' | 'medium' | 'small';
-							/** px — GSI accepts 200–400 */
 							width?: number;
 							text?: 'signin_with' | 'signup_with' | 'continue_with' | 'signin';
 							shape?: 'rectangular' | 'pill' | 'circle' | 'square';
@@ -52,7 +39,6 @@ export function useGoogleGSI(
 ) {
 	const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
-	// Always keep the callback reference stable so re-renders don't disconnect the widget
 	const onCredentialRef = useRef(onCredential);
 	useEffect(() => {
 		onCredentialRef.current = onCredential;

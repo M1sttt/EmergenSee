@@ -33,7 +33,6 @@ export default function EventsPage() {
 
 	const updateMutation = useEventsPageUpdateMutation();
 
-	// WebSocket listeners
 	useWebSocket(
 		WebSocketEventType.EVENT_CREATED,
 		useCallback(() => {

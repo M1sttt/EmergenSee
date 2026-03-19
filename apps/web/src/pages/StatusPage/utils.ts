@@ -5,7 +5,6 @@ export const getEntityId = (entity: unknown): string => {
 	return typedEntity.id || typedEntity._id || '';
 };
 
-// Generic interface to deal with the various model types returned from API
 export interface GenericEntity {
 	id?: string;
 	_id?: string;

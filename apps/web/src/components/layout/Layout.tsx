@@ -162,8 +162,6 @@ export default function Layout() {
           </div>
         </div>
       </div>
-
-      {/* Main content */}
       <div className={consts.mainContent}>
         <Outlet />
       </div>
