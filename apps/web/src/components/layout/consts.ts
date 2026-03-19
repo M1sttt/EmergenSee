@@ -5,11 +5,12 @@ import {
 	FaUsers,
 	FaBuilding,
 	FaMapMarkerAlt,
-	FaHeartbeat,
 	FaChevronLeft,
 	FaChevronRight,
 	FaSignOutAlt,
 } from 'react-icons/fa';
+import { AiFillAlert } from "react-icons/ai";
+
 
 export const CONSTS = {
 	ROUTES: {
@@ -33,7 +34,7 @@ export const CONSTS = {
 		USERS: FaUsers,
 		DEPARTMENTS: FaBuilding,
 		STATUS: FaMapMarkerAlt,
-		EMERGENCY: FaHeartbeat,
+		EMERGENCY: AiFillAlert,
 		COLLAPSE: FaChevronLeft,
 		EXPAND: FaChevronRight,
 		LOGOUT: FaSignOutAlt,
@@ -51,7 +52,7 @@ export const CONSTS = {
 		LOGO_CONTAINER_COLLAPSED: 'px-3 text-center',
 		LOGO_TEXT_EXPANDED: 'text-2xl font-bold text-blue-600',
 		LOGO_TEXT_COLLAPSED: 'text-2xl font-bold text-blue-600',
-		SUBTITLE: 'text-xs text-gray-600 mt-1',
+		SUBTITLE: 'text-xs text-gray-600 mt-1 justify-self-center',
 		NAV_CONTAINER_BASE: 'flex-1 py-4 space-y-1',
 		NAV_CONTAINER_EXPANDED: 'px-4',
 		NAV_CONTAINER_COLLAPSED: 'px-2',

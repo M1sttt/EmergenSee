@@ -1,6 +1,5 @@
 export const STRINGS = {
 	APP_NAME: 'EmergenSee',
-	APP_INITIAL: 'E',
 	APP_SUBTITLE: 'Emergency Response',
 	EXPAND_SIDEBAR: 'Expand sidebar',
 	COLLAPSE_SIDEBAR: 'Collapse sidebar',
