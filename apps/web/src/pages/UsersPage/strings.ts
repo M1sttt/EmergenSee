@@ -1,0 +1,22 @@
+export const STRINGS = {
+	TITLE: 'Users',
+	LOADING: 'Loading...',
+	ALL_DEPARTMENTS: 'All Departments',
+	SELECT_DEPARTMENT: 'Select Department',
+	SEARCH_DEPARTMENTS: 'Search departments...',
+	NO_DEPARTMENTS: 'No departments found',
+	CREATE_USER: 'Create User',
+	CONFIRM_DELETE: 'Are you sure you want to delete this user?',
+	COLUMNS: {
+		NAME: 'Name',
+		EMAIL: 'Email',
+		ROLE: 'Role',
+		STATUS: 'Status',
+		PHONE_NUMBER: 'Phone Number',
+		ACTIONS: 'Actions',
+	},
+	EMPTY_PHONE: '-',
+	ACTION_EDIT: 'Edit',
+	ACTION_DELETE: 'Delete',
+	ERROR: 'Error loading data',
+};

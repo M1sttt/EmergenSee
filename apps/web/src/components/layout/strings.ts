@@ -1,0 +1,16 @@
+export const STRINGS = {
+	APP_NAME: 'EmergenSee',
+	APP_INITIAL: 'E',
+	APP_SUBTITLE: 'Emergency Response',
+	EXPAND_SIDEBAR: 'Expand sidebar',
+	COLLAPSE_SIDEBAR: 'Collapse sidebar',
+	LOGOUT_TITLE: 'Logout',
+	LOGOUT_TEXT: 'Logout',
+	DASHBOARD: 'Dashboard',
+	EVENTS: 'Events',
+	MAP: 'Map',
+	USERS: 'Users',
+	DEPARTMENTS: 'Departments',
+	STATUS: 'Status',
+	EMERGENCY_REPORT: 'Emergency Report',
+};

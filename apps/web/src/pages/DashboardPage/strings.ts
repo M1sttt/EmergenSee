@@ -1,0 +1,15 @@
+export const DASHBOARD_STRINGS = {
+	TITLE: 'Dashboard',
+	TOTAL_EVENTS: 'Total Events',
+	ACTIVE_EVENTS: 'Active Events',
+	CRITICAL_EVENTS: 'Critical Events',
+	HIGH_PRIORITY: 'High Priority',
+	RECENT_EVENTS: 'Recent Events',
+	RECENT_STATUS_UPDATES: 'Recent Status Updates',
+	STATUS_UPDATE: 'Status Update',
+	NO_NOTES: 'No notes',
+	LOADING_EVENTS: 'Loading events...',
+	LOADING_STATUS: 'Loading status...',
+	ERROR_EVENTS: 'Error loading events.',
+	ERROR_STATUS: 'Error loading status updates.',
+};
