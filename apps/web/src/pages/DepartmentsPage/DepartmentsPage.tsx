@@ -1,8 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FiEdit, FiTrash2, FiUsers } from 'react-icons/fi';
-import { departmentsService } from 'services/departmentsService';
-import { usersService } from 'services/usersService';
 import { Department } from '@emergensee/shared';
 import DepartmentForm from '@/components/DepartmentForm';
 import DepartmentMembersModal from '@/components/DepartmentMembersModal';
@@ -10,13 +7,18 @@ import { Loader } from '@/components/common/Loader';
 import { useAuthStore } from 'store/authStore';
 
 import { STRINGS } from './strings';
-import { CONSTANTS, CLASSES } from './consts';
+import { CLASSES } from './consts';
 import { filterDepartments, formatAdmins, checkIsAdmin } from './utils';
+import { ActionIcon } from '@/components/common/ActionIcon';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { UserRole } from '@emergensee/shared';
+import {
+    useDepartmentsPageDepartmentsQuery,
+    useDepartmentsPageDeleteMutation,
+    useDepartmentsPageUsersQuery,
+} from 'hooks/data/useDepartmentsPageData';
 
 const DepartmentsPage: React.FC = () => {
-    const queryClient = useQueryClient();
     const currentUser = useAuthStore(state => state.user);
 
     const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
@@ -29,27 +31,16 @@ const DepartmentsPage: React.FC = () => {
         data: departments = [],
         isLoading,
         isError,
-    } = useQuery({
-        queryKey: [CONSTANTS.QUERY_KEYS.DEPARTMENTS],
-        queryFn: departmentsService.getAll,
-    });
+    } = useDepartmentsPageDepartmentsQuery();
 
-    const { data: users = [] } = useQuery({
-        queryKey: [CONSTANTS.QUERY_KEYS.USERS],
-        queryFn: usersService.getAll,
-    });
+    const { data: users = [] } = useDepartmentsPageUsersQuery();
 
     const filteredDepartments = useMemo(
         () => filterDepartments(departments, searchQuery),
         [departments, searchQuery],
     );
 
-    const deleteMutation = useMutation({
-        mutationFn: departmentsService.delete,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: [CONSTANTS.QUERY_KEYS.DEPARTMENTS] });
-        },
-    });
+    const deleteMutation = useDepartmentsPageDeleteMutation();
 
     const handleEdit = useCallback((department: Department) => {
         setSelectedDepartment(department);
@@ -164,29 +155,29 @@ const DepartmentsPage: React.FC = () => {
                                         </td>
                                         <td className={CLASSES.TD_ACTIONS}>
                                             {isAdmin && (
-                                                <>
-                                                    <button
+                                                <div className="flex justify-end gap-2">
+                                                    <ActionIcon
                                                         onClick={() => handleManageMembers(department)}
-                                                        className={CLASSES.ACTION_BTN_INFO}
-                                                        title="Manage Members"
+                                                        className="text-blue-600"
+                                                        tooltipText="Manage Members"
                                                     >
-                                                        <FiUsers />
-                                                    </button>
-                                                    <button
+                                                        <FiUsers size={16} />
+                                                    </ActionIcon>
+                                                    <ActionIcon
                                                         onClick={() => handleEdit(department)}
-                                                        className={CLASSES.ACTION_BTN_EDIT}
-                                                        title="Edit"
+                                                        className="text-blue-600"
+                                                        tooltipText="Edit"
                                                     >
-                                                        <FiEdit />
-                                                    </button>
-                                                    <button
+                                                        <FiEdit size={16} />
+                                                    </ActionIcon>
+                                                    <ActionIcon
                                                         onClick={() => handleDelete(department.id)}
-                                                        className={CLASSES.ACTION_BTN_DEL}
-                                                        title="Delete"
+                                                        className="text-red-600"
+                                                        tooltipText="Delete"
                                                     >
-                                                        <FiTrash2 />
-                                                    </button>
-                                                </>
+                                                        <FiTrash2 size={16} />
+                                                    </ActionIcon>
+                                                </div>
                                             )}
                                         </td>
                                     </tr>

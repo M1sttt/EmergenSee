@@ -1,19 +1,21 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { usersService } from 'services/usersService';
-import { departmentsService } from 'services/departmentsService';
 import { useAuthStore } from 'store/authStore';
 import { User, USER_ROLE_LABELS, Department } from '@emergensee/shared';
 import UserForm from 'components/users/UserForm';
 import { FiEdit, FiTrash2, FiChevronDown } from 'react-icons/fi';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
+import { ActionIcon } from '@/components/common/ActionIcon';
 import { STRINGS } from './strings';
 import { CONSTS } from './consts';
 import { isGlobalAdmin, getAdminDepartments, filterDepartments, filterUsers, getStatusColors } from './utils';
 import { Loader } from '@/components/common/Loader';
+import {
+	useUsersPageDepartmentsQuery,
+	useUsersPageDeleteUserMutation,
+	useUsersPageUsersQuery,
+} from 'hooks/data/useUsersPageData';
 
 const UsersPage = () => {
-	const queryClient = useQueryClient();
 	const currentUser = useAuthStore(state => state.user);
 
 	const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -36,28 +38,16 @@ const UsersPage = () => {
 	}, []);
 
 	const {
-		data: usersData,
+		data: users = [],
 		isLoading: isLoadingUsers,
 		isError: isErrorUsers,
-	} = useQuery<User[]>({
-		queryKey: ['users'],
-		queryFn: () => usersService.getAll(),
-	});
-
-	const users = usersData ?? [];
+	} = useUsersPageUsersQuery();
 
 	const {
-		data: departmentsData,
+		data: departments = [],
 		isLoading: isLoadingDepartments,
 		isError: isErrorDepts,
-	} = useQuery<{ data: Department[] } | Department[]>({
-		queryKey: ['departments'],
-		queryFn: departmentsService.getAll,
-	});
-
-	const departments = useMemo(() => {
-		return Array.isArray(departmentsData) ? departmentsData : (departmentsData?.data ?? []);
-	}, [departmentsData]);
+	} = useUsersPageDepartmentsQuery();
 
 	const isAdmin = isGlobalAdmin(currentUser?.role);
 	const myAdminDepartments = useMemo(
@@ -67,12 +57,7 @@ const UsersPage = () => {
 	const isDepartmentAdmin = myAdminDepartments.length > 0;
 	const canCreateUser = isAdmin || isDepartmentAdmin;
 
-	const deleteMutation = useMutation({
-		mutationFn: (id: string) => usersService.delete(id),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['users'] });
-		},
-	});
+	const deleteMutation = useUsersPageDeleteUserMutation();
 
 	const handleEdit = useCallback((user: User) => {
 		setSelectedUser(user);
@@ -293,21 +278,21 @@ const UsersPage = () => {
 											<td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
 												{(canEdit || userId === currentUser?.id) && (
 													<>
-														<button
+														<ActionIcon
 															onClick={() => handleEdit(user)}
-															className="mr-4"
-															title={STRINGS.ACTION_EDIT}
+															className="mr-2 text-blue-600"
+															tooltipText={STRINGS.ACTION_EDIT}
 														>
-															<FiEdit />
-														</button>
+															<FiEdit size={16} />
+														</ActionIcon>
 														{isAdmin && (
-															<button
+															<ActionIcon
 																onClick={() => handleDelete(userId!)}
-																className="text-red-600 hover:text-red-900"
-																title={STRINGS.ACTION_DELETE}
+																className="text-red-600"
+																tooltipText={STRINGS.ACTION_DELETE}
 															>
-																<FiTrash2 />
-															</button>
+																<FiTrash2 size={16} />
+															</ActionIcon>
 														)}
 													</>
 												)}

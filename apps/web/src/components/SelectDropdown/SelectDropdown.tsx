@@ -7,7 +7,7 @@ export interface SelectOption {
 }
 
 export interface SelectDropdownProps extends Omit<
-	SelectProps<SelectOption, false>,
+	SelectProps<SelectOption, boolean>,
 	'onChange' | 'value' | 'options' | 'isMulti'
 > {
 	options: SelectOption[];
@@ -19,7 +19,7 @@ export interface SelectDropdownProps extends Omit<
 }
 
 const SelectDropdown = forwardRef<any, SelectDropdownProps>(
-	({ options, value, onChange, label, error, isMulti, ...props }, ref) => {
+	({ options, value, onChange, label, error, isMulti = false, ...props }, ref) => {
 		const selectedOption = isMulti
 			? options.filter(opt => (value as string[])?.includes?.(opt.value))
 			: options.find(opt => opt.value === value) || null;
@@ -41,7 +41,7 @@ const SelectDropdown = forwardRef<any, SelectDropdownProps>(
 					value={selectedOption}
 					onChange={handleChange}
 					options={options}
-					isMulti={isMulti as any}
+					isMulti={isMulti}
 					classNamePrefix="react-select"
 					styles={{
 						control: (base, state) => ({

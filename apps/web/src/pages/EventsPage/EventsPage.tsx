@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { eventsService } from 'services/eventsService';
+import { useQueryClient } from '@tanstack/react-query';
 import {
 	Event,
 	EventPriority,
@@ -12,9 +11,15 @@ import {
 import { useWebSocket } from 'hooks/useWebSocket';
 import { WebSocketEventType } from '@emergensee/shared';
 import { FiEdit, FiCheckCircle } from 'react-icons/fi';
+import { ActionIcon } from '@/components/common/ActionIcon';
 import EventForm from '@/components/EventForm';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { Loader } from '@/components/common/Loader';
+import {
+	EVENTS_PAGE_QUERY_KEYS,
+	useEventsPageQuery,
+	useEventsPageUpdateMutation,
+} from 'hooks/data/useEventsPageData';
 
 export default function EventsPage() {
 	const queryClient = useQueryClient();
@@ -22,37 +27,29 @@ export default function EventsPage() {
 	const [isFormOpen, setIsFormOpen] = useState(false);
 	const [eventToClose, setEventToClose] = useState<string | null>(null);
 
-	const { data: events = [], isLoading } = useQuery({
-		queryKey: ['events'],
-		queryFn: eventsService.getAll,
-	});
+	const { data: events = [], isLoading } = useEventsPageQuery();
 
-	const updateMutation = useMutation({
-		mutationFn: ({ id, data }: { id: string; data: Partial<Event> }) => eventsService.update(id, data),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['events'] });
-		},
-	});
+	const updateMutation = useEventsPageUpdateMutation();
 
 	// WebSocket listeners
 	useWebSocket(
 		WebSocketEventType.EVENT_CREATED,
 		useCallback(() => {
-			queryClient.invalidateQueries({ queryKey: ['events'] });
+			queryClient.invalidateQueries({ queryKey: EVENTS_PAGE_QUERY_KEYS.events });
 		}, [queryClient]),
 	);
 
 	useWebSocket(
 		WebSocketEventType.EVENT_UPDATED,
 		useCallback(() => {
-			queryClient.invalidateQueries({ queryKey: ['events'] });
+			queryClient.invalidateQueries({ queryKey: EVENTS_PAGE_QUERY_KEYS.events });
 		}, [queryClient]),
 	);
 
 	useWebSocket(
 		WebSocketEventType.EVENT_DELETED,
 		useCallback(() => {
-			queryClient.invalidateQueries({ queryKey: ['events'] });
+			queryClient.invalidateQueries({ queryKey: EVENTS_PAGE_QUERY_KEYS.events });
 		}, [queryClient]),
 	);
 
@@ -186,20 +183,22 @@ export default function EventsPage() {
 											</span>
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-											<button
-												onClick={() => handleEdit(event)}
-												className="mr-4"
-												title="Edit"
-											>
-												<FiEdit size={18} />
-											</button>
-											<button
-												onClick={() => handleCloseEvent(eventId)}
-												className="text-green-600 hover:text-green-900"
-												title="Close Event"
-											>
-												<FiCheckCircle size={18} />
-											</button>
+											<div className="flex justify-end gap-2">
+												<ActionIcon
+													onClick={() => handleEdit(event)}
+													className="text-blue-600"
+													tooltipText="Edit"
+												>
+													<FiEdit size={16} />
+												</ActionIcon>
+												<ActionIcon
+													onClick={() => handleCloseEvent(eventId)}
+													className="text-green-600"
+													tooltipText="Close Event"
+												>
+													<FiCheckCircle size={16} />
+												</ActionIcon>
+											</div>
 										</td>
 									</tr>
 								);

@@ -1,14 +1,12 @@
 import React, { useMemo, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { eventsService } from 'services/eventsService';
-import { statusService } from 'services/statusService';
 import { useWebSocket } from 'hooks/useWebSocket';
 import { WebSocketEventType, EventPriority } from '@emergensee/shared';
 import { MdEvent, MdWarning, MdError, MdNotificationImportant } from 'react-icons/md';
 import { DASHBOARD_STRINGS } from './strings';
-import { RECENT_ITEMS_LIMIT, QUERY_KEYS, PRIORITY_STYLES, COMMON_STATUS_STYLE } from './consts';
+import { RECENT_ITEMS_LIMIT, PRIORITY_STYLES, COMMON_STATUS_STYLE } from './consts';
 import { getActiveEventsCount, getEventsByPriorityCount } from './utils';
 import { Loader } from '@/components/common/Loader';
+import { useDashboardPageEventsQuery, useDashboardPageStatusQuery } from 'hooks/data/useDashboardPageData';
 
 const DashboardPage: React.FC = () => {
 	const {
@@ -16,20 +14,14 @@ const DashboardPage: React.FC = () => {
 		refetch: refetchEvents,
 		isLoading: isLoadingEvents,
 		isError: isErrorEvents,
-	} = useQuery({
-		queryKey: QUERY_KEYS.EVENTS,
-		queryFn: eventsService.getAll,
-	});
+	} = useDashboardPageEventsQuery();
 
 	const {
 		data: statusUpdates = [],
 		refetch: refetchStatus,
 		isLoading: isLoadingStatus,
 		isError: isErrorStatus,
-	} = useQuery({
-		queryKey: QUERY_KEYS.STATUS,
-		queryFn: statusService.getAll,
-	});
+	} = useDashboardPageStatusQuery();
 
 	const handleRefetchEvents = useCallback(() => {
 		refetchEvents();

@@ -1,12 +1,11 @@
 import { useState, useMemo } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from 'store/authStore';
 import { authService } from 'services/authService';
-import { eventsService } from 'services/eventsService';
-import { statusService } from 'services/statusService';
 import { WebSocketEventType } from '@emergensee/shared';
 import { useWebSocket } from 'hooks/useWebSocket';
+import { LAYOUT_QUERY_KEYS, useLayoutEventsQuery, useLayoutUserStatusesQuery } from 'hooks/data/useLayoutData';
 import { CONSTS } from './consts';
 import { STRINGS } from './strings';
 import logo from 'assets/logo.png';
@@ -20,28 +19,21 @@ export default function Layout() {
   const queryClient = useQueryClient();
 
   useWebSocket(WebSocketEventType.EVENT_CREATED, () => {
-    queryClient.invalidateQueries({ queryKey: CONSTS.QUERY_KEYS.EVENTS });
+    queryClient.invalidateQueries({ queryKey: LAYOUT_QUERY_KEYS.events });
   });
   useWebSocket(WebSocketEventType.EVENT_UPDATED, () => {
-    queryClient.invalidateQueries({ queryKey: CONSTS.QUERY_KEYS.EVENTS });
+    queryClient.invalidateQueries({ queryKey: LAYOUT_QUERY_KEYS.events });
   });
   useWebSocket(WebSocketEventType.EVENT_DELETED, () => {
-    queryClient.invalidateQueries({ queryKey: CONSTS.QUERY_KEYS.EVENTS });
+    queryClient.invalidateQueries({ queryKey: LAYOUT_QUERY_KEYS.events });
   });
-  useWebSocket(WebSocketEventType.STATUS_UPDATED as any, () => {
-    queryClient.invalidateQueries({ queryKey: CONSTS.QUERY_KEYS.STATUS });
-  });
-
-  const { data: events = [] } = useQuery({
-    queryKey: CONSTS.QUERY_KEYS.EVENTS,
-    queryFn: eventsService.getAll,
+  useWebSocket(WebSocketEventType.STATUS_UPDATED, () => {
+    queryClient.invalidateQueries({ queryKey: LAYOUT_QUERY_KEYS.status });
   });
 
-  const { data: myStatuses = [] } = useQuery({
-    queryKey: [...CONSTS.QUERY_KEYS.STATUS, user?.id],
-    queryFn: () => statusService.getByUser(user!.id),
-    enabled: !!user?.id,
-  });
+  const { data: events = [] } = useLayoutEventsQuery();
+
+  const { data: myStatuses = [] } = useLayoutUserStatusesQuery(user?.id);
 
   const relevantOngoingEvent = useMemo(() => {
     return getRelevantOngoingEvent(events as any, user);

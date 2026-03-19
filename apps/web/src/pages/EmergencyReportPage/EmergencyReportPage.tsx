@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { statusService } from 'services/statusService';
-import { eventsService } from 'services/eventsService';
 import { useAuthStore } from 'store/authStore';
-import { ResponderStatus, Event } from '@emergensee/shared';
+import { ResponderStatus } from '@emergensee/shared';
 import { FaShieldAlt, FaAmbulance, FaExclamationTriangle } from 'react-icons/fa';
+import {
+	useEmergencyReportCreateStatusMutation,
+	useEmergencyReportEventsQuery,
+} from 'hooks/data/useEmergencyReportPageData';
 
 import { CONSTS } from './consts';
 import { STRINGS } from './strings';
@@ -14,40 +15,32 @@ const EmergencyReportPage: React.FC = () => {
 	const user = useAuthStore(state => state.user);
 	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-	const { data: events = [], isLoading } = useQuery<Event[]>({
-		queryKey: ['events'],
-		queryFn: eventsService.getAll,
-	});
+	const { data: events = [], isLoading } = useEmergencyReportEventsQuery();
 
 	const ongoingRelatedEvent = useMemo(() => {
 		return findOngoingRelatedEvent(events, user);
 	}, [events, user]);
 
-	const reportMutation = useMutation({
-		mutationFn: async (status: ResponderStatus) => {
-			if (!ongoingRelatedEvent) throw new Error(STRINGS.ERROR_NO_EVENT);
-			return statusService.create({
-				status,
-				eventId: ongoingRelatedEvent.id || ((ongoingRelatedEvent as { _id?: string })._id as string),
-			});
-		},
-		onSuccess: (_, variables) => {
-			if (variables === ResponderStatus.SAFE) {
-				setSuccessMessage(STRINGS.SUCCESS_SAFE);
-			} else if (variables === ResponderStatus.NEED_HELP) {
-				setSuccessMessage(STRINGS.SUCCESS_HELP);
-			}
-			setTimeout(() => setSuccessMessage(null), CONSTS.TIMEOUTS.SUCCESS_MESSAGE);
-		},
+	const reportMutation = useEmergencyReportCreateStatusMutation(status => {
+		if (status === ResponderStatus.SAFE) {
+			setSuccessMessage(STRINGS.SUCCESS_SAFE);
+		} else if (status === ResponderStatus.NEED_HELP) {
+			setSuccessMessage(STRINGS.SUCCESS_HELP);
+		}
+		setTimeout(() => setSuccessMessage(null), CONSTS.TIMEOUTS.SUCCESS_MESSAGE);
 	});
 
+	const ongoingEventId = ongoingRelatedEvent?.id || (ongoingRelatedEvent as { _id?: string } | undefined)?._id;
+
 	const handleSafeClick = useCallback(() => {
-		reportMutation.mutate(ResponderStatus.SAFE);
-	}, [reportMutation]);
+		if (!ongoingEventId) return;
+		reportMutation.mutate({ status: ResponderStatus.SAFE, eventId: ongoingEventId });
+	}, [reportMutation, ongoingEventId]);
 
 	const handleHelpClick = useCallback(() => {
-		reportMutation.mutate(ResponderStatus.NEED_HELP);
-	}, [reportMutation]);
+		if (!ongoingEventId) return;
+		reportMutation.mutate({ status: ResponderStatus.NEED_HELP, eventId: ongoingEventId });
+	}, [reportMutation, ongoingEventId]);
 
 	if (isLoading) {
 		return <div className={CONSTS.CLASSES.LOADING_WRAPPER}>{STRINGS.LOADING}</div>;

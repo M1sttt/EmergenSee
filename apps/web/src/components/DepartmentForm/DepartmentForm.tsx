@@ -1,11 +1,13 @@
 import React, { useEffect, useCallback, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { FiSave, FiX, FiAlertCircle } from 'react-icons/fi';
-import { departmentsService } from 'services/departmentsService';
 import { Department, createDepartmentSchema, updateDepartmentSchema } from '@emergensee/shared';
 import { useAuthStore } from 'store/authStore';
+import {
+	useDepartmentFormDepartmentsQuery,
+	useDepartmentFormSaveMutation,
+} from 'hooks/data/useDepartmentFormData';
 
 import { STRINGS } from './strings';
 import { CONSTS } from './consts';
@@ -24,18 +26,14 @@ type DepartmentFormData = {
 };
 
 const DepartmentForm: React.FC<DepartmentFormProps> = ({ department, onClose }) => {
-	const queryClient = useQueryClient();
 	const [error, setError] = useState('');
 	const currentUser = useAuthStore(state => state.user);
 
 	const {
-		data: allDepartmentsResponse,
+		data: allDepartmentsResponse = [],
 		isLoading,
 		isError,
-	} = useQuery<Department[]>({
-		queryKey: CONSTS.QUERY_KEY,
-		queryFn: departmentsService.getAll,
-	});
+	} = useDepartmentFormDepartmentsQuery();
 
 	const allDepartments = useMemo(() => {
 		return allDepartmentsResponse || [];
@@ -69,22 +67,12 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ department, onClose }) 
 		}
 	}, [department, reset]);
 
-	const mutation = useMutation({
-		mutationFn: (data: DepartmentFormData) => {
-			if (department) {
-				return departmentsService.update(department.id, data);
-			}
-			return departmentsService.create({
-				...data,
-				admins: currentUser ? [currentUser.id] : [],
-			});
-		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: CONSTS.QUERY_KEY });
-			onClose();
-		},
-		onError: (err: { response?: { data?: { message?: string } } }) => {
-			setError(err.response?.data?.message || STRINGS.DEFAULT_ERROR);
+	const mutation = useDepartmentFormSaveMutation({
+		department,
+		currentUserId: currentUser?.id,
+		onSuccess: onClose,
+		onError: message => {
+			setError(message || STRINGS.DEFAULT_ERROR);
 		},
 	});
 

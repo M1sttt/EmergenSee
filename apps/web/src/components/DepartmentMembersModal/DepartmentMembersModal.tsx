@@ -1,11 +1,13 @@
 import React, { useState, useMemo, useCallback, memo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Department } from '@emergensee/shared';
-import { usersService } from 'services/usersService';
 import { FaCheck } from 'react-icons/fa';
+import {
+	useDepartmentMembersModalUpdateMutation,
+	useDepartmentMembersModalUsersQuery,
+} from 'hooks/data/useDepartmentMembersModalData';
 import { STRINGS } from './strings';
 import { CONSTS } from './consts';
-import { filterUsers, toggleSelection, getUpdatedDepartments } from './utils';
+import { filterUsers, toggleSelection } from './utils';
 
 interface DepartmentMembersModalProps {
 	department: Department;
@@ -13,7 +15,6 @@ interface DepartmentMembersModalProps {
 }
 
 const DepartmentMembersModal: React.FC<DepartmentMembersModalProps> = ({ department, onClose }) => {
-	const queryClient = useQueryClient();
 	const [searchQuery, setSearchQuery] = useState('');
 	const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
 	const [activeTab, setActiveTab] = useState<typeof CONSTS.TABS.ADD | typeof CONSTS.TABS.REMOVE>(
@@ -24,10 +25,7 @@ const DepartmentMembersModal: React.FC<DepartmentMembersModalProps> = ({ departm
 		data: users = [],
 		isLoading,
 		isError,
-	} = useQuery({
-		queryKey: CONSTS.QUERY_KEYS.USERS,
-		queryFn: usersService.getAll,
-	});
+	} = useDepartmentMembersModalUsersQuery();
 
 	const displayedUsers = useMemo(
 		() => filterUsers(users, department.id, activeTab, searchQuery),
@@ -48,23 +46,7 @@ const DepartmentMembersModal: React.FC<DepartmentMembersModalProps> = ({ departm
 		setSelectedUserIds(new Set());
 	}, []);
 
-	const updateMutation = useMutation({
-		mutationFn: async () => {
-			const promises = Array.from(selectedUserIds).map(userId => {
-				const user = users.find(u => u.id === userId);
-				if (!user) return Promise.resolve();
-
-				const updatedDepartments = getUpdatedDepartments(user.departments, department.id, activeTab);
-				return usersService.update(userId, { departments: updatedDepartments });
-			});
-			return Promise.all(promises);
-		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: CONSTS.QUERY_KEYS.USERS });
-			setSelectedUserIds(new Set());
-			setSearchQuery('');
-		},
-	});
+	const updateMutation = useDepartmentMembersModalUpdateMutation();
 
 	return (
 		<div className={CONSTS.CLASSES.MODAL_CONTAINER}>
@@ -138,7 +120,22 @@ const DepartmentMembersModal: React.FC<DepartmentMembersModalProps> = ({ departm
 
 					<div className={CONSTS.CLASSES.FOOTER}>
 						<button
-							onClick={() => updateMutation.mutate()}
+							onClick={() =>
+								updateMutation.mutate(
+									{
+										selectedUserIds,
+										users,
+										departmentId: department.id,
+										activeTab,
+									},
+									{
+										onSuccess: () => {
+											setSelectedUserIds(new Set());
+											setSearchQuery('');
+										},
+									},
+								)
+							}
 							disabled={selectedUserIds.size === 0 || updateMutation.isPending}
 							className={`${CONSTS.CLASSES.BTN_PRIMARY} ${activeTab === CONSTS.TABS.ADD ? CONSTS.CLASSES.BTN_ADD : CONSTS.CLASSES.BTN_REMOVE}`}
 						>

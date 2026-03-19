@@ -1,11 +1,13 @@
 import React, { useMemo, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { usersService } from 'services/usersService';
-import { departmentsService } from 'services/departmentsService';
-import { User, UpdateUserDto, UserRole, CreateUserDto, Department } from '@emergensee/shared';
+import { User, UpdateUserDto, UserRole, CreateUserDto } from '@emergensee/shared';
 import { useAuthStore } from 'store/authStore';
 import { FiSave, FiX } from 'react-icons/fi';
+import {
+	useUserFormCreateMutation,
+	useUserFormDepartmentsQuery,
+	useUserFormUpdateMutation,
+} from 'hooks/data/useUserFormData';
 
 import { STRINGS } from './strings';
 import { CONSTANTS } from './consts';
@@ -19,7 +21,6 @@ interface UserFormProps {
 type UserFormData = CreateUserDto & UpdateUserDto;
 
 function UserForm({ user, onClose }: UserFormProps) {
-	const queryClient = useQueryClient();
 	const currentUser = useAuthStore(state => state.user);
 	const isGlobalAdmin = currentUser?.role === UserRole.ADMIN;
 
@@ -27,10 +28,7 @@ function UserForm({ user, onClose }: UserFormProps) {
 		data: allDepartmentsResponse = [],
 		isLoading,
 		isError,
-	} = useQuery<Department[]>({
-		queryKey: CONSTANTS.QUERY_KEYS.DEPARTMENTS,
-		queryFn: departmentsService.getAll,
-	});
+	} = useUserFormDepartmentsQuery();
 
 	const managedDepartments = useMemo(() => {
 		return getManagedDepartments(
@@ -67,19 +65,12 @@ function UserForm({ user, onClose }: UserFormProps) {
 	});
 
 	const invalidateAndClose = useCallback(() => {
-		queryClient.invalidateQueries({ queryKey: CONSTANTS.QUERY_KEYS.USERS });
 		onClose();
-	}, [queryClient, onClose]);
+	}, [onClose]);
 
-	const createMutation = useMutation({
-		mutationFn: usersService.create,
-		onSuccess: invalidateAndClose,
-	});
+	const createMutation = useUserFormCreateMutation(invalidateAndClose);
 
-	const updateMutation = useMutation({
-		mutationFn: ({ id, data }: { id: string; data: UpdateUserDto }) => usersService.update(id, data),
-		onSuccess: invalidateAndClose,
-	});
+	const updateMutation = useUserFormUpdateMutation(invalidateAndClose);
 
 	const onSubmit = useCallback(
 		(data: UserFormData) => {

@@ -1,23 +1,19 @@
 import React, { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import { eventsService } from 'services/eventsService';
 import { EVENT_PRIORITY_LABELS, EVENT_STATUS_LABELS, EVENT_TYPE_LABELS } from '@emergensee/shared';
 import 'leaflet/dist/leaflet.css';
 
 import { MAP_STRINGS } from './strings';
 import { MAP_CLASSES, MAP_CONFIG } from './consts';
 import { createDefaultIcon, getLatLng } from './utils';
+import { useMapPageEventsQuery } from 'hooks/data/useMapPageData';
 
 const MapPage: React.FC = () => {
 	const {
 		data: events = [],
 		isLoading,
 		isError,
-	} = useQuery({
-		queryKey: ['events'],
-		queryFn: eventsService.getAll,
-	});
+	} = useMapPageEventsQuery();
 
 	const defaultIcon = useMemo(() => createDefaultIcon(), []);
 

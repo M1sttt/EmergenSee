@@ -1,21 +1,16 @@
 import SelectDropdown from '@/components/SelectDropdown';
 import React, { memo, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { eventsService } from 'services/eventsService';
-import { departmentsService } from 'services/departmentsService';
-import { Event, CreateEventDto, UpdateEventDto, EventType, EventPriority } from '@emergensee/shared';
+import { Event, CreateEventDto, EventType, EventPriority } from '@emergensee/shared';
 import { FiSave, FiX, FiAlertCircle } from 'react-icons/fi';
+import {
+	useEventFormCreateMutation,
+	useEventFormDepartmentsQuery,
+	useEventFormUpdateMutation,
+} from 'hooks/data/useEventFormData';
 import { EventFormStrings } from './strings';
 import { EventFormConsts } from './consts';
 import { prepareEventFormData, getDefaultValues } from './utils';
-
-// Avoid using any by expecting the correct department structure
-interface DepartmentOption {
-	id?: string;
-	_id?: string;
-	name: string;
-}
 
 interface EventFormProps {
 	event?: Event | null;
@@ -23,23 +18,11 @@ interface EventFormProps {
 }
 
 const EventForm: React.FC<EventFormProps> = ({ event, onClose }) => {
-	const queryClient = useQueryClient();
-
-	// Fix: no <any> for query response
 	const {
-		data: departmentsResponse,
+		data: departments = [],
 		isLoading: isLoadingDeps,
 		isError: isErrorDeps,
-	} = useQuery<unknown, Error>({
-		queryKey: EventFormConsts.QUERY_KEYS.DEPARTMENTS,
-		queryFn: departmentsService.getAll,
-	});
-
-	// Safe cast with check
-	const departmentsList = departmentsResponse as { data?: DepartmentOption[] } | DepartmentOption[];
-	const departments: DepartmentOption[] = Array.isArray(departmentsList)
-		? departmentsList
-		: departmentsList?.data || [];
+	} = useEventFormDepartmentsQuery();
 
 	const defaultValues = getDefaultValues(event);
 
@@ -53,19 +36,12 @@ const EventForm: React.FC<EventFormProps> = ({ event, onClose }) => {
 	});
 
 	const onSuccess = useCallback(() => {
-		queryClient.invalidateQueries({ queryKey: EventFormConsts.QUERY_KEYS.EVENTS });
 		onClose();
-	}, [queryClient, onClose]);
+	}, [onClose]);
 
-	const createMutation = useMutation({
-		mutationFn: eventsService.create,
-		onSuccess,
-	});
+	const createMutation = useEventFormCreateMutation(onSuccess);
 
-	const updateMutation = useMutation({
-		mutationFn: ({ id, data }: { id: string; data: UpdateEventDto }) => eventsService.update(id, data),
-		onSuccess,
-	});
+	const updateMutation = useEventFormUpdateMutation(onSuccess);
 
 	const onSubmit = useCallback(
 		(data: CreateEventDto) => {
@@ -161,7 +137,7 @@ const EventForm: React.FC<EventFormProps> = ({ event, onClose }) => {
 										{...field}
 										isMulti
 										options={departments.map(dept => ({
-											value: dept.id || dept._id || '',
+											value: dept.id || (dept as { _id?: string })._id || '',
 											label: dept.name,
 										}))}
 										placeholder={EventFormStrings.LABEL_DEPARTMENTS}
