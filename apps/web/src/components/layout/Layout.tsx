@@ -6,9 +6,9 @@ import { authService } from 'services/authService';
 import { WebSocketEventType } from '@emergensee/shared';
 import { useWebSocket } from 'hooks/useWebSocket';
 import { LAYOUT_QUERY_KEYS, useLayoutEventsQuery, useLayoutUserStatusesQuery } from 'hooks/data/useLayoutData';
+import logo from 'assets/logo.png';
 import * as consts from './consts';
 import * as strings from './strings';
-import logo from 'assets/logo.png';
 import * as utils from './utils';
 
 export default function Layout() {

@@ -4,10 +4,10 @@ import {
     FaMap,
     FaUsers,
     FaBuilding,
-    FaMapMarkerAlt,
     FaChevronLeft,
     FaChevronRight,
     FaSignOutAlt,
+    FaHeartbeat
 } from 'react-icons/fa';
 import { AiFillAlert } from 'react-icons/ai';
 
@@ -28,7 +28,7 @@ export const eventsIcon = FaExclamationCircle;
 export const mapIcon = FaMap;
 export const usersIcon = FaUsers;
 export const departmentsIcon = FaBuilding;
-export const statusIcon = FaMapMarkerAlt;
+export const statusIcon = FaHeartbeat;
 export const emergencyIcon = AiFillAlert;
 export const collapseIcon = FaChevronLeft;
 export const expandIcon = FaChevronRight;
