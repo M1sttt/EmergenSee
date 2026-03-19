@@ -1,4 +1,5 @@
 import { User, UserRole, UserStatus, Department } from '@emergensee/shared';
+import { getUserStatusTone } from '@/consts/ui';
 import * as consts from './consts';
 
 export const isGlobalAdmin = (userRole?: UserRole): boolean => userRole === UserRole.ADMIN;
@@ -23,13 +24,4 @@ export const filterUsers = (users: User[], selectedDeptId: string): User[] => {
 	});
 };
 
-export const getStatusColors = (status: UserStatus) => {
-	switch (status) {
-		case UserStatus.ACTIVE:
-			return { bg: consts.activeStatusBgClass, text: consts.activeStatusTextClass };
-		case UserStatus.INACTIVE:
-			return { bg: consts.inactiveStatusBgClass, text: consts.inactiveStatusTextClass };
-		default:
-			return { bg: consts.suspendedStatusBgClass, text: consts.suspendedStatusTextClass };
-	}
-};
+export const getStatusTone = (status: UserStatus) => getUserStatusTone(status);

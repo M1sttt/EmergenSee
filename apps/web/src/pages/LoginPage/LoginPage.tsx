@@ -5,6 +5,7 @@ import { LoginDto, RegisterDto } from '@emergensee/shared';
 import { authService } from 'services/authService';
 import { useAuthStore } from 'store/authStore';
 import { useGoogleGSI } from 'hooks/useGoogleGSI';
+import { Button, FieldError, Input, Label } from '@/components/ui';
 import * as strings from './strings';
 import * as consts from './consts';
 import * as utils from './utils';
@@ -122,44 +123,43 @@ export default function LoginPage() {
 				{mode === 'login' && (
 					<form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-5">
 						<div>
-							<label htmlFor="email" className="block text-sm font-medium text-gray-700">
+							<Label htmlFor="email">
 								{strings.email}
-							</label>
-							<input
+							</Label>
+							<Input
 								{...loginForm.register('email', { required: strings.emailRequired })}
 								type="email"
 								id="email"
-								className={consts.inputCls}
 								autoComplete="email"
 							/>
 							{loginForm.formState.errors.email && (
-								<p className={consts.errorCls}>{loginForm.formState.errors.email.message}</p>
+								<FieldError className="text-xs">{loginForm.formState.errors.email.message}</FieldError>
 							)}
 						</div>
 
 						<div>
-							<label htmlFor="password" className="block text-sm font-medium text-gray-700">
+							<Label htmlFor="password">
 								{strings.password}
-							</label>
-							<input
+							</Label>
+							<Input
 								{...loginForm.register('password', { required: strings.passwordRequired })}
 								type="password"
 								id="password"
-								className={consts.inputCls}
 								autoComplete="current-password"
 							/>
 							{loginForm.formState.errors.password && (
-								<p className={consts.errorCls}>{loginForm.formState.errors.password.message}</p>
+								<FieldError className="text-xs">{loginForm.formState.errors.password.message}</FieldError>
 							)}
 						</div>
 
-						<button
+						<Button
 							type="submit"
 							disabled={isLoading}
-							className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+							variant="primary"
+							fullWidth
 						>
 							{isLoading ? strings.loggingIn : strings.logIn}
-						</button>
+						</Button>
 
 						<p className="text-center text-sm text-gray-500">
 							{strings.dontHaveAccount}
@@ -178,99 +178,95 @@ export default function LoginPage() {
 					<form onSubmit={registerForm.handleSubmit(onRegister)} className="space-y-4">
 						<div className="grid grid-cols-2 gap-4">
 							<div>
-								<label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+								<Label htmlFor="firstName">
 									{strings.firstName}
-								</label>
-								<input
+								</Label>
+								<Input
 									{...registerForm.register('firstName', { required: strings.firstNameRequired })}
 									type="text"
 									id="firstName"
-									className={consts.inputCls}
 									autoComplete="given-name"
 								/>
 								{registerForm.formState.errors.firstName && (
-									<p className={consts.errorCls}>{registerForm.formState.errors.firstName.message}</p>
+									<FieldError className="text-xs">{registerForm.formState.errors.firstName.message}</FieldError>
 								)}
 							</div>
 
 							<div>
-								<label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+								<Label htmlFor="lastName">
 									{strings.lastName}
-								</label>
-								<input
+								</Label>
+								<Input
 									{...registerForm.register('lastName', { required: strings.lastNameRequired })}
 									type="text"
 									id="lastName"
-									className={consts.inputCls}
 									autoComplete="family-name"
 								/>
 								{registerForm.formState.errors.lastName && (
-									<p className={consts.errorCls}>{registerForm.formState.errors.lastName.message}</p>
+									<FieldError className="text-xs">{registerForm.formState.errors.lastName.message}</FieldError>
 								)}
 							</div>
 						</div>
 
 						<div>
-							<label htmlFor="reg-email" className="block text-sm font-medium text-gray-700">
+							<Label htmlFor="reg-email">
 								{strings.email}
-							</label>
-							<input
+							</Label>
+							<Input
 								{...registerForm.register('email', { required: strings.emailRequired })}
 								type="email"
 								id="reg-email"
-								className={consts.inputCls}
 								autoComplete="email"
 							/>
 							{registerForm.formState.errors.email && (
-								<p className={consts.errorCls}>{registerForm.formState.errors.email.message}</p>
+								<FieldError className="text-xs">{registerForm.formState.errors.email.message}</FieldError>
 							)}
 						</div>
 
 						<div>
-							<label htmlFor="reg-password" className="block text-sm font-medium text-gray-700">
+							<Label htmlFor="reg-password">
 								{strings.password} <span className="text-gray-400 font-normal">{strings.min8Chars}</span>
-							</label>
-							<input
+							</Label>
+							<Input
 								{...registerForm.register('password', {
 									required: strings.passwordRequired,
 									minLength: { value: consts.minPasswordLength, message: strings.min8CharsMessage },
 								})}
 								type="password"
 								id="reg-password"
-								className={consts.inputCls}
 								autoComplete="new-password"
 							/>
 							{registerForm.formState.errors.password && (
-								<p className={consts.errorCls}>{registerForm.formState.errors.password.message}</p>
+								<FieldError className="text-xs">{registerForm.formState.errors.password.message}</FieldError>
 							)}
 						</div>
 
 						<div>
-							<label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+							<Label htmlFor="confirmPassword">
 								{strings.confirmPassword}
-							</label>
-							<input
+							</Label>
+							<Input
 								{...registerForm.register('confirmPassword', {
 									required: strings.passwordConfirmRequired,
 									validate: val => val === registerForm.watch('password') || strings.passwordsDoNotMatch,
 								})}
 								type="password"
 								id="confirmPassword"
-								className={consts.inputCls}
 								autoComplete="new-password"
 							/>
 							{registerForm.formState.errors.confirmPassword && (
-								<p className={consts.errorCls}>{registerForm.formState.errors.confirmPassword.message}</p>
+								<FieldError className="text-xs">{registerForm.formState.errors.confirmPassword.message}</FieldError>
 							)}
 						</div>
 
-						<button
+						<Button
 							type="submit"
 							disabled={isLoading}
-							className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+							variant="primary"
+							fullWidth
 						>
 							{isLoading ? strings.creatingAccount : strings.createAccount}
-						</button>
+						</Button>
 
 						<p className="text-center text-sm text-gray-500">
 							{strings.alreadyHaveAccount}

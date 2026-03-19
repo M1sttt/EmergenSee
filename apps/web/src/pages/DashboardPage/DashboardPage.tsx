@@ -1,11 +1,13 @@
 import React, { useMemo, useCallback } from 'react';
 import { useWebSocket } from 'hooks/useWebSocket';
 import { WebSocketEventType, EventPriority } from '@emergensee/shared';
+import { getEventPriorityTone } from '@/consts/ui';
 import { MdEvent, MdWarning, MdError, MdNotificationImportant } from 'react-icons/md';
 import * as strings from './strings';
 import * as consts from './consts';
 import * as utils from './utils';
 import { Loader } from '@/components/common/Loader';
+import { Badge } from '@/components/ui';
 import { useDashboardPageEventsQuery, useDashboardPageStatusQuery } from 'hooks/data/useDashboardPageData';
 
 const DashboardPage: React.FC = () => {
@@ -54,8 +56,8 @@ const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">{strings.title}</h1>
+    <div className="ui-page">
+      <h1 className="ui-page-title mb-6">{strings.title}</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-lg shadow p-6">
@@ -111,11 +113,9 @@ const DashboardPage: React.FC = () => {
                     <div>
                       <h3 className="font-semibold text-gray-900">{event.title}</h3>
                     </div>
-                    <span
-                      className={`px-2 py-1 text-xs font-semibold rounded ${consts.getPriorityStyle(event.priority)}`}
-                    >
+                    <Badge tone={getEventPriorityTone(event.priority)}>
                       {event.priority}
-                    </span>
+                    </Badge>
                   </div>
                 </div>
               ))
@@ -141,10 +141,9 @@ const DashboardPage: React.FC = () => {
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="font-semibold text-gray-900">{strings.statusUpdate}</h3>
-                      <h3 className="font-semibold text-gray-900">{strings.statusUpdate}</h3>
                       <p className="text-sm text-gray-600">{status.notes || strings.noNotes}</p>
                     </div>
-                    <span className={consts.commonStatusStyle}>{status.status}</span>
+                    <Badge tone="info">{status.status}</Badge>
                   </div>
                 </div>
               ))

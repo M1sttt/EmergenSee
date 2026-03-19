@@ -1,12 +1,12 @@
 ﻿import { Event, EventPriority, EventStatus } from '@emergensee/shared';
-import * as consts from './consts';
+import { getEventPriorityTone, getEventStatusTone } from '@/consts/ui';
 
-export function getPriorityColor(priority: EventPriority): string {
-	return consts.getPriorityColorClass(priority);
+export function getPriorityTone(priority: EventPriority) {
+	return getEventPriorityTone(priority);
 }
 
-export function getStatusColor(status: EventStatus): string {
-	return consts.getStatusColorClass(status);
+export function getStatusTone(status: EventStatus) {
+	return getEventStatusTone(status);
 }
 
 export function getEventId(event: Event | (Event & { _id?: string })): string {

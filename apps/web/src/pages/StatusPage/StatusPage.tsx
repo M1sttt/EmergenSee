@@ -1,13 +1,14 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { FiAlertTriangle, FiCheckCircle } from 'react-icons/fi';
 import { RiUserUnfollowLine } from 'react-icons/ri';
 import { EventStatus, RESPONDER_STATUS_LABELS, ResponderStatus, UserRole } from '@emergensee/shared';
+import { getResponderStatusTone } from '@/consts/ui';
 import { useAuthStore } from 'store/authStore';
 import GenericTable, { type GenericTableColumn } from '@/components/common/GenericTable';
 import SelectDropdown from '@/components/SelectDropdown';
-import { ActionIcon } from '@/components/common/ActionIcon';
 import { Loader } from '@/components/common/Loader';
+import { Badge, IconButton, Label } from '@/components/ui';
 import {
   useStatusPageCreateStatusMutation,
   useStatusPageDepartmentsQuery,
@@ -15,6 +16,7 @@ import {
   useStatusPageStatusUpdatesQuery,
   useStatusPageUsersQuery,
 } from 'hooks/data/useStatusPageData';
+import { getEntityId } from './utils';
 import * as strings from './strings';
 import * as consts from './consts';
 
@@ -35,10 +37,9 @@ export default function StatusPage() {
     [events],
   );
 
-  useEffect(() => {
-    if (!selectedEventId && activeEvents.length > 0) {
-      setSelectedEventId(activeEvents[0].id || (activeEvents[0] as any)._id);
-    }
+  const effectiveSelectedEventId = useMemo(() => {
+    if (selectedEventId) return selectedEventId;
+    return activeEvents.length > 0 ? getEntityId(activeEvents[0]) : '';
   }, [activeEvents, selectedEventId]);
 
   const isGlobalAdmin = currentUser?.role === UserRole.ADMIN;
@@ -50,7 +51,7 @@ export default function StatusPage() {
   const eventOptions = useMemo(
     () =>
       activeEvents.map(event => ({
-        value: event.id || (event as any)._id || '',
+        value: getEntityId(event),
         label: event.title,
       })),
     [activeEvents],
@@ -68,7 +69,7 @@ export default function StatusPage() {
   );
 
   const displayUsers = useMemo(() => {
-    if (!selectedEventId) return [];
+    if (!effectiveSelectedEventId) return [];
 
     let filteredUsers = users;
     if (selectedDeptId !== 'all') {
@@ -82,15 +83,14 @@ export default function StatusPage() {
 
     return filteredUsers.map(user => {
       const userStatuses = statusUpdates.filter(statusUpdate => {
-        const uid =
-          (statusUpdate as any).userId?.id ||
-          (statusUpdate as any).userId?._id ||
-          (statusUpdate as any).userId;
-        const eid =
-          (statusUpdate as any).eventId?.id ||
-          (statusUpdate as any).eventId?._id ||
-          (statusUpdate as any).eventId;
-        return uid === user.id && eid === selectedEventId;
+        const statusRecord = statusUpdate as {
+          userId?: unknown;
+          eventId?: unknown;
+        };
+
+        const uid = getEntityId(statusRecord.userId);
+        const eid = getEntityId(statusRecord.eventId);
+        return uid === user.id && eid === effectiveSelectedEventId;
       });
 
       userStatuses.sort(
@@ -102,7 +102,7 @@ export default function StatusPage() {
         status: userStatuses.length > 0 ? userStatuses[0] : null,
       };
     });
-  }, [selectedEventId, selectedDeptId, users, statusUpdates, isGlobalAdmin, isDeptAdmin, userAdminDepts]);
+  }, [effectiveSelectedEventId, selectedDeptId, users, statusUpdates, isGlobalAdmin, isDeptAdmin, userAdminDepts]);
 
   const isLoading = isLoadingEvents || isLoadingDepts || isLoadingUsers || isLoadingStatus;
 
@@ -129,19 +129,17 @@ export default function StatusPage() {
         header: strings.columnStatus,
         renderCell: ({ status }) =>
           status && status.status !== ResponderStatus.UNKNOWN ? (
-            <span
-              className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${consts.getStatusStyle(status.status)}`}
-            >
+            <Badge tone={getResponderStatusTone(status.status)}>
               {RESPONDER_STATUS_LABELS[
                 status.status as keyof typeof RESPONDER_STATUS_LABELS
               ] || status.status}
-            </span>
+            </Badge>
           ) : (
-            <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+            <Badge tone="neutral">
               {RESPONDER_STATUS_LABELS[
                 ResponderStatus.UNKNOWN as keyof typeof RESPONDER_STATUS_LABELS
               ] || strings.unknownStatus}
-            </span>
+            </Badge>
           ),
       },
       {
@@ -172,63 +170,63 @@ export default function StatusPage() {
 
           return (
             <div className="flex justify-end gap-2">
-              <ActionIcon
+              <IconButton
                 onClick={() =>
                   reportMutation.mutate({
                     status: ResponderStatus.SAFE,
                     userId: user.id,
-                    eventId: selectedEventId,
+                    eventId: effectiveSelectedEventId,
                   })
                 }
                 className="text-green-600"
                 tooltipText={strings.markSafe}
               >
                 <FiCheckCircle size={16} />
-              </ActionIcon>
-              <ActionIcon
+              </IconButton>
+              <IconButton
                 onClick={() =>
                   reportMutation.mutate({
                     status: ResponderStatus.NEED_HELP,
                     userId: user.id,
-                    eventId: selectedEventId,
+                    eventId: effectiveSelectedEventId,
                   })
                 }
                 className="text-red-600"
                 tooltipText={strings.markNeedHelp}
               >
                 <FiAlertTriangle size={16} />
-              </ActionIcon>
-              <ActionIcon
+              </IconButton>
+              <IconButton
                 onClick={() =>
                   reportMutation.mutate({
                     status: ResponderStatus.AWAY,
                     userId: user.id,
-                    eventId: selectedEventId,
+                    eventId: effectiveSelectedEventId,
                   })
                 }
                 className="text-orange-700"
                 tooltipText={strings.markAway}
               >
                 <RiUserUnfollowLine size={16} />
-              </ActionIcon>
+              </IconButton>
             </div>
           );
         },
       },
     ],
-    [isDeptAdmin, isGlobalAdmin, reportMutation, selectedEventId, userAdminDepts],
+    [effectiveSelectedEventId, isDeptAdmin, isGlobalAdmin, reportMutation, userAdminDepts],
   );
 
   return (
-    <div className={consts.containerClass}>
+    <div className="ui-page">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h1 className="text-3xl font-bold text-gray-900">{strings.title}</h1>
+        <h1 className="ui-page-title">{strings.title}</h1>
 
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700">{strings.activeEventLabel}</label>
+            <Label>{strings.activeEventLabel}</Label>
             <SelectDropdown
-              value={selectedEventId}
+              value={effectiveSelectedEventId}
               onChange={value => setSelectedEventId(Array.isArray(value) ? '' : value)}
               options={eventOptions}
               placeholder={strings.selectEventPlaceholder}
@@ -241,7 +239,7 @@ export default function StatusPage() {
 
           {(isGlobalAdmin || isDeptAdmin) && (
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">{strings.departmentLabel}</label>
+              <Label>{strings.departmentLabel}</Label>
               <SelectDropdown
                 value={selectedDeptId}
                 onChange={value =>
@@ -259,8 +257,8 @@ export default function StatusPage() {
         </div>
       </div>
 
-      {!selectedEventId ? (
-        <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
+      {!effectiveSelectedEventId ? (
+        <div className="ui-empty-state">
           {strings.noActiveEvents}
         </div>
       ) : (
@@ -270,7 +268,7 @@ export default function StatusPage() {
           getRowKey={({ user }) => user.id}
           isLoading={isLoading}
           loadingContent={
-            <div className="py-8">
+            <div className="ui-loading-state">
               <Loader />
             </div>
           }

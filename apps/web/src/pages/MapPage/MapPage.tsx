@@ -18,15 +18,15 @@ const MapPage: React.FC = () => {
 	const defaultIcon = useMemo(() => utils.createDefaultIcon(), []);
 
 	if (isLoading) {
-		return <div className={consts.loadingContainerClass}>{strings.loading}</div>;
+		return <div className="flex h-full items-center justify-center">{strings.loading}</div>;
 	}
 
 	if (isError) {
-		return <div className={consts.errorContainerClass}>{strings.error}</div>;
+		return <div className="flex h-full items-center justify-center text-red-500">{strings.error}</div>;
 	}
 
 	return (
-		<div className={consts.containerClass}>
+		<div className="h-full">
 			<MapContainer
 				center={consts.defaultCenter}
 				zoom={consts.defaultZoom}
@@ -36,9 +36,9 @@ const MapPage: React.FC = () => {
 				{events.map(event => (
 					<Marker key={event.id} position={utils.getLatLng(event)} icon={defaultIcon}>
 						<Popup>
-							<div className={consts.popupContainerClass}>
-								<h3 className={consts.popupTitleClass}>{event.title}</h3>
-								<div className={consts.popupDetailsClass}>
+							<div className="p-2">
+								<h3 className="mb-2 text-lg font-bold">{event.title}</h3>
+								<div className="space-y-1 text-sm">
 									<p>
 										<strong>{strings.type}</strong> {EVENT_TYPE_LABELS[event.type]}
 									</p>
@@ -48,7 +48,7 @@ const MapPage: React.FC = () => {
 									<p>
 										<strong>{strings.status}</strong> {EVENT_STATUS_LABELS[event.status]}
 									</p>
-									<p className={consts.popupDescriptionClass}>{event.description}</p>
+									<p className="mt-2">{event.description}</p>
 								</div>
 							</div>
 						</Popup>

@@ -4,9 +4,9 @@ import { User, USER_ROLE_LABELS, Department } from '@emergensee/shared';
 import UserForm from 'components/users/UserForm';
 import { FiEdit, FiTrash2 } from 'react-icons/fi';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
-import { ActionIcon } from '@/components/common/ActionIcon';
 import GenericTable, { type GenericTableColumn } from '@/components/common/GenericTable';
 import SelectDropdown from '@/components/SelectDropdown';
+import { Badge, Button, IconButton } from '@/components/ui';
 import * as strings from './strings';
 import * as consts from './consts';
 import * as utils from './utils';
@@ -94,10 +94,7 @@ const UsersPage = () => {
 				id: 'name',
 				header: strings.columnName,
 				renderCell: user => (
-					<div
-						className={`text-sm font-medium text-gray-900 truncate ${consts.nameColMaxWidthClass}`}
-						title={`${user.firstName} ${user.lastName}`}
-					>
+					<div className="max-w-[150px] truncate text-sm font-medium text-gray-900" title={`${user.firstName} ${user.lastName}`}>
 						{user.firstName} {user.lastName}
 					</div>
 				),
@@ -106,10 +103,7 @@ const UsersPage = () => {
 				id: 'email',
 				header: strings.columnEmail,
 				renderCell: user => (
-					<div
-						className={`text-sm text-gray-900 truncate ${consts.emailColMaxWidthClass}`}
-						title={user.email}
-					>
+					<div className="max-w-[200px] truncate text-sm text-gray-900" title={user.email}>
 						{user.email}
 					</div>
 				),
@@ -118,23 +112,16 @@ const UsersPage = () => {
 				id: 'role',
 				header: strings.columnRole,
 				renderCell: user => (
-					<span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+					<Badge tone="info">
 						{USER_ROLE_LABELS[user.role]}
-					</span>
+					</Badge>
 				),
 			},
 			{
 				id: 'status',
 				header: strings.columnStatus,
 				renderCell: user => {
-					const statusColors = utils.getStatusColors(user.status);
-					return (
-						<span
-							className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors.bg} ${statusColors.text}`}
-						>
-							{user.status}
-						</span>
-					);
+					return <Badge tone={utils.getStatusTone(user.status)}>{user.status}</Badge>;
 				},
 			},
 			{
@@ -170,21 +157,21 @@ const UsersPage = () => {
 						<>
 							{(canEdit || userId === currentUser?.id) && (
 								<>
-									<ActionIcon
+										<IconButton
 										onClick={() => handleEdit(user)}
 										className="mr-2 text-blue-600"
 										tooltipText={strings.actionEdit}
 									>
 										<FiEdit size={16} />
-									</ActionIcon>
+										</IconButton>
 									{isAdmin && (
-										<ActionIcon
+											<IconButton
 											onClick={() => handleDelete(userId!)}
 											className="text-red-600"
 											tooltipText={strings.actionDelete}
 										>
 											<FiTrash2 size={16} />
-										</ActionIcon>
+											</IconButton>
 									)}
 								</>
 							)}
@@ -200,14 +187,14 @@ const UsersPage = () => {
 	const isLoading = isLoadingUsers || isLoadingDepartments;
 
 	if (isErrorUsers || isErrorDepts) {
-		return <div className="p-6 text-red-600">{strings.error}</div>;
+		return <div className="ui-page text-red-600">{strings.error}</div>;
 	}
 
 	return (
-		<div className="p-6">
+		<div className="ui-page">
 			<div className="flex justify-between items-center mb-6">
 				<div className="flex items-center gap-6">
-					<h1 className="text-3xl font-bold text-gray-900">{strings.title}</h1>
+					<h1 className="ui-page-title">{strings.title}</h1>
 					<SelectDropdown
 						value={selectedDeptId}
 						onChange={value =>
@@ -223,12 +210,14 @@ const UsersPage = () => {
 				</div>
 
 				{canCreateUser && (
-					<button
+					<Button
 						onClick={() => setIsFormOpen(true)}
-						className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+						variant="primary"
+						size="md"
+						className="rounded-lg"
 					>
 						{strings.createUser}
-					</button>
+					</Button>
 				)}
 			</div>
 
@@ -238,7 +227,7 @@ const UsersPage = () => {
 				getRowKey={user => (user.id || (user as unknown as { _id?: string })._id || user.email) as string}
 				isLoading={isLoading}
 				loadingContent={
-					<div className="py-8">
+					<div className="ui-loading-state">
 						<Loader />
 					</div>
 				}

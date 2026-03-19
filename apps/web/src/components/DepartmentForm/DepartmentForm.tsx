@@ -5,12 +5,12 @@ import { FiSave, FiX, FiAlertCircle } from 'react-icons/fi';
 import { Department, createDepartmentSchema, updateDepartmentSchema } from '@emergensee/shared';
 import { useAuthStore } from 'store/authStore';
 import SelectDropdown from '@/components/SelectDropdown';
+import { Button, FieldError, Input, Label, Textarea } from '@/components/ui';
 import {
 	useDepartmentFormDepartmentsQuery,
 	useDepartmentFormSaveMutation,
 } from 'hooks/data/useDepartmentFormData';
 import * as strings from './strings';
-import * as consts from './consts';
 import * as utils from './utils';
 
 interface DepartmentFormProps {
@@ -95,9 +95,9 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ department, onClose }) 
 
 	if (isLoading) {
 		return (
-			<div className={consts.modalContainerClass}>
-				<div className={consts.modalWrapperClass}>
-					<div className={consts.overlayClass} />
+			<div className="ui-modal-root">
+				<div className="ui-modal-center">
+					<div className="ui-modal-backdrop" />
 					<div className="relative transform overflow-hidden rounded-lg bg-white p-6 shadow-xl text-center z-10">
 						Loading...
 					</div>
@@ -108,14 +108,14 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ department, onClose }) 
 
 	if (isError) {
 		return (
-			<div className={consts.modalContainerClass}>
-				<div className={consts.modalWrapperClass}>
-					<div className={consts.overlayClass} />
+			<div className="ui-modal-root">
+				<div className="ui-modal-center">
+					<div className="ui-modal-backdrop" />
 					<div className="relative transform overflow-hidden rounded-lg bg-white p-6 shadow-xl text-center z-10 text-red-600 flex items-center gap-2">
 						<FiAlertCircle /> Failed to load departments
-						<button onClick={onClose} className={consts.cancelButtonClass}>
+						<Button onClick={onClose} variant="secondary" size="md" className="mt-3 sm:mt-0">
 							{strings.cancelText}
-						</button>
+						</Button>
 					</div>
 				</div>
 			</div>
@@ -123,21 +123,21 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ department, onClose }) 
 	}
 
 	return (
-		<div className={consts.modalContainerClass}>
-			<div className={consts.modalWrapperClass}>
-				<div className={consts.overlayClass} onClick={onClose} />
+		<div className="ui-modal-root">
+			<div className="ui-modal-center">
+				<div className="ui-modal-backdrop" onClick={onClose} />
 
-				<div className={consts.modalContentClass}>
-					<div className={consts.modalBodyClass}>
+				<div className="ui-modal-panel ui-modal-panel-md z-10">
+					<div className="ui-modal-header">
 						<div className="sm:flex sm:items-start">
-							<div className={consts.formContainerClass}>
-								<h3 className={consts.headingClass}>
+							<div className="mt-3 w-full text-center sm:ml-4 sm:mt-0 sm:text-left">
+								<h3 className="mb-4 text-lg font-semibold leading-6 text-gray-900">
 									{department ? strings.editDepartment : strings.createDepartment}
 								</h3>
 
-								<form onSubmit={handleSubmit(onSubmit)} className={consts.formLayoutClass}>
+								<form onSubmit={handleSubmit(onSubmit)} className="ui-form-spacing">
 									{error && (
-										<div className={consts.errorBoxClass}>
+										<div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
 											<div className="flex items-center gap-2">
 												<FiAlertCircle />
 												<span>{error}</span>
@@ -146,27 +146,23 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ department, onClose }) 
 									)}
 
 									<div>
-										<label className={consts.labelClass}>{strings.nameLabel}</label>
-										<input type="text" {...register('name')} className={consts.inputBaseClass} />
-										{errors.name && (
-											<p className={consts.errorTextClass}>{errors.name.message as string}</p>
-										)}
+										<Label>{strings.nameLabel}</Label>
+										<Input type="text" {...register('name')} />
+										<FieldError>{errors.name?.message as string | undefined}</FieldError>
 									</div>
 
 									<div>
-										<label className={consts.labelClass}>{strings.descriptionLabel}</label>
-										<textarea
+										<Label>{strings.descriptionLabel}</Label>
+										<Textarea
 											{...register('description')}
 											rows={3}
-											className={consts.inputBaseClass}
+											className="min-h-[96px]"
 										/>
-										{errors.description && (
-											<p className={consts.errorTextClass}>{errors.description.message as string}</p>
-										)}
+										<FieldError>{errors.description?.message as string | undefined}</FieldError>
 									</div>
 
 									<div>
-										<label className={consts.labelClass}>{strings.subDepartmentsLabel}</label>
+										<Label>{strings.subDepartmentsLabel}</Label>
 										<Controller
 											name="subDepartments"
 											control={control}
@@ -183,15 +179,15 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ department, onClose }) 
 										/>
 									</div>
 
-									<div className={consts.actionsContainerClass}>
-										<button type="submit" disabled={isSubmitting} className={consts.saveButtonClass}>
+									<div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+										<Button type="submit" disabled={isSubmitting} variant="primary" size="md" className="w-full sm:ml-3 sm:w-auto">
 											<FiSave className="mr-2 h-4 w-4" />
 											{isSubmitting ? strings.savingText : strings.saveText}
-										</button>
-										<button type="button" onClick={onClose} className={consts.cancelButtonClass}>
+										</Button>
+										<Button type="button" onClick={onClose} variant="secondary" size="md" className="mt-3 w-full sm:mt-0 sm:w-auto">
 											<FiX className="mr-2 h-4 w-4" />
 											{strings.cancelText}
-										</button>
+										</Button>
 									</div>
 								</form>
 							</div>

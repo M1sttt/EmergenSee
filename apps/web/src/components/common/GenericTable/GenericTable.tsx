@@ -1,5 +1,5 @@
 import { memo, ReactNode } from 'react';
-import * as consts from './consts';
+import { cn } from '@/utils/cn';
 import * as strings from './strings';
 
 export interface GenericTableColumn<RowType> {
@@ -25,6 +25,40 @@ export interface GenericTableProps<RowType> {
 	emptyRowClassName?: string;
 }
 
+interface TableHeaderCellProps {
+	className?: string;
+	children: ReactNode;
+}
+
+const TableHeaderCell = memo(function TableHeaderCell({ className, children }: TableHeaderCellProps) {
+	return <th className={cn('ui-table-header-cell', className)}>{children}</th>;
+});
+
+interface TableBodyCellProps {
+	className?: string;
+	children: ReactNode;
+}
+
+const TableBodyCell = memo(function TableBodyCell({ className, children }: TableBodyCellProps) {
+	return <td className={cn('ui-table-cell', className)}>{children}</td>;
+});
+
+interface MessageRowProps {
+	colSpan: number;
+	className?: string;
+	children: ReactNode;
+}
+
+const MessageRow = memo(function MessageRow({ colSpan, className, children }: MessageRowProps) {
+	return (
+		<tr>
+			<td colSpan={colSpan} className={cn('ui-table-cell-message', className)}>
+				{children}
+			</td>
+		</tr>
+	);
+});
+
 function GenericTableInner<RowType>({
 	columns,
 	rows,
@@ -39,16 +73,12 @@ function GenericTableInner<RowType>({
 	loadingRowClassName,
 	emptyRowClassName,
 }: GenericTableProps<RowType>) {
-	const mergedContainerClassName = [consts.containerClass, containerClassName].filter(Boolean).join(' ');
-	const mergedTableClassName = [consts.tableClass, tableClassName].filter(Boolean).join(' ');
-	const mergedHeadClassName = [consts.headClass, headClassName].filter(Boolean).join(' ');
-	const mergedBodyClassName = [consts.bodyClass, bodyClassName].filter(Boolean).join(' ');
-	const mergedLoadingRowClassName = [consts.centeredMessageCellClass, loadingRowClassName]
-		.filter(Boolean)
-		.join(' ');
-	const mergedEmptyRowClassName = [consts.centeredMessageCellClass, emptyRowClassName]
-		.filter(Boolean)
-		.join(' ');
+	const mergedContainerClassName = cn('ui-table-container', containerClassName);
+	const mergedTableClassName = cn('ui-table', tableClassName);
+	const mergedHeadClassName = cn('ui-table-head', headClassName);
+	const mergedBodyClassName = cn('ui-table-body', bodyClassName);
+	const mergedLoadingRowClassName = cn('ui-table-cell-message', loadingRowClassName);
+	const mergedEmptyRowClassName = cn('ui-table-cell-message', emptyRowClassName);
 
 	return (
 		<div className={mergedContainerClassName}>
@@ -56,32 +86,28 @@ function GenericTableInner<RowType>({
 				<thead className={mergedHeadClassName}>
 					<tr>
 						{columns.map(column => (
-							<th key={column.id} className={[consts.headerCellClass, column.headerClassName].filter(Boolean).join(' ')}>
+							<TableHeaderCell key={column.id} className={column.headerClassName}>
 								{column.header}
-							</th>
+							</TableHeaderCell>
 						))}
 					</tr>
 				</thead>
 				<tbody className={mergedBodyClassName}>
 					{isLoading ? (
-						<tr>
-							<td colSpan={columns.length} className={mergedLoadingRowClassName}>
-								{loadingContent}
-							</td>
-						</tr>
+						<MessageRow colSpan={columns.length} className={mergedLoadingRowClassName}>
+							{loadingContent}
+						</MessageRow>
 					) : rows.length === 0 ? (
-						<tr>
-							<td colSpan={columns.length} className={mergedEmptyRowClassName}>
-								{emptyContent}
-							</td>
-						</tr>
+						<MessageRow colSpan={columns.length} className={mergedEmptyRowClassName}>
+							{emptyContent}
+						</MessageRow>
 					) : (
 						rows.map((row, rowIndex) => (
 							<tr key={getRowKey(row, rowIndex)}>
 								{columns.map(column => (
-									<td key={column.id} className={[consts.bodyCellClass, column.cellClassName].filter(Boolean).join(' ')}>
+									<TableBodyCell key={column.id} className={column.cellClassName}>
 										{column.renderCell(row, rowIndex)}
-									</td>
+									</TableBodyCell>
 								))}
 							</tr>
 						))

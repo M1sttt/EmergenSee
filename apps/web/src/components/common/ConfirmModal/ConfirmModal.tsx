@@ -1,5 +1,5 @@
 import { FiAlertTriangle } from 'react-icons/fi';
-import * as consts from './consts';
+import { Button } from '@/components/ui';
 
 export interface ConfirmModalProps {
     title?: string;
@@ -19,18 +19,18 @@ export const ConfirmModal = ({
     onCancel,
 }: ConfirmModalProps) => {
     return (
-        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div className="ui-modal-root" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div className="ui-modal-center">
                 <div
-                    className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                    className="ui-modal-backdrop"
                     aria-hidden="true"
                     onClick={onCancel}
                 ></div>
 
                 <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-                <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                    <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div className="ui-modal-panel ui-modal-panel-md inline-block align-bottom sm:align-middle">
+                    <div className="ui-modal-header">
                         <div className="sm:flex sm:items-start">
                             <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
                                 <FiAlertTriangle className="h-6 w-6 text-red-600" aria-hidden="true" />
@@ -47,21 +47,13 @@ export const ConfirmModal = ({
                             </div>
                         </div>
                     </div>
-                    <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                        <button
-                            type="button"
-                            className={consts.confirmButtonClass}
-                            onClick={onConfirm}
-                        >
+                    <div className="ui-modal-footer">
+                        <Button type="button" variant="danger" className="w-full sm:ml-3 sm:w-auto" onClick={onConfirm}>
                             {confirmText}
-                        </button>
-                        <button
-                            type="button"
-                            className={consts.cancelButtonClass}
-                            onClick={onCancel}
-                        >
+                        </Button>
+                        <Button type="button" variant="secondary" className="mt-3 w-full sm:mt-0 sm:ml-3 sm:w-auto" onClick={onCancel}>
                             {cancelText}
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>

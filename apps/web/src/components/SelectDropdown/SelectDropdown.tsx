@@ -18,6 +18,7 @@ import ReactSelect, {
 	SelectInstance,
 	StylesConfig,
 } from 'react-select';
+import { cn } from '@/utils/cn';
 
 export interface SelectOption {
 	value: string;
@@ -286,7 +287,7 @@ const SelectDropdown = forwardRef<
 		const menuPortalTarget = typeof window === 'undefined' ? undefined : document.body;
 
 		return (
-			<div className={`flex flex-col gap-1 relative ${containerClassName}`.trim()}>
+			<div className={cn('flex flex-col gap-1 relative', containerClassName)}>
 				{label && <label className="text-sm font-medium text-gray-700">{label}</label>}
 				<ReactSelect
 					{...props}

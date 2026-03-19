@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from 'store/authStore';
 import { MdErrorOutline, MdArrowBack } from 'react-icons/md';
@@ -32,26 +32,22 @@ const AuthCallbackPage: React.FC = () => {
 	}, [navigate, setAuth, updateToken]);
 
 	useEffect(() => {
-		handleAuth();
-	}, [handleAuth]);
+		const timeoutId = window.setTimeout(() => {
+			void handleAuth();
+		}, 0);
 
-	const errorContainerClasses = useMemo(() => consts.mainContainerClass, []);
-	const errorCardClasses = useMemo(() => consts.errorCardClass, []);
-	const errorTextClasses = useMemo(() => consts.errorTextClass, []);
-	const backToLoginClasses = useMemo(() => consts.backLinkClass, []);
-	const loadingContainerClasses = useMemo(() => consts.mainContainerClass, []);
-	const loadingWrapperClasses = useMemo(() => consts.loadingWrapperClass, []);
-	const loadingSpinnerClasses = useMemo(() => consts.loadingSpinnerClass, []);
-	const loadingTextClasses = useMemo(() => consts.loadingTextClass, []);
-	const errorIconClasses = useMemo(() => consts.errorIconClass, []);
+		return () => {
+			window.clearTimeout(timeoutId);
+		};
+	}, [handleAuth]);
 
 	if (error) {
 		return (
-			<div className={errorContainerClasses}>
-				<div className={errorCardClasses}>
-					<MdErrorOutline className={errorIconClasses} />
-					<p className={errorTextClasses}>{error}</p>
-					<a href={consts.loginRoute} className={backToLoginClasses}>
+			<div className="flex min-h-screen items-center justify-center bg-gray-100">
+				<div className="ui-card flex w-full max-w-sm flex-col items-center p-8 text-center">
+					<MdErrorOutline className="text-4xl text-red-600" />
+					<p className="mb-4 mt-2 text-center text-red-600">{error}</p>
+					<a href={consts.loginRoute} className="flex items-center gap-1 text-sm text-blue-600 hover:underline">
 						<MdArrowBack /> {strings.backToLogin}
 					</a>
 				</div>
@@ -60,10 +56,10 @@ const AuthCallbackPage: React.FC = () => {
 	}
 
 	return (
-		<div className={loadingContainerClasses}>
-			<div className={loadingWrapperClasses}>
-				<div className={loadingSpinnerClasses} />
-				<p className={loadingTextClasses}>{strings.signingIn}</p>
+		<div className="flex min-h-screen items-center justify-center bg-gray-100">
+			<div className="text-center">
+				<div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-b-2 border-blue-600" />
+				<p className="text-sm text-gray-600">{strings.signingIn}</p>
 			</div>
 		</div>
 	);

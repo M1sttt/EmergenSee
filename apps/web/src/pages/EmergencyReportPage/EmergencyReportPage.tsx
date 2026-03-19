@@ -6,6 +6,7 @@ import {
   useEmergencyReportCreateStatusMutation,
   useEmergencyReportEventsQuery,
 } from 'hooks/data/useEmergencyReportPageData';
+import { Button } from '@/components/ui';
 
 import * as consts from './consts';
 import * as strings from './strings';
@@ -43,49 +44,55 @@ const EmergencyReportPage: React.FC = () => {
   }, [reportMutation, ongoingEventId]);
 
   if (isLoading) {
-    return <div className={consts.loadingWrapperClass}>{strings.loading}</div>;
+    return <div className="ui-page">{strings.loading}</div>;
   }
 
   if (!ongoingRelatedEvent) {
     return (
-      <div className={consts.noEventWrapperClass}>
-        <h2 className={consts.noEventTitleClass}>{strings.noEventTitle}</h2>
-        <p className={consts.noEventDescClass}>{strings.noEventDesc}</p>
+      <div className="ui-page text-center">
+        <h2 className="text-2xl font-bold text-gray-800">{strings.noEventTitle}</h2>
+        <p className="mt-2 text-gray-600">{strings.noEventDesc}</p>
       </div>
     );
   }
 
   return (
-    <div className={consts.mainWrapperClass}>
-      <div className={consts.contentBoxClass}>
-        <h1 className={consts.titleClass}>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-red-50 p-6">
+      <div className="w-full max-w-lg rounded-lg border-t-4 border-red-600 bg-white p-8 text-center shadow-xl">
+        <h1 className="mb-2 flex items-center justify-center gap-2 text-4xl font-bold text-red-600">
           <FaExclamationTriangle />
           {strings.title}
         </h1>
-        <p className={consts.descriptionClass}>
+        <p className="mb-6 text-lg text-gray-700">
           {strings.descriptionPrefix}
           <strong>{ongoingRelatedEvent.title}</strong>
           {strings.descriptionSuffix}
         </p>
 
-        {successMessage && <div className={consts.successMessageClass}>{successMessage}</div>}
+        {successMessage && <div className="mb-6 rounded-md bg-blue-50 p-4 font-medium text-blue-800">{successMessage}</div>}
 
-        <div className={consts.buttonsWrapperClass}>
-          <button
+        <div className="space-y-6">
+          <Button
             onClick={handleSafeClick}
             disabled={reportMutation.isPending}
-            className={consts.safeButtonClass}
+            variant="primary"
+            size="lg"
+            fullWidth
+            className="rounded-xl bg-green-500 py-6 text-2xl font-bold text-white shadow-lg hover:bg-green-600 active:scale-95"
           >
             <FaShieldAlt /> {strings.safeButton}
-          </button>
+          </Button>
 
-          <button
+          <Button
             onClick={handleHelpClick}
             disabled={reportMutation.isPending}
-            className={consts.helpButtonClass}
+            variant="danger"
+            size="lg"
+            fullWidth
+            className="rounded-xl py-6 text-2xl font-bold shadow-lg active:scale-95"
           >
             <FaAmbulance /> {strings.helpButton}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

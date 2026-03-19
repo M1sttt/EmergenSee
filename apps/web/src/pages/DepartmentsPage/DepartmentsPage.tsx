@@ -6,11 +6,10 @@ import DepartmentMembersModal from '@/components/DepartmentMembersModal';
 import GenericTable, { type GenericTableColumn } from '@/components/common/GenericTable';
 import { Loader } from '@/components/common/Loader';
 import { useAuthStore } from 'store/authStore';
+import { Button, IconButton, Input } from '@/components/ui';
 
 import * as strings from './strings';
-import * as consts from './consts';
 import * as utils from './utils';
-import { ActionIcon } from '@/components/common/ActionIcon';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { UserRole } from '@emergensee/shared';
 import {
@@ -91,7 +90,7 @@ const DepartmentsPage: React.FC = () => {
                 id: 'name',
                 header: strings.columnName,
                 renderCell: department => (
-                    <div className={consts.tdTextClass} title={department.name}>
+                    <div className="max-w-[150px] truncate text-sm font-medium text-gray-900" title={department.name}>
                         {department.name}
                     </div>
                 ),
@@ -100,7 +99,7 @@ const DepartmentsPage: React.FC = () => {
                 id: 'description',
                 header: strings.columnDescription,
                 renderCell: department => (
-                    <div className={consts.tdDescClass} title={department.description}>
+                    <div className="max-w-[200px] truncate text-sm text-gray-500" title={department.description}>
                         {department.description}
                     </div>
                 ),
@@ -111,7 +110,7 @@ const DepartmentsPage: React.FC = () => {
                 renderCell: department => {
                     const adminsDisplay = utils.formatAdmins(department.admins, users);
                     return (
-                        <div className={consts.tdAdminsClass} title={adminsDisplay}>
+                        <div className="max-w-[250px] truncate text-sm text-gray-500" title={adminsDisplay}>
                             {adminsDisplay}
                         </div>
                     );
@@ -120,8 +119,8 @@ const DepartmentsPage: React.FC = () => {
             {
                 id: 'actions',
                 header: strings.columnActions,
-                headerClassName: consts.thLastClass,
-                cellClassName: consts.tdActionsClass,
+                headerClassName: 'px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500',
+                cellClassName: 'px-6 py-4 whitespace-nowrap text-right text-sm font-medium',
                 renderCell: department => {
                     const canManageDepartment = utils.checkIsAdmin(department, currentUser);
 
@@ -129,27 +128,27 @@ const DepartmentsPage: React.FC = () => {
 
                     return (
                         <div className="flex justify-end gap-2">
-                            <ActionIcon
+                            <IconButton
                                 onClick={() => handleManageMembers(department)}
                                 className="text-blue-600"
                                 tooltipText={strings.tooltipManageMembers}
                             >
                                 <FiUsers size={16} />
-                            </ActionIcon>
-                            <ActionIcon
+                            </IconButton>
+                            <IconButton
                                 onClick={() => handleEdit(department)}
                                 className="text-blue-600"
                                 tooltipText={strings.tooltipEdit}
                             >
                                 <FiEdit size={16} />
-                            </ActionIcon>
-                            <ActionIcon
+                            </IconButton>
+                            <IconButton
                                 onClick={() => handleDelete(department.id)}
                                 className="text-red-600"
                                 tooltipText={strings.tooltipDelete}
                             >
                                 <FiTrash2 size={16} />
-                            </ActionIcon>
+                            </IconButton>
                         </div>
                     );
                 },
@@ -159,25 +158,25 @@ const DepartmentsPage: React.FC = () => {
     );
 
     if (isError) {
-        return <div className={consts.errorTextClass}>{strings.error}</div>;
+        return <div className="ui-page py-4 text-center text-red-500">{strings.error}</div>;
     }
 
     return (
-        <div className={consts.pageContainerClass}>
-            <div className={consts.headerWrapperClass}>
-                <h1 className={consts.pageTitleClass}>{strings.pageTitle}</h1>
-                <div className={consts.searchContainerClass}>
-                    <input
+        <div className="ui-page">
+            <div className="mb-6 flex flex-col items-start gap-4 lg:flex-row lg:items-center">
+                <h1 className="ui-page-title">{strings.pageTitle}</h1>
+                <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-4 lg:ml-auto lg:max-w-md">
+                    <Input
                         type="text"
                         placeholder={strings.searchPlaceholder}
                         value={searchQuery}
                         onChange={handleSearchChange}
-                        className={consts.searchInputClass}
+                        className="mt-0 min-w-0 w-full rounded-lg"
                     />
                     {currentUser?.role === UserRole.ADMIN && (
-                        <button onClick={handleCreateClick} className={consts.createButtonClass}>
+                        <Button onClick={handleCreateClick} variant="primary" size="md" className="shrink-0 whitespace-nowrap rounded-lg">
                             {strings.createButton}
-                        </button>
+                        </Button>
                     )}
                 </div>
             </div>
@@ -188,7 +187,7 @@ const DepartmentsPage: React.FC = () => {
                 getRowKey={department => department.id}
                 isLoading={isLoading}
                 loadingContent={
-                    <div className="py-8">
+                    <div className="ui-loading-state">
                         <Loader />
                     </div>
                 }

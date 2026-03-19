@@ -10,11 +10,11 @@ import {
 import { useWebSocket } from 'hooks/useWebSocket';
 import { WebSocketEventType } from '@emergensee/shared';
 import { FiEdit, FiCheckCircle } from 'react-icons/fi';
-import { ActionIcon } from '@/components/common/ActionIcon';
 import GenericTable, { type GenericTableColumn } from '@/components/common/GenericTable';
 import EventForm from '@/components/EventForm';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { Loader } from '@/components/common/Loader';
+import { Badge, Button, IconButton } from '@/components/ui';
 import {
 	EVENTS_PAGE_QUERY_KEYS,
 	useEventsPageQuery,
@@ -98,22 +98,18 @@ export default function EventsPage() {
 			id: 'priority',
 			header: strings.columnPriority,
 			renderCell: event => (
-				<span
-					className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${utils.getPriorityColor(event.priority)}`}
-				>
+				<Badge tone={utils.getPriorityTone(event.priority)}>
 					{EVENT_PRIORITY_LABELS[event.priority]}
-				</span>
+				</Badge>
 			),
 		},
 		{
 			id: 'status',
 			header: strings.columnStatus,
 			renderCell: event => (
-				<span
-					className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${utils.getStatusColor(event.status)}`}
-				>
+				<Badge tone={utils.getStatusTone(event.status)}>
 					{EVENT_STATUS_LABELS[event.status]}
-				</span>
+				</Badge>
 			),
 		},
 		{
@@ -125,20 +121,20 @@ export default function EventsPage() {
 				const eventId = event.id || (event as any)._id;
 				return (
 					<div className="flex justify-end gap-2">
-						<ActionIcon
+							<IconButton
 							onClick={() => handleEdit(event)}
 							className="text-blue-600"
 							tooltipText={strings.tooltipEdit}
 						>
 							<FiEdit size={16} />
-						</ActionIcon>
-						<ActionIcon
+							</IconButton>
+							<IconButton
 							onClick={() => handleCloseEvent(eventId)}
 							className="text-green-600"
 							tooltipText={strings.tooltipCloseEvent}
 						>
 							<FiCheckCircle size={16} />
-						</ActionIcon>
+							</IconButton>
 					</div>
 				);
 			},
@@ -146,15 +142,17 @@ export default function EventsPage() {
 	];
 
 	return (
-		<div className="p-6">
+		<div className="ui-page">
 			<div className="flex justify-between items-center mb-6">
-				<h1 className="text-3xl font-bold text-gray-900">{strings.title}</h1>
-				<button
+				<h1 className="ui-page-title">{strings.title}</h1>
+				<Button
 					onClick={() => setIsFormOpen(true)}
-					className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					variant="primary"
+					size="md"
+					className="rounded-lg"
 				>
 					{strings.createBtn}
-				</button>
+				</Button>
 			</div>
 
 			<GenericTable
@@ -163,7 +161,7 @@ export default function EventsPage() {
 				getRowKey={event => (event.id || (event as any)._id) as string}
 				isLoading={isLoading}
 				loadingContent={
-					<div className="py-8">
+					<div className="ui-loading-state">
 						<Loader />
 					</div>
 				}

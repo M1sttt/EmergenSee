@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuthStore } from 'store/authStore';
 import { usersService } from 'services/usersService';
+import { Button, FieldError, Input, Label } from '@/components/ui';
 import * as strings from './strings';
 import * as consts from './consts';
 import * as utils from './utils';
@@ -66,57 +67,54 @@ const ProfilePage = () => {
     const handleFormSubmit = handleSubmit(onSubmit);
 
     return (
-        <div className={consts.containerClass}>
-            <div className={consts.headerContainerClass}>
-                <h1 className={consts.titleClass}>{strings.profileTitle}</h1>
-                <p className={consts.descriptionClass}>{strings.profileDescription}</p>
+        <div className="ui-page">
+            <div className="mb-8">
+                <h1 className="ui-page-title mb-6">{strings.profileTitle}</h1>
+                <p className="mt-1 text-sm text-gray-500">{strings.profileDescription}</p>
             </div>
 
-            <div className={consts.formContainerClass}>
-                <form onSubmit={handleFormSubmit} className={consts.formClass}>
-                    {error && <div className={consts.errorBoxClass}>{error}</div>}
+            <div className="ui-card overflow-hidden">
+                <form onSubmit={handleFormSubmit} className="ui-card-body space-y-6">
+                    {error && <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">{error}</div>}
 
-                    {success && <div className={consts.successBoxClass}>{success}</div>}
+                    {success && <div className="rounded-md bg-green-50 p-4 text-sm text-green-700">{success}</div>}
 
-                    <div className={consts.gridClass}>
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                         <div>
-                            <label className={consts.labelClass}>{strings.firstNameLabel}</label>
-                            <input
+                            <Label>{strings.firstNameLabel}</Label>
+                            <Input
                                 type="text"
                                 {...register('firstName', { required: strings.firstNameRequiredError })}
-                                className={consts.inputClass}
                             />
-                            {errors.firstName && <p className={consts.errorMessageClass}>{errors.firstName.message}</p>}
+                            {errors.firstName && <FieldError>{errors.firstName.message}</FieldError>}
                         </div>
 
                         <div>
-                            <label className={consts.labelClass}>{strings.lastNameLabel}</label>
-                            <input
+                            <Label>{strings.lastNameLabel}</Label>
+                            <Input
                                 type="text"
                                 {...register('lastName', { required: strings.lastNameRequiredError })}
-                                className={consts.inputClass}
                             />
-                            {errors.lastName && <p className={consts.errorMessageClass}>{errors.lastName.message}</p>}
+                            {errors.lastName && <FieldError>{errors.lastName.message}</FieldError>}
                         </div>
                     </div>
 
                     <div>
-                        <label className={consts.labelClass}>{strings.newPasswordLabel}</label>
-                        <input
+                        <Label>{strings.newPasswordLabel}</Label>
+                        <Input
                             type="password"
                             {...register('password', {
                                 minLength: { value: consts.passwordMinLength, message: strings.passwordMinLengthError },
                             })}
-                            className={consts.inputClass}
                             placeholder={strings.passwordPlaceholder}
                         />
-                        {errors.password && <p className={consts.errorMessageClass}>{errors.password.message}</p>}
+                        {errors.password && <FieldError>{errors.password.message}</FieldError>}
                     </div>
 
-                    <div className={consts.buttonContainerClass}>
-                        <button type="submit" disabled={isLoading} className={consts.buttonClass}>
+                    <div className="flex justify-end pt-4">
+                        <Button type="submit" disabled={isLoading} variant="primary" size="md">
                             {isLoading ? strings.savingButtonText : strings.saveButtonText}
-                        </button>
+                        </Button>
                     </div>
                 </form>
             </div>

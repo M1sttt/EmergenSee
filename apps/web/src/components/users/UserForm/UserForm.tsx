@@ -9,9 +9,9 @@ import {
   useUserFormDepartmentsQuery,
   useUserFormUpdateMutation,
 } from 'hooks/data/useUserFormData';
+import { Button, FieldError, Input, Label } from '@/components/ui';
 
 import * as strings from './strings';
-import * as consts from './consts';
 import * as utils from './utils';
 
 interface UserFormProps {
@@ -104,121 +104,112 @@ function UserForm({ user, onClose }: UserFormProps) {
   );
 
   return (
-    <div className={consts.overlayClass}>
-      <div className={consts.modalClass}>
-        <h2 className={consts.titleClass}>{user ? strings.titleEdit : strings.titleCreate}</h2>
+    <div className="ui-modal-root">
+      <div className="ui-modal-center">
+        <div className="ui-modal-backdrop" onClick={onClose} />
+        <div className="ui-modal-panel ui-modal-panel-2xl z-10 p-6">
+          <h2 className="mb-6 text-2xl font-bold text-gray-900">{user ? strings.titleEdit : strings.titleCreate}</h2>
 
-        {isLoading ? (
-          <p>{strings.loading}</p>
-        ) : isError ? (
-          <p className={consts.errorTextClass}>{strings.error}</p>
-        ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className={consts.spaceY4Class}>
-            <div className={consts.grid2ColsClass}>
-              <div>
-                <label className={consts.labelClass}>{strings.firstName}</label>
-                <input
-                  {...register('firstName', { required: strings.firstNameReq })}
-                  type="text"
-                  className={consts.inputClass}
-                />
-                {errors.firstName && (
-                  <p className={consts.errorTextClass}>{errors.firstName.message as string}</p>
-                )}
+          {isLoading ? (
+            <p>{strings.loading}</p>
+          ) : isError ? (
+            <p className="ui-field-error">{strings.error}</p>
+          ) : (
+            <form onSubmit={handleSubmit(onSubmit)} className="ui-form-spacing">
+              <div className="ui-form-grid-2">
+                <div>
+                  <Label>{strings.firstName}</Label>
+                  <Input
+                    {...register('firstName', { required: strings.firstNameReq })}
+                    type="text"
+                  />
+                  <FieldError>{errors.firstName?.message as string | undefined}</FieldError>
+                </div>
+
+                <div>
+                  <Label>{strings.lastName}</Label>
+                  <Input
+                    {...register('lastName', { required: strings.lastNameReq })}
+                    type="text"
+                  />
+                  <FieldError>{errors.lastName?.message as string | undefined}</FieldError>
+                </div>
               </div>
 
               <div>
-                <label className={consts.labelClass}>{strings.lastName}</label>
-                <input
-                  {...register('lastName', { required: strings.lastNameReq })}
-                  type="text"
-                  className={consts.inputClass}
+                <Label>{strings.email}</Label>
+                <Input
+                  {...register('email', { required: strings.emailReq })}
+                  type="email"
                 />
-                {errors.lastName && (
-                  <p className={consts.errorTextClass}>{errors.lastName.message as string}</p>
-                )}
+                <FieldError>{errors.email?.message as string | undefined}</FieldError>
               </div>
-            </div>
 
-            <div>
-              <label className={consts.labelClass}>{strings.email}</label>
-              <input
-                {...register('email', { required: strings.emailReq })}
-                type="email"
-                className={consts.inputClass}
-              />
-              {errors.email && (
-                <p className={consts.errorTextClass}>{errors.email.message as string}</p>
+              {!user && (
+                <div>
+                  <Label>{strings.password}</Label>
+                  <Input
+                    {...register('password', { required: strings.passwordReq })}
+                    type="password"
+                  />
+                  <FieldError>{errors.password?.message as string | undefined}</FieldError>
+                </div>
               )}
-            </div>
 
-            {!user && (
-              <div>
-                <label className={consts.labelClass}>{strings.password}</label>
-                <input
-                  {...register('password', { required: strings.passwordReq })}
-                  type="password"
-                  className={consts.inputClass}
-                />
-                {errors.password && (
-                  <p className={consts.errorTextClass}>{errors.password.message as string}</p>
-                )}
+              {isGlobalAdmin && (
+                <div>
+                  <Label>{strings.role}</Label>
+                  <Controller
+                    name="role"
+                    control={control}
+                    rules={{ required: strings.roleReq }}
+                    render={({ field }) => (
+                      <SelectDropdown
+                        {...field}
+                        options={roleOptions}
+                        placeholder={strings.selectRole}
+                        error={errors.role?.message as string | undefined}
+                      />
+                    )}
+                  />
+                </div>
+              )}
+
+              <div className="ui-form-grid-1">
+                <div>
+                  <Label>{strings.phoneNumber}</Label>
+                  <Input {...register('phoneNumber')} type="tel" />
+                </div>
+
+                <div>
+                  <Label>{strings.departments}</Label>
+                  <Controller
+                    name="departments"
+                    control={control}
+                    render={({ field }) => (
+                      <SelectDropdown
+                        {...field}
+                        isMulti
+                        options={departmentOptions}
+                        placeholder={strings.departments}
+                        closeMenuOnSelect={false}
+                      />
+                    )}
+                  />
+                </div>
               </div>
-            )}
 
-            {isGlobalAdmin && (
-              <div>
-                <label className={consts.labelClass}>{strings.role}</label>
-                <Controller
-                  name="role"
-                  control={control}
-                  rules={{ required: strings.roleReq }}
-                  render={({ field }) => (
-                    <SelectDropdown
-                      {...field}
-                      options={roleOptions}
-                      placeholder={strings.selectRole}
-                      error={errors.role?.message as string | undefined}
-                    />
-                  )}
-                />
+              <div className="ui-form-actions">
+                <Button type="button" onClick={onClose} variant="secondary" size="md">
+                  <FiX /> {strings.btnCancel}
+                </Button>
+                <Button type="submit" variant="primary" size="md">
+                  <FiSave /> {user ? strings.btnUpdate : strings.btnCreate}
+                </Button>
               </div>
-            )}
-
-            <div className={consts.grid1ColClass}>
-              <div>
-                <label className={consts.labelClass}>{strings.phoneNumber}</label>
-                <input {...register('phoneNumber')} type="tel" className={consts.inputClass} />
-              </div>
-
-              <div>
-                <label className={consts.labelClass}>{strings.departments}</label>
-                <Controller
-                  name="departments"
-                  control={control}
-                  render={({ field }) => (
-                    <SelectDropdown
-                      {...field}
-                      isMulti
-                      options={departmentOptions}
-                      placeholder={strings.departments}
-                      closeMenuOnSelect={false}
-                    />
-                  )}
-                />
-              </div>
-            </div>
-
-            <div className={consts.actionsWrapperClass}>
-              <button type="button" onClick={onClose} className={consts.cancelButtonClass}>
-                <FiX /> {strings.btnCancel}
-              </button>
-              <button type="submit" className={consts.submitButtonClass}>
-                <FiSave /> {user ? strings.btnUpdate : strings.btnCreate}
-              </button>
-            </div>
-          </form>
-        )}
+            </form>
+          )}
+        </div>
       </div>
     </div>
   );
