@@ -22,7 +22,7 @@ export const authService = {
   },
 
   logout: () => {
-    localStorage.clear();
+    localStorage.removeItem('auth-storage');
     window.location.href = '/login';
   },
 };

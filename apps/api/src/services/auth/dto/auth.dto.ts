@@ -79,9 +79,6 @@ export class UserResponseDto {
   @ApiPropertyOptional({ example: '+972501234567' })
   phoneNumber?: string;
 
-  @ApiPropertyOptional({ example: 'R-2041' })
-  badgeNumber?: string;
-
   @ApiPropertyOptional({ example: 'North District' })
   department?: string;
 

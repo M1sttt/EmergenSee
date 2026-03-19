@@ -16,8 +16,8 @@ export default function EventsPage() {
     queryFn: eventsService.getAll,
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: eventsService.delete,
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Event> }) => eventsService.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
     },
@@ -41,9 +41,9 @@ export default function EventsPage() {
     setIsFormOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this event?')) {
-      deleteMutation.mutate(id);
+  const handleCloseEvent = (id: string) => {
+    if (window.confirm('Are you sure you want to close this event?')) {
+      updateMutation.mutate({ id, data: { status: EventStatus.RESOLVED } });
     }
   };
 
@@ -69,14 +69,8 @@ export default function EventsPage() {
 
   const getStatusColor = (status: EventStatus) => {
     switch (status) {
-      case EventStatus.PENDING:
-        return 'bg-gray-100 text-gray-800';
-      case EventStatus.DISPATCHED:
+      case EventStatus.ONGOING:
         return 'bg-blue-100 text-blue-800';
-      case EventStatus.EN_ROUTE:
-        return 'bg-purple-100 text-purple-800';
-      case EventStatus.ON_SCENE:
-        return 'bg-indigo-100 text-indigo-800';
       case EventStatus.RESOLVED:
         return 'bg-green-100 text-green-800';
       case EventStatus.CANCELLED:
@@ -118,52 +112,51 @@ export default function EventsPage() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Status
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Address
-              </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {events.map((event) => (
-              <tr key={event.id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{event.title}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{EVENT_TYPE_LABELS[event.type]}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getPriorityColor(event.priority)}`}>
-                    {EVENT_PRIORITY_LABELS[event.priority]}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(event.status)}`}>
-                    {EVENT_STATUS_LABELS[event.status]}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="text-sm text-gray-900">{event.address}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    onClick={() => handleEdit(event)}
-                    className="text-blue-600 hover:text-blue-900 mr-4"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(event.id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {events.map((event) => {
+              const eventId = event.id || (event as any)._id;
+              return (
+                <tr key={eventId}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900 truncate max-w-[150px]" title={event.title}>{event.title}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{EVENT_TYPE_LABELS[event.type]}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getPriorityColor(event.priority)}`}>
+                      {EVENT_PRIORITY_LABELS[event.priority]}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(event.status)}`}>
+                      {EVENT_STATUS_LABELS[event.status]}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button
+                      onClick={() => handleEdit(event)}
+                      className="text-blue-600 hover:text-blue-900 mr-4"
+                      title="Edit"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      onClick={() => handleCloseEvent(eventId)}
+                      className="text-green-600 hover:text-green-900"
+                      title="Close Event"
+                    >
+                      ✅
+                    </button>
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>

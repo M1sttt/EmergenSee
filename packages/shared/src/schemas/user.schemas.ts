@@ -11,8 +11,7 @@ export const createUserSchema = z.object({
   lastName: z.string().min(1, 'Last name is required'),
   role: userRoleSchema,
   phoneNumber: z.string().optional(),
-  badgeNumber: z.string().optional(),
-  department: z.string().optional(),
+  departments: z.array(z.string()).optional(),
 });
 
 export const updateUserSchema = z.object({
@@ -23,8 +22,7 @@ export const updateUserSchema = z.object({
   role: userRoleSchema.optional(),
   status: userStatusSchema.optional(),
   phoneNumber: z.string().optional(),
-  badgeNumber: z.string().optional(),
-  department: z.string().optional(),
+  departments: z.array(z.string()).optional(),
 });
 
 export const loginSchema = z.object({

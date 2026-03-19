@@ -10,12 +10,12 @@ export class EventsService {
   constructor(
     @InjectModel(Event.name) private eventModel: Model<EventDocument>,
     private websocketGateway: WebsocketGateway,
-  ) {}
+  ) { }
 
   async create(createEventDto: CreateEventDto): Promise<Event> {
     const createdEvent = new this.eventModel({
       ...createEventDto,
-      status: EventStatus.PENDING,
+      status: EventStatus.ONGOING,
     });
     const savedEvent = await createdEvent.save();
 

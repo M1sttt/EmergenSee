@@ -25,8 +25,13 @@ export class ResponderLocationDto {
 
 export class CreateStatusUpdateDto {
     @IsEnum(ResponderStatus)
-    @ApiProperty({ description: 'The status of the responder', enum: ResponderStatus, example: ResponderStatus.AVAILABLE })
+    @ApiProperty({ description: 'The status of the responder', enum: ResponderStatus, example: ResponderStatus.SAFE })
     status!: ResponderStatus;
+
+    @IsString()
+    @IsOptional()
+    @ApiProperty({ description: 'Optional User ID if an admin is creating for a member', required: false })
+    userId?: string;
 
     @ValidateNested()
     @Type(() => ResponderLocationDto)
@@ -35,9 +40,9 @@ export class CreateStatusUpdateDto {
     location?: ResponderLocationDto;
 
     @IsString()
-    @IsOptional()
-    @ApiProperty({ description: 'The ID of the event the responder is assigned to', required: false, example: 'event123' })
-    eventId?: string;
+    @IsNotEmpty()
+    @ApiProperty({ description: 'The ID of the event the responder is assigned to', required: true, example: 'event123' })
+    eventId!: string;
 
     @IsString()
     @IsOptional()
@@ -48,7 +53,7 @@ export class CreateStatusUpdateDto {
 export class UpdateStatusUpdateDto {
     @IsEnum(ResponderStatus)
     @IsOptional()
-    @ApiProperty({ description: 'The status of the responder', required: false, enum: ResponderStatus, example: ResponderStatus.AVAILABLE })
+    @ApiProperty({ description: 'The status of the responder', required: false, enum: ResponderStatus, example: ResponderStatus.SAFE })
     status?: ResponderStatus;
 
     @ValidateNested()

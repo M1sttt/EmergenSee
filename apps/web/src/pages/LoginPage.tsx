@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { LoginDto, RegisterDto } from '@emergensee/shared';
 import { authService } from '../services/authService';
@@ -15,6 +15,7 @@ const errorCls = 'mt-1 text-xs text-red-600';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const setAuth = useAuthStore((state) => state.setAuth);
 
   const [mode, setMode] = useState<Mode>('login');
@@ -31,7 +32,8 @@ export default function LoginPage() {
       try {
         const response = await authService.loginWithGoogleToken(credential);
         setAuth(response.user, response.accessToken, response.refreshToken);
-        navigate('/dashboard');
+        const destination = location.state?.from?.pathname || '/dashboard';
+        navigate(destination, { replace: true });
       } catch (err: any) {
         setError(err.response?.data?.message || 'Google sign-in failed. Please try again.');
       } finally {
@@ -45,15 +47,25 @@ export default function LoginPage() {
   useGoogleGSI(gsiContainerRef, handleGoogleCredential);
 
   // ── Login form ──────────────────────────────────────────────────────────────
-  const loginForm = useForm<LoginDto>();
+  const savedCredsStr = localStorage.getItem('last_login_creds');
+  const savedCreds = savedCredsStr ? JSON.parse(savedCredsStr) : { email: '', password: '' };
+  
+  const loginForm = useForm<LoginDto>({ 
+    defaultValues: { 
+      email: savedCreds.email, 
+      password: savedCreds.password 
+    } 
+  });
 
   const onLogin = async (data: LoginDto) => {
     setIsLoading(true);
     setError(null);
     try {
       const response = await authService.login(data);
+      localStorage.setItem('last_login_creds', JSON.stringify({ email: data.email, password: data.password }));
       setAuth(response.user, response.accessToken, response.refreshToken);
-      navigate('/dashboard');
+      const destination = location.state?.from?.pathname || '/dashboard';
+      navigate(destination, { replace: true });
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {
@@ -69,8 +81,10 @@ export default function LoginPage() {
     setError(null);
     try {
       const response = await authService.register(data);
+      localStorage.setItem('last_login_creds', JSON.stringify({ email: data.email, password: data.password }));
       setAuth(response.user, response.accessToken, response.refreshToken);
-      navigate('/dashboard');
+      const destination = location.state?.from?.pathname || '/dashboard';
+      navigate(destination, { replace: true });
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {

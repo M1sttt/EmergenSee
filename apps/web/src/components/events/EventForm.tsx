@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { eventsService } from '../../services/eventsService';
+import { departmentsService } from '../../services/departmentsService';
 import { Event, CreateEventDto, UpdateEventDto, EventType, EventPriority } from '@emergensee/shared';
 
 interface EventFormProps {
@@ -10,14 +11,21 @@ interface EventFormProps {
 
 export default function EventForm({ event, onClose }: EventFormProps) {
   const queryClient = useQueryClient();
+
+  const { data: departmentsResponse } = useQuery<any>({
+    queryKey: ['departments'],
+    queryFn: departmentsService.getAll,
+  });
+  const departments: any[] = Array.isArray(departmentsResponse) ? departmentsResponse : (departmentsResponse?.data || []);
+
   const { register, handleSubmit, formState: { errors } } = useForm<CreateEventDto>({
     defaultValues: event ? {
       type: event.type,
       priority: event.priority,
       title: event.title,
       description: event.description,
-      address: event.address,
       location: event.location,
+      departments: event.departments,
     } : undefined,
   });
 
@@ -108,6 +116,22 @@ export default function EventForm({ event, onClose }: EventFormProps) {
           </div>
 
           <div>
+            <label className="block text-sm font-medium text-gray-700">Departments (Hold Ctrl/Cmd to select multiple)</label>
+            <select
+              multiple
+              {...register('departments', { required: 'At least one department is required' })}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 h-24"
+            >
+              {departments.map((dept: any) => (
+                <option key={dept.id || dept._id} value={dept.id || dept._id}>{dept.name}</option>
+              ))}
+            </select>
+            {errors.departments && (
+              <p className="mt-1 text-sm text-red-600">{errors.departments.message}</p>
+            )}
+          </div>
+
+          <div>
             <label className="block text-sm font-medium text-gray-700">Description</label>
             <textarea
               {...register('description', { required: 'Description is required' })}
@@ -116,18 +140,6 @@ export default function EventForm({ event, onClose }: EventFormProps) {
             />
             {errors.description && (
               <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Address</label>
-            <input
-              {...register('address', { required: 'Address is required' })}
-              type="text"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
-            {errors.address && (
-              <p className="mt-1 text-sm text-red-600">{errors.address.message}</p>
             )}
           </div>
 

@@ -1,7 +1,9 @@
 import { useForm } from 'react-hook-form';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { usersService } from '../../services/usersService';
-import { User, CreateUserDto, UpdateUserDto, UserRole } from '@emergensee/shared';
+import { departmentsService } from '../../services/departmentsService';
+import { User, UpdateUserDto, UserRole } from '@emergensee/shared';
+import { useAuthStore } from '../../store/authStore';
 
 interface UserFormProps {
   user?: User | null;
@@ -10,16 +12,32 @@ interface UserFormProps {
 
 export default function UserForm({ user, onClose }: UserFormProps) {
   const queryClient = useQueryClient();
-  const { register, handleSubmit, formState: { errors } } = useForm<CreateUserDto>({
+  const currentUser = useAuthStore(state => state.user);
+
+  const { data: allDepartmentsResponse } = useQuery<any>({
+    queryKey: ['departments'],
+    queryFn: departmentsService.getAll,
+  });
+  const allDepartments: any[] = Array.isArray(allDepartmentsResponse) ? allDepartmentsResponse : (allDepartmentsResponse?.data || []);
+
+  const isGlobalAdmin = currentUser?.role === UserRole.ADMIN;
+
+  const managedDepartments = isGlobalAdmin
+    ? allDepartments
+    : allDepartments.filter(d => d.admins?.includes(currentUser?.id));
+
+  const { register, handleSubmit, formState: { errors } } = useForm<any>({
     defaultValues: user ? {
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
       role: user.role,
       phoneNumber: user.phoneNumber,
-      badgeNumber: user.badgeNumber,
-      department: user.department,
-    } : undefined,
+      departments: user.departments || [],
+    } : {
+      role: isGlobalAdmin ? undefined : UserRole.MEMBER,
+      departments: [],
+    },
   });
 
   const createMutation = useMutation({
@@ -39,11 +57,23 @@ export default function UserForm({ user, onClose }: UserFormProps) {
     },
   });
 
-  const onSubmit = (data: CreateUserDto) => {
+  const onSubmit = (data: any) => {
+    let finalDepartments = data.departments || [];
+    if (!isGlobalAdmin && user?.departments) {
+      // Merge back departments that the user had but current user couldn't manage/see
+      const unmanagedUserDepts = user.departments.filter(deptId => !managedDepartments.some(d => (d.id || d._id) === deptId));
+      finalDepartments = Array.from(new Set([...finalDepartments, ...unmanagedUserDepts]));
+    }
+    data.departments = finalDepartments;
+
+    if (!isGlobalAdmin && !user) {
+      data.role = UserRole.MEMBER;
+    }
+
     if (user) {
       const updateData: UpdateUserDto = { ...data };
       delete (updateData as any).password; // Don't send password on update
-      updateMutation.mutate({ id: user.id, data: updateData });
+      updateMutation.mutate({ id: user.id || (user as any)._id, data: updateData });
     } else {
       createMutation.mutate(data);
     }
@@ -66,7 +96,7 @@ export default function UserForm({ user, onClose }: UserFormProps) {
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
               {errors.firstName && (
-                <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p>
+                <p className="mt-1 text-sm text-red-600">{errors.firstName.message as string}</p>
               )}
             </div>
 
@@ -78,7 +108,7 @@ export default function UserForm({ user, onClose }: UserFormProps) {
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
               {errors.lastName && (
-                <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p>
+                <p className="mt-1 text-sm text-red-600">{errors.lastName.message as string}</p>
               )}
             </div>
           </div>
@@ -91,7 +121,7 @@ export default function UserForm({ user, onClose }: UserFormProps) {
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
             {errors.email && (
-              <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+              <p className="mt-1 text-sm text-red-600">{errors.email.message as string}</p>
             )}
           </div>
 
@@ -104,28 +134,30 @@ export default function UserForm({ user, onClose }: UserFormProps) {
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                <p className="mt-1 text-sm text-red-600">{errors.password.message as string}</p>
               )}
             </div>
           )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Role</label>
-            <select
-              {...register('role', { required: 'Role is required' })}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Select role</option>
-              {Object.values(UserRole).map((role) => (
-                <option key={role} value={role}>{role}</option>
-              ))}
-            </select>
-            {errors.role && (
-              <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>
-            )}
-          </div>
+          {isGlobalAdmin && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Role</label>
+              <select
+                {...register('role', { required: 'Role is required' })}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Select role</option>
+                {Object.values(UserRole).map((role) => (
+                  <option key={role} value={role}>{role}</option>
+                ))}
+              </select>
+              {errors.role && (
+                <p className="mt-1 text-sm text-red-600">{errors.role.message as string}</p>
+              )}
+            </div>
+          )}
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Phone Number</label>
               <input
@@ -136,22 +168,17 @@ export default function UserForm({ user, onClose }: UserFormProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Badge Number</label>
-              <input
-                {...register('badgeNumber')}
-                type="text"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
+              <label className="block text-sm font-medium text-gray-700">Departments</label>
+              <select
+                multiple
+                {...register('departments')}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 h-24"
+              >
+                {managedDepartments.map((dept: any) => (
+                  <option key={dept.id || dept._id} value={dept.id || dept._id}>{dept.name}</option>
+                ))}
+              </select>
             </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Department</label>
-            <input
-              {...register('department')}
-              type="text"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
           </div>
 
           <div className="flex justify-end space-x-3 mt-6">

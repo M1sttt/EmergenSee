@@ -24,7 +24,7 @@ export class StatusController {
   @ApiOperation({ summary: 'Create a status update for the current user' })
   @Post()
   create(@Request() req, @Body() createStatusUpdateDto: CreateStatusUpdateDto) {
-    return this.statusService.create(req.user.userId, createStatusUpdateDto);
+    return this.statusService.create(createStatusUpdateDto.userId || req.user.userId, createStatusUpdateDto);
   }
 
   @ApiOperation({ summary: 'List status updates' })

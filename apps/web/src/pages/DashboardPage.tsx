@@ -71,18 +71,16 @@ export default function DashboardPage() {
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="font-semibold text-gray-900">{event.title}</h3>
-                    <p className="text-sm text-gray-600">{event.address}</p>
                   </div>
                   <span
-                    className={`px-2 py-1 text-xs font-semibold rounded ${
-                      event.priority === EventPriority.CRITICAL
+                    className={`px-2 py-1 text-xs font-semibold rounded ${event.priority === EventPriority.CRITICAL
                         ? 'bg-red-100 text-red-800'
                         : event.priority === EventPriority.HIGH
-                        ? 'bg-orange-100 text-orange-800'
-                        : event.priority === EventPriority.MEDIUM
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-green-100 text-green-800'
-                    }`}
+                          ? 'bg-orange-100 text-orange-800'
+                          : event.priority === EventPriority.MEDIUM
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-green-100 text-green-800'
+                      }`}
                   >
                     {event.priority}
                   </span>

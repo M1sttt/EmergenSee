@@ -4,7 +4,17 @@ import { EventType, EventPriority, EventStatus, Location } from '@emergensee/sha
 
 export type EventDocument = Event & Document;
 
-@Schema({ timestamps: true })
+@Schema({
+  timestamps: true,
+  toJSON: {
+    virtuals: true,
+    transform: (_doc, ret: any) => {
+      ret.id = ret._id.toString();
+      delete ret._id;
+      delete ret.__v;
+    }
+  }
+})
 export class Event {
   @Prop({ required: true, enum: EventType })
   type: EventType;
@@ -12,7 +22,7 @@ export class Event {
   @Prop({ required: true, enum: EventPriority })
   priority: EventPriority;
 
-  @Prop({ required: true, enum: EventStatus, default: EventStatus.PENDING })
+  @Prop({ required: true, enum: EventStatus, default: EventStatus.ONGOING })
   status: EventStatus;
 
   @Prop({ required: true })
@@ -27,11 +37,11 @@ export class Event {
   })
   location: Location;
 
-  @Prop({ required: true })
-  address: string;
-
   @Prop({ type: Types.ObjectId, ref: 'User' })
   reportedBy?: Types.ObjectId;
+
+  @Prop({ type: [{ type: String, ref: 'Department' }], required: true })
+  departments: string[];
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }] })
   assignedTo?: Types.ObjectId[];

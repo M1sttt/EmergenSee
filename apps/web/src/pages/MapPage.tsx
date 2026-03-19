@@ -50,7 +50,6 @@ export default function MapPage() {
                   <p><strong>Type:</strong> {EVENT_TYPE_LABELS[event.type]}</p>
                   <p><strong>Priority:</strong> {EVENT_PRIORITY_LABELS[event.priority]}</p>
                   <p><strong>Status:</strong> {EVENT_STATUS_LABELS[event.status]}</p>
-                  <p><strong>Address:</strong> {event.address}</p>
                   <p className="mt-2">{event.description}</p>
                 </div>
               </div>
