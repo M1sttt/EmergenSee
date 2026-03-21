@@ -6,6 +6,7 @@ import { authService } from 'services/authService';
 import { useAuthStore } from 'store/authStore';
 import { useGoogleGSI } from 'hooks/useGoogleGSI';
 import { Button, FieldError, Input, Label } from '@/components/ui';
+import { toast } from 'sonner';
 import * as strings from './strings';
 import * as consts from './consts';
 import * as utils from './utils';
@@ -31,9 +32,11 @@ export default function LoginPage() {
 			try {
 				const response = await authService.loginWithGoogleToken(credential);
 				setAuth(response.user, response.accessToken, response.refreshToken);
+				toast.success(strings.googleSignInSuccess);
 				navigate(redirectPath, { replace: true });
 			} catch (err: unknown) {
 				setError(utils.extractErrorMessage(err, strings.googleSignInFailed));
+				toast.error(strings.googleSignInFailed);
 			} finally {
 				setIsLoading(false);
 			}
@@ -59,9 +62,11 @@ export default function LoginPage() {
 			const response = await authService.login(data);
 			utils.saveCredentials(data.email, data.password);
 			setAuth(response.user, response.accessToken, response.refreshToken);
+			toast.success(strings.loginSuccess);
 			navigate(redirectPath, { replace: true });
 		} catch (err: unknown) {
 			setError(utils.extractErrorMessage(err, strings.loginFailed));
+			toast.error(strings.loginFailed);
 		} finally {
 			setIsLoading(false);
 		}
@@ -76,9 +81,11 @@ export default function LoginPage() {
 			const response = await authService.register(data);
 			utils.saveCredentials(data.email, data.password);
 			setAuth(response.user, response.accessToken, response.refreshToken);
+			toast.success(strings.registrationSuccess);
 			navigate(redirectPath, { replace: true });
 		} catch (err: unknown) {
 			setError(utils.extractErrorMessage(err, strings.registrationFailed));
+			toast.error(strings.registrationFailed);
 		} finally {
 			setIsLoading(false);
 		}

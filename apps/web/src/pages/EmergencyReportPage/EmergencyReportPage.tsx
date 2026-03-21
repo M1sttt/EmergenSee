@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { useAuthStore } from 'store/authStore';
 import { ResponderStatus } from '@emergensee/shared';
 import { FaShieldAlt, FaAmbulance, FaExclamationTriangle } from 'react-icons/fa';
@@ -8,13 +8,11 @@ import {
 } from 'hooks/data/useEmergencyReportPageData';
 import { Button } from '@/components/ui';
 
-import * as consts from './consts';
 import * as strings from './strings';
 import * as utils from './utils';
 
 const EmergencyReportPage: React.FC = () => {
 	const user = useAuthStore(state => state.user);
-	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
 	const { data: events = [], isLoading } = useEmergencyReportEventsQuery();
 
@@ -22,14 +20,7 @@ const EmergencyReportPage: React.FC = () => {
 		return utils.findOngoingRelatedEvent(events, user);
 	}, [events, user]);
 
-	const reportMutation = useEmergencyReportCreateStatusMutation(status => {
-		if (status === ResponderStatus.SAFE) {
-			setSuccessMessage(strings.successSafe);
-		} else if (status === ResponderStatus.NEED_HELP) {
-			setSuccessMessage(strings.successHelp);
-		}
-		setTimeout(() => setSuccessMessage(null), consts.successMessageTimeout);
-	});
+	const reportMutation = useEmergencyReportCreateStatusMutation();
 
 	const ongoingEventId =
 		ongoingRelatedEvent?.id || (ongoingRelatedEvent as { _id?: string } | undefined)?._id;
@@ -69,10 +60,6 @@ const EmergencyReportPage: React.FC = () => {
 					<strong>{ongoingRelatedEvent.title}</strong>
 					{strings.descriptionSuffix}
 				</p>
-
-				{successMessage && (
-					<div className="mb-6 rounded-md bg-blue-50 p-4 font-medium text-blue-800">{successMessage}</div>
-				)}
 
 				<div className="space-y-6">
 					<Button

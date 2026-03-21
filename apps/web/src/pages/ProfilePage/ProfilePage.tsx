@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useAuthStore } from 'store/authStore';
 import { usersService } from 'services/usersService';
 import { Button, FieldError, Input, Label } from '@/components/ui';
+import { toast } from 'sonner';
 import * as strings from './strings';
 import * as consts from './consts';
 import * as utils from './utils';
@@ -16,8 +17,6 @@ type ProfileFormData = {
 const ProfilePage = () => {
 	const user = useAuthStore(state => state.user);
 	const updateUser = useAuthStore(state => state.updateUser);
-	const [error, setError] = useState('');
-	const [success, setSuccess] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 
 	const {
@@ -37,8 +36,6 @@ const ProfilePage = () => {
 		async (data: ProfileFormData) => {
 			if (!user?.id) return;
 			try {
-				setError('');
-				setSuccess('');
 				setIsLoading(true);
 
 				const updatePayload: Record<string, string> = {
@@ -52,11 +49,11 @@ const ProfilePage = () => {
 
 				const updatedUser = await usersService.update(user.id, updatePayload);
 				updateUser(updatedUser);
-				setSuccess(strings.successMessage);
+				toast.success(strings.successMessage);
 				reset({ firstName: updatedUser.firstName, lastName: updatedUser.lastName, password: '' });
 			} catch (err: unknown) {
 				const errorMessage = utils.formatUpdateError(err);
-				setError(errorMessage || strings.defaultErrorMessage);
+				toast.error(errorMessage || strings.defaultErrorMessage);
 			} finally {
 				setIsLoading(false);
 			}
@@ -75,10 +72,6 @@ const ProfilePage = () => {
 
 			<div className="ui-card overflow-hidden">
 				<form onSubmit={handleFormSubmit} className="ui-card-body space-y-6">
-					{error && <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">{error}</div>}
-
-					{success && <div className="rounded-md bg-green-50 p-4 text-sm text-green-700">{success}</div>}
-
 					<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
 						<div>
 							<Label>{strings.firstNameLabel}</Label>

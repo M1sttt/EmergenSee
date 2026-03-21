@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { eventsService } from 'services/eventsService';
 import { CreateEventDto, UpdateEventDto } from '@emergensee/shared';
+import { toast } from 'sonner';
+import * as strings from './strings';
 
 export const EVENTS_QUERY_KEYS = {
 	all: ['events'] as const,
@@ -21,6 +23,10 @@ export function useUpdateEvent() {
 		mutationFn: ({ id, data }: { id: string; data: UpdateEventDto }) => eventsService.update(id, data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: EVENTS_QUERY_KEYS.all });
+			toast.success(strings.eventUpdateSuccess);
+		},
+		onError: () => {
+			toast.error(strings.eventUpdateError);
 		},
 	});
 }
@@ -32,6 +38,10 @@ export function useCreateEvent() {
 		mutationFn: (data: CreateEventDto) => eventsService.create(data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: EVENTS_QUERY_KEYS.all });
+			toast.success(strings.eventCreateSuccess);
+		},
+		onError: () => {
+			toast.error(strings.eventCreateError);
 		},
 	});
 }
