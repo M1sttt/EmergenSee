@@ -1,0 +1,13 @@
+export const appName = 'EmergenSee';
+export const appSubtitle = 'Emergency Response';
+export const expandSidebar = 'Expand sidebar';
+export const collapseSidebar = 'Collapse sidebar';
+export const logoutTitle = 'Logout';
+export const logoutText = 'Logout';
+export const dashboard = 'Dashboard';
+export const events = 'Events';
+export const map = 'Map';
+export const users = 'Users';
+export const departments = 'Departments';
+export const status = 'Status';
+export const emergencyReport = 'Emergency Report';
