@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { FiAlertTriangle, FiCheckCircle } from 'react-icons/fi';
 import { RiUserUnfollowLine } from 'react-icons/ri';
@@ -37,18 +37,34 @@ export default function StatusPage() {
     [events],
   );
 
+  const activeEventIds = useMemo(
+    () => new Set(activeEvents.map(event => getEntityId(event))),
+    [activeEvents],
+  );
+
   const effectiveSelectedEventId = useMemo(() => {
-    if (selectedEventId) return selectedEventId;
+    if (selectedEventId && activeEventIds.has(selectedEventId)) return selectedEventId;
     return activeEvents.length > 0 ? getEntityId(activeEvents[0]) : '';
-  }, [activeEvents, selectedEventId]);
+  }, [activeEventIds, activeEvents, selectedEventId]);
+
+  const selectedActiveEvent = useMemo(
+    () => activeEvents.find(event => getEntityId(event) === effectiveSelectedEventId) || null,
+    [activeEvents, effectiveSelectedEventId],
+  );
+
+  const activeEventDepartmentIds = useMemo(
+    () => new Set((selectedActiveEvent?.departments || []).map(department => getEntityId(department))),
+    [selectedActiveEvent],
+  );
 
   const isGlobalAdmin = currentUser?.role === UserRole.ADMIN;
   const userAdminDepts = departments.filter(department => department.admins?.includes(currentUser?.id || ''));
   const isDeptAdmin = userAdminDepts.length > 0;
 
-  const validDepartments = useMemo(
-    () => (isGlobalAdmin ? departments : isDeptAdmin ? userAdminDepts : []),
-    [departments, isDeptAdmin, isGlobalAdmin, userAdminDepts],
+  const eventRelatedDepartments = useMemo(
+    () =>
+      departments.filter(department => activeEventDepartmentIds.has(getEntityId(department))),
+    [activeEventDepartmentIds, departments],
   );
 
   const eventOptions = useMemo(
@@ -61,26 +77,43 @@ export default function StatusPage() {
   );
 
   const departmentOptions = useMemo(
-    () => [
-      { value: consts.allDeptsValue, label: strings.allDepartments },
-      ...validDepartments.map(department => ({
-        value: getEntityId(department),
-        label: department.name,
-      })),
-    ],
-    [validDepartments],
+    () => {
+      if (!effectiveSelectedEventId || eventRelatedDepartments.length === 0) {
+        return [];
+      }
+
+      return [
+        { value: consts.allDeptsValue, label: strings.allDepartments },
+        ...eventRelatedDepartments.map(department => ({
+          value: getEntityId(department),
+          label: department.name,
+        })),
+      ];
+    },
+    [effectiveSelectedEventId, eventRelatedDepartments],
   );
+
+  useEffect(() => {
+    if (!effectiveSelectedEventId) {
+      setSelectedDeptId(consts.allDeptsValue);
+      return;
+    }
+
+    if (selectedDeptId !== consts.allDeptsValue && !activeEventDepartmentIds.has(selectedDeptId)) {
+      setSelectedDeptId(consts.allDeptsValue);
+    }
+  }, [activeEventDepartmentIds, effectiveSelectedEventId, selectedDeptId]);
 
   const displayUsers = useMemo(() => {
     if (!effectiveSelectedEventId) return [];
 
-    let filteredUsers = users;
-    if (selectedDeptId !== 'all') {
-      filteredUsers = users.filter(user => user.departments?.includes(selectedDeptId));
-    } else if (!isGlobalAdmin && isDeptAdmin) {
-      const adminDeptIds = userAdminDepts.map(getEntityId);
-      filteredUsers = users.filter(user =>
-        user.departments?.some(departmentId => adminDeptIds.includes(departmentId)),
+    let filteredUsers = users.filter(user =>
+      user.departments?.some(departmentId => activeEventDepartmentIds.has(getEntityId(departmentId))),
+    );
+
+    if (selectedDeptId !== consts.allDeptsValue) {
+      filteredUsers = filteredUsers.filter(user =>
+        user.departments?.some(departmentId => getEntityId(departmentId) === selectedDeptId),
       );
     }
 
@@ -100,7 +133,7 @@ export default function StatusPage() {
         status: userStatuses.length > 0 ? userStatuses[0] : null,
       };
     });
-  }, [effectiveSelectedEventId, selectedDeptId, users, statusUpdates, isGlobalAdmin, isDeptAdmin, userAdminDepts]);
+  }, [activeEventDepartmentIds, effectiveSelectedEventId, selectedDeptId, users, statusUpdates]);
 
   const isLoading = isLoadingEvents || isLoadingDepts || isLoadingUsers || isLoadingStatus;
 
@@ -248,6 +281,7 @@ export default function StatusPage() {
                 options={departmentOptions}
                 isSearchable={false}
                 isClearable={false}
+                isDisabled={!effectiveSelectedEventId || departmentOptions.length === 0}
                 containerClassName="min-w-[220px]"
               />
             </div>

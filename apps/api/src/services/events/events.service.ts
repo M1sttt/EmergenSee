@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Event, EventDocument } from './schemas/event.schema';
+import { Department, DepartmentDocument } from '../departments/schemas/department.schema';
 import { CreateEventDto, UpdateEventDto, EventStatus } from '@emergensee/shared';
 import { WebsocketGateway } from '../websocket/websocket.gateway';
 
@@ -9,12 +10,84 @@ import { WebsocketGateway } from '../websocket/websocket.gateway';
 export class EventsService {
   constructor(
     @InjectModel(Event.name) private eventModel: Model<EventDocument>,
+    @InjectModel(Department.name) private departmentModel: Model<DepartmentDocument>,
     private websocketGateway: WebsocketGateway,
   ) { }
 
+  private async expandDepartmentIdsRecursively(initialDepartmentIds: string[] = []): Promise<string[]> {
+    const uniqueInitialIds = Array.from(new Set(initialDepartmentIds.filter(Boolean)));
+    if (uniqueInitialIds.length === 0) {
+      return [];
+    }
+
+    await this.departmentModel
+      .updateMany(
+        {
+          $or: [
+            { departmentKey: { $exists: false } },
+            { departmentKey: null },
+            { departmentKey: '' },
+          ],
+        },
+        [{ $set: { departmentKey: { $toString: '$_id' } } }],
+      )
+      .exec();
+
+    const [aggregationResult] = await this.departmentModel
+      .aggregate<{ allDepartmentIds: string[] }>([
+        {
+          $match: {
+            departmentKey: { $in: uniqueInitialIds },
+          },
+        },
+        {
+          $graphLookup: {
+            from: this.departmentModel.collection.name,
+            startWith: '$subDepartments',
+            connectFromField: 'subDepartments',
+            connectToField: 'departmentKey',
+            as: 'descendants',
+          },
+        },
+        {
+          $project: {
+            allDepartmentIds: {
+              $setUnion: [['$departmentKey'], '$descendants.departmentKey'],
+            },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            groupedIds: { $addToSet: '$allDepartmentIds' },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            allDepartmentIds: {
+              $reduce: {
+                input: '$groupedIds',
+                initialValue: [],
+                in: { $setUnion: ['$$value', '$$this'] },
+              },
+            },
+          },
+        },
+      ])
+      .exec();
+
+    return aggregationResult?.allDepartmentIds?.length
+      ? aggregationResult.allDepartmentIds
+      : uniqueInitialIds;
+  }
+
   async create(createEventDto: CreateEventDto): Promise<Event> {
+    const departments = await this.expandDepartmentIdsRecursively(createEventDto.departments);
+
     const createdEvent = new this.eventModel({
       ...createEventDto,
+      departments,
       status: EventStatus.ONGOING,
     });
     const savedEvent = await createdEvent.save();
@@ -49,8 +122,14 @@ export class EventsService {
   }
 
   async update(id: string, updateEventDto: UpdateEventDto): Promise<Event> {
+    const updatePayload: UpdateEventDto = { ...updateEventDto };
+
+    if (updateEventDto.departments) {
+      updatePayload.departments = await this.expandDepartmentIdsRecursively(updateEventDto.departments);
+    }
+
     const event = await this.eventModel
-      .findByIdAndUpdate(id, updateEventDto, { new: true })
+      .findByIdAndUpdate(id, updatePayload, { new: true })
       .populate('reportedBy', 'firstName lastName email')
       .populate('assignedTo', 'firstName lastName email')
       .exec();

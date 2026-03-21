@@ -11,6 +11,7 @@ export type DepartmentDocument = Department & Document;
             ret.id = ret._id.toString();
             delete ret._id;
             delete ret.__v;
+            delete ret.departmentKey;
         }
     }
 })
@@ -28,6 +29,9 @@ export class Department {
     @Prop({ type: [String], default: [] })
     subDepartments: string[];
 
+    @Prop({ index: true })
+    departmentKey: string;
+
     @Prop()
     createdAt: Date;
 
@@ -36,3 +40,10 @@ export class Department {
 }
 
 export const DepartmentSchema = SchemaFactory.createForClass(Department);
+
+DepartmentSchema.pre('save', function (next) {
+    if (!this.departmentKey) {
+        this.departmentKey = this._id.toString();
+    }
+    next();
+});
