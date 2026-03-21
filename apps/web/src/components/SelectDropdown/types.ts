@@ -5,11 +5,10 @@ export interface SelectOption {
 	label: string;
 }
 
-export interface SelectDropdownProps
-	extends Omit<
-		SelectProps<SelectOption, boolean, GroupBase<SelectOption>>,
-		'onChange' | 'value' | 'options' | 'isMulti'
-	> {
+export interface SelectDropdownProps extends Omit<
+	SelectProps<SelectOption, boolean, GroupBase<SelectOption>>,
+	'onChange' | 'value' | 'options' | 'isMulti'
+> {
 	options: SelectOption[];
 	value?: string | string[];
 	onChange?: (value: string | string[]) => void;

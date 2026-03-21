@@ -8,11 +8,7 @@ interface SidebarNavigationProps {
 	currentPath: string;
 }
 
-export function SidebarNavigation({
-	navigation,
-	isSidebarExpanded,
-	currentPath,
-}: SidebarNavigationProps) {
+export function SidebarNavigation({ navigation, isSidebarExpanded, currentPath }: SidebarNavigationProps) {
 	return (
 		<nav className={cn('flex-1 space-y-1 py-4', isSidebarExpanded ? 'px-4' : 'px-2')}>
 			{navigation.map(item => {

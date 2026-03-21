@@ -30,7 +30,13 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 				{...props}
 				ref={ref}
 				type={type || 'button'}
-				className={cn('ui-btn', variantClassMap[variant], sizeClassMap[size], fullWidth && 'w-full', className)}
+				className={cn(
+					'ui-btn',
+					variantClassMap[variant],
+					sizeClassMap[size],
+					fullWidth && 'w-full',
+					className,
+				)}
 			/>
 		);
 	},

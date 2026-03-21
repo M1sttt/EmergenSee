@@ -1,9 +1,5 @@
 import { UserRole, CreateUserDto, UpdateUserDto } from '@emergensee/shared';
-import {
-	DepartmentWithOptionalObjectId,
-	UserWithOptionalObjectId,
-	getEntityId,
-} from '@/types/entities';
+import { DepartmentWithOptionalObjectId, UserWithOptionalObjectId, getEntityId } from '@/types/entities';
 
 export interface UserFormData {
 	email: string;
@@ -22,9 +18,7 @@ export const getManagedDepartments = (
 	if (!currentUser) return [];
 	const isGlobalAdmin = currentUser.role === UserRole.ADMIN;
 	const currentUserId = getEntityId(currentUser);
-	return isGlobalAdmin
-		? allDepartments
-		: allDepartments.filter(d => d.admins?.includes(currentUserId));
+	return isGlobalAdmin ? allDepartments : allDepartments.filter(d => d.admins?.includes(currentUserId));
 };
 
 const mergeDepartmentsForDepartmentAdmin = (

@@ -64,7 +64,7 @@ const EventForm: React.FC<EventFormProps> = ({ event, onClose }) => {
 				<div className="ui-modal-backdrop" onClick={onClose} />
 				<div className="ui-modal-panel ui-modal-panel-2xl z-10 p-6">
 					<h2 className="mb-6 flex flex-row items-center gap-2 text-2xl font-bold text-gray-900">
-					{event ? strings.titleEdit : strings.titleCreate}
+						{event ? strings.titleEdit : strings.titleCreate}
 					</h2>
 
 					{isLoadingDeps ? (

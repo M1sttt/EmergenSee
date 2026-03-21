@@ -1,13 +1,13 @@
 import {
-    FaChartBar,
-    FaExclamationCircle,
-    FaMap,
-    FaUsers,
-    FaBuilding,
-    FaChevronLeft,
-    FaChevronRight,
-    FaSignOutAlt,
-    FaHeartbeat
+	FaChartBar,
+	FaExclamationCircle,
+	FaMap,
+	FaUsers,
+	FaBuilding,
+	FaChevronLeft,
+	FaChevronRight,
+	FaSignOutAlt,
+	FaHeartbeat,
 } from 'react-icons/fa';
 import { AiFillAlert } from 'react-icons/ai';
 

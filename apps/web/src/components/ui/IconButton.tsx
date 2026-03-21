@@ -41,7 +41,9 @@ export function IconButton({
 			>
 				{children}
 			</button>
-			{tooltipText && !disabled && <Tooltip id={tooltipId} style={{ fontSize: '12px', padding: '4px 8px' }} />}
+			{tooltipText && !disabled && (
+				<Tooltip id={tooltipId} style={{ fontSize: '12px', padding: '4px 8px' }} />
+			)}
 		</>
 	);
 }

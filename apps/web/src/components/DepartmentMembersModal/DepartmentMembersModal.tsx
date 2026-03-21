@@ -19,15 +19,9 @@ interface DepartmentMembersModalProps {
 const DepartmentMembersModal: React.FC<DepartmentMembersModalProps> = ({ department, onClose }) => {
 	const [searchQuery, setSearchQuery] = useState('');
 	const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
-	const [activeTab, setActiveTab] = useState<typeof consts.addTab | typeof consts.removeTab>(
-		consts.addTab,
-	);
+	const [activeTab, setActiveTab] = useState<typeof consts.addTab | typeof consts.removeTab>(consts.addTab);
 
-	const {
-		data: users = [],
-		isLoading,
-		isError,
-	} = useDepartmentMembersModalUsersQuery();
+	const { data: users = [], isLoading, isError } = useDepartmentMembersModalUsersQuery();
 
 	const displayedUsers = useMemo(
 		() => utils.filterUsers(users, department.id, activeTab, searchQuery),
@@ -112,7 +106,9 @@ const DepartmentMembersModal: React.FC<DepartmentMembersModalProps> = ({ departm
 											onClick={() => handleToggleUser(user.id)}
 											className={cn(
 												'flex cursor-pointer items-center justify-between rounded-md border p-3 transition-colors',
-												isSelected ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-white hover:bg-gray-50',
+												isSelected
+													? 'border-blue-200 bg-blue-50'
+													: 'border-gray-200 bg-white hover:bg-gray-50',
 											)}
 										>
 											<div>

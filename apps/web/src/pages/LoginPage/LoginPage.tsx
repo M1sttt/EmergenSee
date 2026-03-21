@@ -121,9 +121,7 @@ export default function LoginPage() {
 				{mode === 'login' && (
 					<form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-5">
 						<div>
-							<Label htmlFor="email">
-								{strings.email}
-							</Label>
+							<Label htmlFor="email">{strings.email}</Label>
 							<Input
 								{...loginForm.register('email', { required: strings.emailRequired })}
 								type="email"
@@ -136,9 +134,7 @@ export default function LoginPage() {
 						</div>
 
 						<div>
-							<Label htmlFor="password">
-								{strings.password}
-							</Label>
+							<Label htmlFor="password">{strings.password}</Label>
 							<Input
 								{...loginForm.register('password', { required: strings.passwordRequired })}
 								type="password"
@@ -150,12 +146,7 @@ export default function LoginPage() {
 							)}
 						</div>
 
-						<Button
-							type="submit"
-							disabled={isLoading}
-							variant="primary"
-							fullWidth
-						>
+						<Button type="submit" disabled={isLoading} variant="primary" fullWidth>
 							{isLoading ? strings.loggingIn : strings.logIn}
 						</Button>
 
@@ -176,9 +167,7 @@ export default function LoginPage() {
 					<form onSubmit={registerForm.handleSubmit(onRegister)} className="space-y-4">
 						<div className="grid grid-cols-2 gap-4">
 							<div>
-								<Label htmlFor="firstName">
-									{strings.firstName}
-								</Label>
+								<Label htmlFor="firstName">{strings.firstName}</Label>
 								<Input
 									{...registerForm.register('firstName', { required: strings.firstNameRequired })}
 									type="text"
@@ -186,14 +175,14 @@ export default function LoginPage() {
 									autoComplete="given-name"
 								/>
 								{registerForm.formState.errors.firstName && (
-									<FieldError className="text-xs">{registerForm.formState.errors.firstName.message}</FieldError>
+									<FieldError className="text-xs">
+										{registerForm.formState.errors.firstName.message}
+									</FieldError>
 								)}
 							</div>
 
 							<div>
-								<Label htmlFor="lastName">
-									{strings.lastName}
-								</Label>
+								<Label htmlFor="lastName">{strings.lastName}</Label>
 								<Input
 									{...registerForm.register('lastName', { required: strings.lastNameRequired })}
 									type="text"
@@ -201,15 +190,15 @@ export default function LoginPage() {
 									autoComplete="family-name"
 								/>
 								{registerForm.formState.errors.lastName && (
-									<FieldError className="text-xs">{registerForm.formState.errors.lastName.message}</FieldError>
+									<FieldError className="text-xs">
+										{registerForm.formState.errors.lastName.message}
+									</FieldError>
 								)}
 							</div>
 						</div>
 
 						<div>
-							<Label htmlFor="reg-email">
-								{strings.email}
-							</Label>
+							<Label htmlFor="reg-email">{strings.email}</Label>
 							<Input
 								{...registerForm.register('email', { required: strings.emailRequired })}
 								type="email"
@@ -240,9 +229,7 @@ export default function LoginPage() {
 						</div>
 
 						<div>
-							<Label htmlFor="confirmPassword">
-								{strings.confirmPassword}
-							</Label>
+							<Label htmlFor="confirmPassword">{strings.confirmPassword}</Label>
 							<Input
 								{...registerForm.register('confirmPassword', {
 									required: strings.passwordConfirmRequired,
@@ -253,16 +240,13 @@ export default function LoginPage() {
 								autoComplete="new-password"
 							/>
 							{registerForm.formState.errors.confirmPassword && (
-								<FieldError className="text-xs">{registerForm.formState.errors.confirmPassword.message}</FieldError>
+								<FieldError className="text-xs">
+									{registerForm.formState.errors.confirmPassword.message}
+								</FieldError>
 							)}
 						</div>
 
-						<Button
-							type="submit"
-							disabled={isLoading}
-							variant="primary"
-							fullWidth
-						>
+						<Button type="submit" disabled={isLoading} variant="primary" fullWidth>
 							{isLoading ? strings.creatingAccount : strings.createAccount}
 						</Button>
 

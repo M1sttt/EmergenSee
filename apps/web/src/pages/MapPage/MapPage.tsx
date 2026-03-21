@@ -9,11 +9,7 @@ import * as utils from './utils';
 import { useMapPageEventsQuery } from 'hooks/data/useMapPageData';
 
 const MapPage: React.FC = () => {
-	const {
-		data: events = [],
-		isLoading,
-		isError,
-	} = useMapPageEventsQuery();
+	const { data: events = [], isLoading, isError } = useMapPageEventsQuery();
 
 	const defaultIcon = useMemo(() => utils.createDefaultIcon(), []);
 

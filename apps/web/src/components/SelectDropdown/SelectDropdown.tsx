@@ -42,7 +42,11 @@ const SelectDropdown = forwardRef<
 
 		const defaultMenuPortalTarget = typeof window === 'undefined' ? undefined : document.body;
 
-		const handleChange: SelectProps<SelectOption, boolean, GroupBase<SelectOption>>['onChange'] = newValue => {
+		const handleChange: SelectProps<
+			SelectOption,
+			boolean,
+			GroupBase<SelectOption>
+		>['onChange'] = newValue => {
 			if (!onChange) return;
 			onChange(mapOnChangeValue(isMulti, newValue));
 		};

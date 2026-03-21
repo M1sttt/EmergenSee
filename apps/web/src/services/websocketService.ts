@@ -25,8 +25,7 @@ interface WebSocketPayloadMap {
 	[WebSocketEventType.ERROR]: ErrorPayload;
 }
 
-export type WebSocketPayload<TEventType extends WebSocketEventType> =
-	WebSocketPayloadMap[TEventType];
+export type WebSocketPayload<TEventType extends WebSocketEventType> = WebSocketPayloadMap[TEventType];
 
 class WebSocketService {
 	private socket: Socket | null = null;

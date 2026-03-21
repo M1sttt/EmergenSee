@@ -99,18 +99,14 @@ export default function EventsPage() {
 			id: 'priority',
 			header: strings.columnPriority,
 			renderCell: event => (
-				<Badge tone={utils.getPriorityTone(event.priority)}>
-					{EVENT_PRIORITY_LABELS[event.priority]}
-				</Badge>
+				<Badge tone={utils.getPriorityTone(event.priority)}>{EVENT_PRIORITY_LABELS[event.priority]}</Badge>
 			),
 		},
 		{
 			id: 'status',
 			header: strings.columnStatus,
 			renderCell: event => (
-				<Badge tone={utils.getStatusTone(event.status)}>
-					{EVENT_STATUS_LABELS[event.status]}
-				</Badge>
+				<Badge tone={utils.getStatusTone(event.status)}>{EVENT_STATUS_LABELS[event.status]}</Badge>
 			),
 		},
 		{
@@ -123,22 +119,22 @@ export default function EventsPage() {
 				const isResolved = event.status === EventStatus.RESOLVED;
 				return (
 					<div className="flex justify-start gap-2">
-							<IconButton
+						<IconButton
 							onClick={() => handleEdit(event)}
 							disabled={isResolved}
 							className="text-blue-600"
 							tooltipText={strings.tooltipEdit}
 						>
 							<FiEdit size={16} />
-							</IconButton>
-							<IconButton
+						</IconButton>
+						<IconButton
 							onClick={() => handleCloseEvent(eventId)}
 							disabled={isResolved}
 							className="text-green-600"
 							tooltipText={strings.tooltipCloseEvent}
 						>
 							<FiCheckCircle size={16} />
-							</IconButton>
+						</IconButton>
 					</div>
 				);
 			},
@@ -149,12 +145,7 @@ export default function EventsPage() {
 		<div className="ui-page">
 			<div className="flex justify-between items-center mb-6">
 				<h1 className="ui-page-title">{strings.title}</h1>
-				<Button
-					onClick={() => setIsFormOpen(true)}
-					variant="primary"
-					size="md"
-					className="rounded-lg"
-				>
+				<Button onClick={() => setIsFormOpen(true)} variant="primary" size="md" className="rounded-lg">
 					{strings.createBtn}
 				</Button>
 			</div>

@@ -47,7 +47,10 @@ const AuthCallbackPage: React.FC = () => {
 				<div className="ui-card flex w-full max-w-sm flex-col items-center p-8 text-center">
 					<MdErrorOutline className="text-4xl text-red-600" />
 					<p className="mb-4 mt-2 text-center text-red-600">{error}</p>
-					<a href={consts.loginRoute} className="flex items-center gap-1 text-sm text-blue-600 hover:underline">
+					<a
+						href={consts.loginRoute}
+						className="flex items-center gap-1 text-sm text-blue-600 hover:underline"
+					>
 						<MdArrowBack /> {strings.backToLogin}
 					</a>
 				</div>

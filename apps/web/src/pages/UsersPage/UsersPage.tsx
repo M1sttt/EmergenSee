@@ -7,11 +7,7 @@ import { ConfirmModal } from '@/components/common/ConfirmModal';
 import GenericTable, { type GenericTableColumn } from '@/components/common/GenericTable';
 import SelectDropdown from '@/components/SelectDropdown';
 import { Badge, Button, IconButton } from '@/components/ui';
-import {
-	DepartmentWithOptionalObjectId,
-	UserWithOptionalObjectId,
-	getEntityId,
-} from '@/types/entities';
+import { DepartmentWithOptionalObjectId, UserWithOptionalObjectId, getEntityId } from '@/types/entities';
 import * as strings from './strings';
 import * as consts from './consts';
 import * as utils from './utils';
@@ -30,11 +26,7 @@ const UsersPage = () => {
 	const [selectedDeptId, setSelectedDeptId] = useState<string>(consts.allDeptsId);
 	const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
-	const {
-		data: users = [],
-		isLoading: isLoadingUsers,
-		isError: isErrorUsers,
-	} = useUsersPageUsersQuery();
+	const { data: users = [], isLoading: isLoadingUsers, isError: isErrorUsers } = useUsersPageUsersQuery();
 
 	const {
 		data: departments = [],
@@ -57,12 +49,9 @@ const UsersPage = () => {
 		setIsFormOpen(true);
 	}, []);
 
-	const handleDelete = useCallback(
-		(id: string) => {
-			setUserToDelete(id);
-		},
-		[],
-	);
+	const handleDelete = useCallback((id: string) => {
+		setUserToDelete(id);
+	}, []);
 
 	const confirmDelete = useCallback(() => {
 		if (userToDelete) {
@@ -99,7 +88,10 @@ const UsersPage = () => {
 				id: 'name',
 				header: strings.columnName,
 				renderCell: user => (
-					<div className="max-w-[150px] truncate text-sm font-medium text-gray-900" title={`${user.firstName} ${user.lastName}`}>
+					<div
+						className="max-w-[150px] truncate text-sm font-medium text-gray-900"
+						title={`${user.firstName} ${user.lastName}`}
+					>
 						{user.firstName} {user.lastName}
 					</div>
 				),
@@ -116,11 +108,7 @@ const UsersPage = () => {
 			{
 				id: 'role',
 				header: strings.columnRole,
-				renderCell: user => (
-					<Badge tone="info">
-						{USER_ROLE_LABELS[user.role]}
-					</Badge>
-				),
+				renderCell: user => <Badge tone="info">{USER_ROLE_LABELS[user.role]}</Badge>,
 			},
 			{
 				id: 'status',
@@ -132,7 +120,9 @@ const UsersPage = () => {
 			{
 				id: 'phone',
 				header: strings.columnPhoneNumber,
-				renderCell: user => <div className="text-sm text-gray-900">{user.phoneNumber || strings.emptyPhone}</div>,
+				renderCell: user => (
+					<div className="text-sm text-gray-900">{user.phoneNumber || strings.emptyPhone}</div>
+				),
 			},
 		];
 
@@ -149,9 +139,7 @@ const UsersPage = () => {
 						isAdmin ||
 						(user.departments &&
 							user.departments.some(deptId =>
-								myAdminDepartments.some(
-									d => getEntityId(d) === getEntityId(deptId),
-								),
+								myAdminDepartments.some(d => getEntityId(d) === getEntityId(deptId)),
 							));
 
 					if (!(canEdit || userId === currentUser?.id)) {
@@ -198,9 +186,7 @@ const UsersPage = () => {
 					<h1 className="ui-page-title">{strings.title}</h1>
 					<SelectDropdown
 						value={selectedDeptId}
-						onChange={value =>
-							setSelectedDeptId(Array.isArray(value) || !value ? consts.allDeptsId : value)
-						}
+						onChange={value => setSelectedDeptId(Array.isArray(value) || !value ? consts.allDeptsId : value)}
 						options={departmentOptions}
 						placeholder={strings.selectDepartment}
 						isSearchable
@@ -211,12 +197,7 @@ const UsersPage = () => {
 				</div>
 
 				{canCreateUser && (
-					<Button
-						onClick={() => setIsFormOpen(true)}
-						variant="primary"
-						size="md"
-						className="rounded-lg"
-					>
+					<Button onClick={() => setIsFormOpen(true)} variant="primary" size="md" className="rounded-lg">
 						{strings.createUser}
 					</Button>
 				)}
@@ -238,11 +219,7 @@ const UsersPage = () => {
 			{isFormOpen && <UserForm user={selectedUser} onClose={handleFormClose} />}
 
 			{userToDelete !== null && (
-				<ConfirmModal
-					message={strings.confirmDelete}
-					onConfirm={confirmDelete}
-					onCancel={cancelDelete}
-				/>
+				<ConfirmModal message={strings.confirmDelete} onConfirm={confirmDelete} onCancel={cancelDelete} />
 			)}
 		</div>
 	);

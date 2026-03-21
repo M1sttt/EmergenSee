@@ -29,11 +29,7 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ department, onClose }) 
 	const [error, setError] = useState('');
 	const currentUser = useAuthStore(state => state.user);
 
-	const {
-		data: allDepartmentsResponse = [],
-		isLoading,
-		isError,
-	} = useDepartmentFormDepartmentsQuery();
+	const { data: allDepartmentsResponse = [], isLoading, isError } = useDepartmentFormDepartmentsQuery();
 
 	const allDepartments = useMemo(() => {
 		return allDepartmentsResponse || [];
@@ -161,11 +157,7 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ department, onClose }) 
 
 									<div>
 										<Label>{strings.descriptionLabel}</Label>
-										<Textarea
-											{...register('description')}
-											rows={3}
-											className="min-h-[96px]"
-										/>
+										<Textarea {...register('description')} rows={3} className="min-h-[96px]" />
 										<FieldError>{errors.description?.message as string | undefined}</FieldError>
 									</div>
 
@@ -188,11 +180,23 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ department, onClose }) 
 									</div>
 
 									<div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-										<Button type="submit" disabled={isSubmitting} variant="primary" size="md" className="w-full sm:ml-3 sm:w-auto">
+										<Button
+											type="submit"
+											disabled={isSubmitting}
+											variant="primary"
+											size="md"
+											className="w-full sm:ml-3 sm:w-auto"
+										>
 											<FiSave className="mr-2 h-4 w-4" />
 											{isSubmitting ? strings.savingText : strings.saveText}
 										</Button>
-										<Button type="button" onClick={onClose} variant="secondary" size="md" className="mt-3 w-full sm:mt-0 sm:w-auto">
+										<Button
+											type="button"
+											onClick={onClose}
+											variant="secondary"
+											size="md"
+											className="mt-3 w-full sm:mt-0 sm:w-auto"
+										>
 											<FiX className="mr-2 h-4 w-4" />
 											{strings.cancelText}
 										</Button>
