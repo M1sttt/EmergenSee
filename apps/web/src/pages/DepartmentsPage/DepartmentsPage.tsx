@@ -119,15 +119,15 @@ const DepartmentsPage: React.FC = () => {
             {
                 id: 'actions',
                 header: strings.columnActions,
-                headerClassName: 'px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500',
-                cellClassName: 'px-6 py-4 whitespace-nowrap text-right text-sm font-medium',
+                headerClassName: 'px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500',
+                cellClassName: 'px-6 py-4 whitespace-nowrap text-left text-sm font-medium',
                 renderCell: department => {
                     const canManageDepartment = utils.checkIsAdmin(department, currentUser);
 
                     if (!canManageDepartment) return null;
 
                     return (
-                        <div className="flex justify-end gap-2">
+                        <div className="flex justify-start gap-2">
                             <IconButton
                                 onClick={() => handleManageMembers(department)}
                                 className="text-blue-600"

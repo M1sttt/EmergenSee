@@ -1,34 +1,54 @@
-import { User, Event, ResponderStatus, EventStatus } from '@emergensee/shared';
+import { ResponderStatus, EventStatus } from '@emergensee/shared';
+import { IconType } from 'react-icons';
+import {
+	EventWithOptionalObjectId,
+	StatusUpdateWithReferences,
+	UserWithOptionalObjectId,
+	getEntityId,
+} from '@/types/entities';
 import * as consts from './consts';
 import * as strings from './strings';
 
-export const getRelevantOngoingEvent = (events: Event[], user?: User | null) => {
+export const getRelevantOngoingEvent = (
+	events: EventWithOptionalObjectId[],
+	user?: UserWithOptionalObjectId | null,
+) => {
     return events.find(
         event =>
             event.status === EventStatus.ONGOING &&
             event.departments?.some(dept => {
-                const deptId = typeof dept === 'string' ? dept : (dept as any)._id || (dept as any).id;
+                const deptId = getEntityId(dept);
                 return user?.departments?.some(userDept => {
-                    const userDeptId =
-                        typeof userDept === 'string' ? userDept : (userDept as any)._id || (userDept as any).id;
+                    const userDeptId = getEntityId(userDept);
                     return deptId === userDeptId;
                 });
             }),
     );
 };
 
-export const hasUserReportedForEvent = (eventId: string, myStatuses: any[]) => {
+export const hasUserReportedForEvent = (
+	eventId: string,
+	myStatuses: StatusUpdateWithReferences[],
+) => {
     return myStatuses.some(status => {
-        const sEventId =
-            typeof status.eventId === 'string'
-                ? status.eventId
-                : (status.eventId as any)?._id || (status.eventId as any)?.id;
+        const sEventId = getEntityId(status.eventId);
         return sEventId === eventId && status.status !== ResponderStatus.UNKNOWN;
     });
 };
 
-export const getNavigationLinks = (hasRelevantOngoingEvent: boolean, hasReportedForEvent: boolean) => {
-    const baseNavigation = [
+export interface NavigationLink {
+	name: string;
+	href: string;
+	Icon: IconType;
+	isEmergency?: boolean;
+	needsPulse?: boolean;
+}
+
+export const getNavigationLinks = (
+	hasRelevantOngoingEvent: boolean,
+	hasReportedForEvent: boolean,
+): NavigationLink[] => {
+    const baseNavigation: NavigationLink[] = [
         { name: strings.dashboard, href: consts.dashboardRoute, Icon: consts.dashboardIcon },
         { name: strings.events, href: consts.eventsRoute, Icon: consts.eventsIcon },
         { name: strings.map, href: consts.mapRoute, Icon: consts.mapIcon },

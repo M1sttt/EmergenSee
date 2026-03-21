@@ -1,12 +1,17 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useAuthStore } from 'store/authStore';
-import { User, USER_ROLE_LABELS, Department } from '@emergensee/shared';
+import { USER_ROLE_LABELS } from '@emergensee/shared';
 import UserForm from 'components/users/UserForm';
 import { FiEdit, FiTrash2 } from 'react-icons/fi';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
 import GenericTable, { type GenericTableColumn } from '@/components/common/GenericTable';
 import SelectDropdown from '@/components/SelectDropdown';
 import { Badge, Button, IconButton } from '@/components/ui';
+import {
+	DepartmentWithOptionalObjectId,
+	UserWithOptionalObjectId,
+	getEntityId,
+} from '@/types/entities';
 import * as strings from './strings';
 import * as consts from './consts';
 import * as utils from './utils';
@@ -20,7 +25,7 @@ import {
 const UsersPage = () => {
 	const currentUser = useAuthStore(state => state.user);
 
-	const [selectedUser, setSelectedUser] = useState<User | null>(null);
+	const [selectedUser, setSelectedUser] = useState<UserWithOptionalObjectId | null>(null);
 	const [isFormOpen, setIsFormOpen] = useState(false);
 	const [selectedDeptId, setSelectedDeptId] = useState<string>(consts.allDeptsId);
 	const [userToDelete, setUserToDelete] = useState<string | null>(null);
@@ -47,7 +52,7 @@ const UsersPage = () => {
 
 	const deleteMutation = useUsersPageDeleteUserMutation();
 
-	const handleEdit = useCallback((user: User) => {
+	const handleEdit = useCallback((user: UserWithOptionalObjectId) => {
 		setSelectedUser(user);
 		setIsFormOpen(true);
 	}, []);
@@ -79,8 +84,8 @@ const UsersPage = () => {
 	const departmentOptions = useMemo(
 		() => [
 			{ value: consts.allDeptsId, label: strings.allDepartments },
-			...availableDepartments.map((department: Department) => ({
-				value: (department.id || (department as unknown as { _id?: string })._id || '') as string,
+			...availableDepartments.map((department: DepartmentWithOptionalObjectId) => ({
+				value: getEntityId(department),
 				label: department.name,
 			})),
 		],
@@ -88,8 +93,8 @@ const UsersPage = () => {
 	);
 	const displayedUsers = useMemo(() => utils.filterUsers(users, selectedDeptId), [users, selectedDeptId]);
 
-	const userColumns = useMemo<GenericTableColumn<User>[]>(() => {
-		const columns: GenericTableColumn<User>[] = [
+	const userColumns = useMemo<GenericTableColumn<UserWithOptionalObjectId>[]>(() => {
+		const columns: GenericTableColumn<UserWithOptionalObjectId>[] = [
 			{
 				id: 'name',
 				header: strings.columnName,
@@ -135,47 +140,43 @@ const UsersPage = () => {
 			columns.push({
 				id: 'actions',
 				header: strings.columnActions,
-				headerClassName: 'px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider',
-				cellClassName: 'px-6 py-4 whitespace-nowrap text-right text-sm font-medium',
+				headerClassName: 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider',
+				cellClassName: 'px-6 py-4 whitespace-nowrap text-left text-sm font-medium',
 				renderCell: user => {
-					const userId = user.id || (user as unknown as { _id?: string })._id;
+					const userId = getEntityId(user) || user.email;
 
 					const canEdit =
 						isAdmin ||
 						(user.departments &&
-							user.departments.some((deptId: string | Department) =>
+							user.departments.some(deptId =>
 								myAdminDepartments.some(
-									d =>
-										(d.id || (d as unknown as { _id?: string })._id) ===
-										(typeof deptId === 'string'
-											? deptId
-											: (deptId as unknown as { _id?: string })._id || deptId.id),
+									d => getEntityId(d) === getEntityId(deptId),
 								),
 							));
 
+					if (!(canEdit || userId === currentUser?.id)) {
+						return null;
+					}
+
 					return (
-						<>
-							{(canEdit || userId === currentUser?.id) && (
-								<>
-										<IconButton
-										onClick={() => handleEdit(user)}
-										className="mr-2 text-blue-600"
-										tooltipText={strings.actionEdit}
-									>
-										<FiEdit size={16} />
-										</IconButton>
-									{isAdmin && (
-											<IconButton
-											onClick={() => handleDelete(userId!)}
-											className="text-red-600"
-											tooltipText={strings.actionDelete}
-										>
-											<FiTrash2 size={16} />
-											</IconButton>
-									)}
-								</>
+						<div className="flex justify-start gap-2">
+							<IconButton
+								onClick={() => handleEdit(user)}
+								className="text-blue-600"
+								tooltipText={strings.actionEdit}
+							>
+								<FiEdit size={16} />
+							</IconButton>
+							{isAdmin && (
+								<IconButton
+									onClick={() => handleDelete(userId!)}
+									className="text-red-600"
+									tooltipText={strings.actionDelete}
+								>
+									<FiTrash2 size={16} />
+								</IconButton>
 							)}
-						</>
+						</div>
 					);
 				},
 			});
@@ -224,7 +225,7 @@ const UsersPage = () => {
 			<GenericTable
 				columns={userColumns}
 				rows={displayedUsers}
-				getRowKey={user => (user.id || (user as unknown as { _id?: string })._id || user.email) as string}
+				getRowKey={user => getEntityId(user) || user.email}
 				isLoading={isLoading}
 				loadingContent={
 					<div className="ui-loading-state">

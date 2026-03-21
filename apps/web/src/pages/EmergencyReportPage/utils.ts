@@ -1,15 +1,16 @@
-import { EventStatus, Event, User } from '@emergensee/shared';
+import { EventStatus } from '@emergensee/shared';
+import { EventWithOptionalObjectId, UserWithOptionalObjectId, getEntityId } from '@/types/entities';
 
-export const findOngoingRelatedEvent = (events: Event[], user: User | null) => {
+export const findOngoingRelatedEvent = (
+	events: EventWithOptionalObjectId[],
+	user: UserWithOptionalObjectId | null,
+) => {
 	return events.find(
 		event =>
 			event.status === EventStatus.ONGOING &&
-			event.departments?.some((dept: any) => {
-				const deptId = typeof dept === 'string' ? dept : dept._id || dept.id;
-				return user?.departments?.some((userDept: any) => {
-					const userDeptId = typeof userDept === 'string' ? userDept : userDept._id || userDept.id;
-					return deptId === userDeptId;
-				});
+			event.departments?.some(dept => {
+				const deptId = getEntityId(dept);
+				return user?.departments?.some(userDept => getEntityId(userDept) === deptId);
 			}),
 	);
 };

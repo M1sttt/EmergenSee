@@ -22,6 +22,7 @@ export default function LoginPage() {
 	const [isLoading, setIsLoading] = useState(false);
 
 	const gsiContainerRef = useRef<HTMLDivElement>(null);
+	const redirectPath = location.state?.from?.pathname || consts.defaultNextRoute;
 
 	const handleGoogleCredential = useCallback(
 		async (credential: string) => {
@@ -30,15 +31,14 @@ export default function LoginPage() {
 			try {
 				const response = await authService.loginWithGoogleToken(credential);
 				setAuth(response.user, response.accessToken, response.refreshToken);
-				const destination = location.state?.from?.pathname || consts.defaultNextRoute;
-				navigate(destination, { replace: true });
-			} catch (err: any) {
-				setError(err.response?.data?.message || strings.googleSignInFailed);
+				navigate(redirectPath, { replace: true });
+			} catch (err: unknown) {
+				setError(utils.extractErrorMessage(err, strings.googleSignInFailed));
 			} finally {
 				setIsLoading(false);
 			}
 		},
-		[navigate, setAuth],
+		[navigate, redirectPath, setAuth],
 	);
 
 	useGoogleGSI(gsiContainerRef, handleGoogleCredential);
@@ -59,9 +59,8 @@ export default function LoginPage() {
 			const response = await authService.login(data);
 			utils.saveCredentials(data.email, data.password);
 			setAuth(response.user, response.accessToken, response.refreshToken);
-			const destination = location.state?.from?.pathname || consts.defaultNextRoute;
-			navigate(destination, { replace: true });
-		} catch (err: any) {
+			navigate(redirectPath, { replace: true });
+		} catch (err: unknown) {
 			setError(utils.extractErrorMessage(err, strings.loginFailed));
 		} finally {
 			setIsLoading(false);
@@ -77,9 +76,8 @@ export default function LoginPage() {
 			const response = await authService.register(data);
 			utils.saveCredentials(data.email, data.password);
 			setAuth(response.user, response.accessToken, response.refreshToken);
-			const destination = location.state?.from?.pathname || consts.defaultNextRoute;
-			navigate(destination, { replace: true });
-		} catch (err: any) {
+			navigate(redirectPath, { replace: true });
+		} catch (err: unknown) {
 			setError(utils.extractErrorMessage(err, strings.registrationFailed));
 		} finally {
 			setIsLoading(false);

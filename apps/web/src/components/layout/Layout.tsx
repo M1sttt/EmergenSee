@@ -8,6 +8,7 @@ import { useWebSocket } from 'hooks/useWebSocket';
 import { LAYOUT_QUERY_KEYS, useLayoutEventsQuery, useLayoutUserStatusesQuery } from 'hooks/data/useLayoutData';
 import logo from 'assets/logo.png';
 import { cn } from '@/utils/cn';
+import { getEntityId } from '@/types/entities';
 import * as consts from './consts';
 import * as strings from './strings';
 import * as utils from './utils';
@@ -37,13 +38,13 @@ export default function Layout() {
   const { data: myStatuses = [] } = useLayoutUserStatusesQuery(user?.id);
 
   const relevantOngoingEvent = useMemo(() => {
-    return utils.getRelevantOngoingEvent(events as any, user);
+    return utils.getRelevantOngoingEvent(events, user);
   }, [events, user]);
 
   const hasRelevantOngoingEvent = !!relevantOngoingEvent;
   const hasReportedForEvent = useMemo(() => {
     if (!relevantOngoingEvent) return false;
-    const eventId = relevantOngoingEvent.id || (relevantOngoingEvent as any)._id;
+    const eventId = getEntityId(relevantOngoingEvent);
     return utils.hasUserReportedForEvent(eventId, myStatuses);
   }, [relevantOngoingEvent, myStatuses]);
 
@@ -84,8 +85,8 @@ export default function Layout() {
           <nav className={cn('flex-1 space-y-1 py-4', isSidebarExpanded ? 'px-4' : 'px-2')}>
             {navigation.map(item => {
               const active = isActive(item.href);
-              const isEmergency = (item as any).isEmergency;
-              const needsPulse = (item as any).needsPulse;
+              const isEmergency = Boolean(item.isEmergency);
+              const needsPulse = Boolean(item.needsPulse);
 
               const baseClasses = cn(
                 'flex items-center rounded-lg px-4 py-3 text-sm font-medium transition-colors',

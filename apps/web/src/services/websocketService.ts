@@ -1,11 +1,36 @@
 import { io, Socket } from 'socket.io-client';
-import { WebSocketEvent, WebSocketEventType } from '@emergensee/shared';
+import {
+	ErrorPayload,
+	EventCreatedPayload,
+	EventDeletedPayload,
+	EventUpdatedPayload,
+	StatusUpdatedPayload,
+	UserJoinedPayload,
+	UserLeftPayload,
+	WebSocketEvent,
+	WebSocketEventType,
+} from '@emergensee/shared';
 
 const WS_URL = import.meta.env.VITE_WS_URL || 'http://localhost:3001';
 
+interface WebSocketPayloadMap {
+	[WebSocketEventType.EVENT_CREATED]: EventCreatedPayload;
+	[WebSocketEventType.EVENT_UPDATED]: EventUpdatedPayload;
+	[WebSocketEventType.EVENT_DELETED]: EventDeletedPayload;
+	[WebSocketEventType.STATUS_UPDATED]: StatusUpdatedPayload;
+	[WebSocketEventType.USER_JOINED]: UserJoinedPayload;
+	[WebSocketEventType.USER_LEFT]: UserLeftPayload;
+	[WebSocketEventType.CONNECTED]: Record<string, never>;
+	[WebSocketEventType.DISCONNECTED]: Record<string, never>;
+	[WebSocketEventType.ERROR]: ErrorPayload;
+}
+
+export type WebSocketPayload<TEventType extends WebSocketEventType> =
+	WebSocketPayloadMap[TEventType];
+
 class WebSocketService {
 	private socket: Socket | null = null;
-	private listeners: Map<string, Set<(data: any) => void>> = new Map();
+	private listeners: Map<WebSocketEventType, Set<(data: unknown) => void>> = new Map();
 
 	connect() {
 		if (this.socket?.connected) {
@@ -26,7 +51,7 @@ class WebSocketService {
 		});
 
 		Object.values(WebSocketEventType).forEach(eventType => {
-			this.socket?.on(eventType, (event: WebSocketEvent) => {
+			this.socket?.on(eventType, (event: WebSocketEvent<unknown>) => {
 				const listeners = this.listeners.get(eventType);
 				if (listeners) {
 					listeners.forEach(listener => listener(event.payload));
@@ -42,18 +67,24 @@ class WebSocketService {
 		}
 	}
 
-	on(eventType: WebSocketEventType, callback: (data: any) => void) {
+	on<TEventType extends WebSocketEventType>(
+		eventType: TEventType,
+		callback: (data: WebSocketPayload<TEventType>) => void,
+	) {
 		if (!this.listeners.has(eventType)) {
 			this.listeners.set(eventType, new Set());
 		}
-		this.listeners.get(eventType)?.add(callback);
+		this.listeners.get(eventType)?.add(callback as (data: unknown) => void);
 	}
 
-	off(eventType: WebSocketEventType, callback: (data: any) => void) {
-		this.listeners.get(eventType)?.delete(callback);
+	off<TEventType extends WebSocketEventType>(
+		eventType: TEventType,
+		callback: (data: WebSocketPayload<TEventType>) => void,
+	) {
+		this.listeners.get(eventType)?.delete(callback as (data: unknown) => void);
 	}
 
-	emit(eventType: string, data: any) {
+	emit<TPayload>(eventType: string, data: TPayload) {
 		this.socket?.emit(eventType, data);
 	}
 }

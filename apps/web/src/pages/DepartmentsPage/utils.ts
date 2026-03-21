@@ -1,4 +1,5 @@
 import { Department, User, UserRole } from '@emergensee/shared';
+import { UserWithOptionalObjectId, getEntityId } from '@/types/entities';
 import * as strings from './strings';
 
 export const filterDepartments = (departments: Department[], searchQuery: string): Department[] => {
@@ -9,15 +10,15 @@ export const filterDepartments = (departments: Department[], searchQuery: string
     );
 };
 
-export const formatAdmins = (adminsIds: string[] | undefined, users: User[]): string => {
+export const formatAdmins = (
+	adminsIds: string[] | undefined,
+	users: UserWithOptionalObjectId[],
+): string => {
     if (!adminsIds?.length) return strings.noAdmins;
 
     return adminsIds
         .map(id => {
-            const user = users.find(u => {
-                const userId = u.id || ('_id' in u ? (u as unknown as { _id: string })._id : undefined);
-                return userId === id;
-            });
+            const user = users.find(u => getEntityId(u) === id);
             return user ? `${user.firstName}(${id})` : `${strings.unknownAdmin}(${id})`;
         })
         .join(', ');

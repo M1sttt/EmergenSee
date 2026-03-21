@@ -1,9 +1,10 @@
 import React, { useMemo, useCallback } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { User, UpdateUserDto, UserRole, CreateUserDto } from '@emergensee/shared';
+import { User, UserRole } from '@emergensee/shared';
 import { useAuthStore } from 'store/authStore';
 import { FiSave, FiX } from 'react-icons/fi';
 import SelectDropdown from '@/components/SelectDropdown';
+import { getEntityId } from '@/types/entities';
 import {
   useUserFormCreateMutation,
   useUserFormDepartmentsQuery,
@@ -19,8 +20,6 @@ interface UserFormProps {
   onClose: () => void;
 }
 
-type UserFormData = CreateUserDto & UpdateUserDto;
-
 function UserForm({ user, onClose }: UserFormProps) {
   const currentUser = useAuthStore(state => state.user);
   const isGlobalAdmin = currentUser?.role === UserRole.ADMIN;
@@ -32,15 +31,10 @@ function UserForm({ user, onClose }: UserFormProps) {
   } = useUserFormDepartmentsQuery();
 
   const managedDepartments = useMemo(() => {
-    return utils.getManagedDepartments(
-      Array.isArray(allDepartmentsResponse)
-        ? allDepartmentsResponse
-        : (allDepartmentsResponse as any).data || [],
-      currentUser,
-    );
+    return utils.getManagedDepartments(allDepartmentsResponse, currentUser);
   }, [allDepartmentsResponse, currentUser]);
 
-  const defaultValues = useMemo(() => {
+  const defaultValues = useMemo<Partial<utils.UserFormData>>(() => {
     if (user) {
       return {
         email: user.email,
@@ -62,8 +56,8 @@ function UserForm({ user, onClose }: UserFormProps) {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<UserFormData>({
-    defaultValues: defaultValues as any,
+  } = useForm<utils.UserFormData>({
+    defaultValues,
   });
 
   const roleOptions = useMemo(
@@ -74,7 +68,7 @@ function UserForm({ user, onClose }: UserFormProps) {
   const departmentOptions = useMemo(
     () =>
       managedDepartments.map(dept => ({
-        value: dept.id || (dept as any)._id || '',
+        value: getEntityId(dept),
         label: dept.name,
       })),
     [managedDepartments],
@@ -89,15 +83,13 @@ function UserForm({ user, onClose }: UserFormProps) {
   const updateMutation = useUserFormUpdateMutation(invalidateAndClose);
 
   const onSubmit = useCallback(
-    (data: UserFormData) => {
-      const preparedData = utils.prepareUserData(data, user, managedDepartments, isGlobalAdmin);
-
+    (data: utils.UserFormData) => {
       if (user) {
-        const updateData: UpdateUserDto = { ...preparedData };
-        delete (updateData as any).password;
-        updateMutation.mutate({ id: user.id || (user as any)._id, data: updateData });
+        const updateData = utils.prepareUpdateUserData(data, user, managedDepartments, isGlobalAdmin);
+        updateMutation.mutate({ id: getEntityId(user), data: updateData });
       } else {
-        createMutation.mutate(preparedData as CreateUserDto);
+        const createData = utils.prepareCreateUserData(data, managedDepartments, isGlobalAdmin);
+        createMutation.mutate(createData);
       }
     },
     [user, managedDepartments, isGlobalAdmin, createMutation, updateMutation],

@@ -19,10 +19,10 @@ interface DepartmentFormProps {
 }
 
 type DepartmentFormData = {
-	name: string;
-	description: string;
-	admins: string[];
-	subDepartments: string[];
+	name?: string;
+	description?: string;
+	admins?: string[];
+	subDepartments?: string[];
 };
 
 const DepartmentForm: React.FC<DepartmentFormProps> = ({ department, onClose }) => {
@@ -46,27 +46,30 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ department, onClose }) 
 
 	const schema = useMemo(() => (department ? updateDepartmentSchema : createDepartmentSchema), [department]);
 
+	const formDefaults = useMemo<DepartmentFormData>(
+		() => ({
+			name: department?.name || '',
+			description: department?.description || '',
+			admins: department?.admins || (currentUser ? [currentUser.id] : []),
+			subDepartments: department?.subDepartments || [],
+		}),
+		[currentUser, department],
+	);
+
 	const {
 		register,
 		control,
 		handleSubmit,
 		formState: { errors, isSubmitting },
 		reset,
-	} = useForm<any>({
+	} = useForm<DepartmentFormData>({
 		resolver: zodResolver(schema),
-		defaultValues: department || {
-			name: '',
-			description: '',
-			admins: currentUser ? [currentUser.id] : [],
-			subDepartments: [],
-		},
+		defaultValues: formDefaults,
 	});
 
 	useEffect(() => {
-		if (department) {
-			reset(department);
-		}
-	}, [department, reset]);
+		reset(formDefaults);
+	}, [formDefaults, reset]);
 
 	const mutation = useDepartmentFormSaveMutation({
 		department,
@@ -79,7 +82,12 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ department, onClose }) 
 
 	const onSubmit = useCallback(
 		(data: DepartmentFormData) => {
-			mutation.mutate(data);
+			mutation.mutate({
+				name: data.name || '',
+				description: data.description || '',
+				admins: data.admins || [],
+				subDepartments: data.subDepartments || [],
+			});
 		},
 		[mutation],
 	);

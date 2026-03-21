@@ -1,36 +1,88 @@
-import { User, Department, UserRole, CreateUserDto, UpdateUserDto } from '@emergensee/shared';
+import { UserRole, CreateUserDto, UpdateUserDto } from '@emergensee/shared';
+import {
+	DepartmentWithOptionalObjectId,
+	UserWithOptionalObjectId,
+	getEntityId,
+} from '@/types/entities';
+
+export interface UserFormData {
+	email: string;
+	firstName: string;
+	lastName: string;
+	role?: UserRole;
+	phoneNumber?: string;
+	departments?: string[];
+	password?: string;
+}
 
 export const getManagedDepartments = (
-	allDepartments: Department[],
-	currentUser: User | null,
-): Department[] => {
+	allDepartments: DepartmentWithOptionalObjectId[],
+	currentUser: UserWithOptionalObjectId | null,
+): DepartmentWithOptionalObjectId[] => {
 	if (!currentUser) return [];
 	const isGlobalAdmin = currentUser.role === UserRole.ADMIN;
-	return isGlobalAdmin ? allDepartments : allDepartments.filter(d => d.admins?.includes(currentUser.id));
+	const currentUserId = getEntityId(currentUser);
+	return isGlobalAdmin
+		? allDepartments
+		: allDepartments.filter(d => d.admins?.includes(currentUserId));
 };
 
-export const prepareUserData = (
-	data: Partial<CreateUserDto> & Partial<UpdateUserDto>,
-	user: User | null | undefined,
-	managedDepartments: Department[],
+const mergeDepartmentsForDepartmentAdmin = (
+	selectedDepartments: string[],
+	existingDepartments: string[] | undefined,
+	managedDepartments: DepartmentWithOptionalObjectId[],
+) => {
+	const managedDepartmentIds = new Set(managedDepartments.map(getEntityId));
+	const unmanagedExistingDepartments = (existingDepartments || []).filter(
+		departmentId => !managedDepartmentIds.has(departmentId),
+	);
+
+	return Array.from(new Set([...selectedDepartments, ...unmanagedExistingDepartments]));
+};
+
+export const prepareCreateUserData = (
+	data: UserFormData,
+	managedDepartments: DepartmentWithOptionalObjectId[],
 	isGlobalAdmin: boolean,
-): CreateUserDto | UpdateUserDto => {
-	let finalDepartments = data.departments || [];
+): CreateUserDto => {
+	const selectedDepartments = data.departments || [];
+	const departments = isGlobalAdmin
+		? selectedDepartments
+		: mergeDepartmentsForDepartmentAdmin(selectedDepartments, [], managedDepartments);
 
-	if (!isGlobalAdmin && user?.departments) {
-		const managedDeptIds = new Set(managedDepartments.map((d: any) => d.id || d._id));
-		const unmanagedUserDepts = user.departments.filter(deptId => !managedDeptIds.has(deptId));
-		finalDepartments = Array.from(new Set([...finalDepartments, ...unmanagedUserDepts]));
-	}
+	return {
+		email: data.email,
+		password: data.password || '',
+		firstName: data.firstName,
+		lastName: data.lastName,
+		role: isGlobalAdmin ? data.role || UserRole.MEMBER : UserRole.MEMBER,
+		phoneNumber: data.phoneNumber,
+		departments,
+	};
+};
 
-	const preparedData = {
-		...data,
-		departments: finalDepartments,
+export const prepareUpdateUserData = (
+	data: UserFormData,
+	user: UserWithOptionalObjectId,
+	managedDepartments: DepartmentWithOptionalObjectId[],
+	isGlobalAdmin: boolean,
+): UpdateUserDto => {
+	const selectedDepartments = data.departments || [];
+	const departments = isGlobalAdmin
+		? selectedDepartments
+		: mergeDepartmentsForDepartmentAdmin(selectedDepartments, user.departments, managedDepartments);
+
+	const payload: UpdateUserDto = {
+		email: data.email,
+		firstName: data.firstName,
+		lastName: data.lastName,
+		phoneNumber: data.phoneNumber,
+		departments,
 	};
 
-	if (!isGlobalAdmin && !user) {
-		preparedData.role = UserRole.MEMBER;
+	if (isGlobalAdmin && data.role) {
+		payload.role = data.role;
 	}
 
-	return preparedData as CreateUserDto | UpdateUserDto;
+	return payload;
 };

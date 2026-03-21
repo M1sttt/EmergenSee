@@ -1,24 +1,19 @@
-export const getEntityId = (entity: unknown): string => {
-    if (!entity) return '';
-    if (typeof entity === 'string') return entity;
-    const typedEntity = entity as { id?: string; _id?: string };
-    return typedEntity.id || typedEntity._id || '';
-};
-
-export interface GenericEntity {
-    id?: string;
-    _id?: string;
-    [key: string]: unknown;
-}
+import {
+	DepartmentWithOptionalObjectId,
+	StatusUpdateWithReferences,
+	UserWithOptionalObjectId,
+	getEntityId,
+	toDate,
+} from '@/types/entities';
 
 export const getDisplayUsers = (
-    users: any[],
-    statusUpdates: any[],
+    users: UserWithOptionalObjectId[],
+    statusUpdates: StatusUpdateWithReferences[],
     selectedEventId: string,
     selectedDeptId: string,
     isGlobalAdmin: boolean,
     isDeptAdmin: boolean,
-    userAdminDepts: any[],
+    userAdminDepts: DepartmentWithOptionalObjectId[],
 ) => {
     if (!selectedEventId || selectedEventId === '') return [];
 
@@ -28,7 +23,7 @@ export const getDisplayUsers = (
     } else {
         if (!isGlobalAdmin && isDeptAdmin) {
             const adminDeptIds = userAdminDepts.map(getEntityId);
-            filteredUsers = users.filter(u => u.departments?.some((dId: string) => adminDeptIds.includes(dId)));
+            filteredUsers = users.filter(u => u.departments?.some(dId => adminDeptIds.includes(getEntityId(dId))));
         }
     }
 
@@ -38,7 +33,7 @@ export const getDisplayUsers = (
             const eid = getEntityId(s.eventId);
             return uid === getEntityId(u) && eid === selectedEventId;
         });
-        userStatuses.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        userStatuses.sort((a, b) => toDate(b.createdAt).getTime() - toDate(a.createdAt).getTime());
 
         return {
             user: u,
@@ -48,15 +43,15 @@ export const getDisplayUsers = (
 };
 
 export const canReportForUser = (
-    user: any,
+    user: UserWithOptionalObjectId,
     isGlobalAdmin: boolean,
     isDeptAdmin: boolean,
-    userAdminDepts: any[],
+    userAdminDepts: DepartmentWithOptionalObjectId[],
 ): boolean => {
     if (isGlobalAdmin) return true;
     if (isDeptAdmin && user.departments) {
         const adminDeptIds = userAdminDepts.map(getEntityId);
-        return user.departments.some((ud: string) => adminDeptIds.includes(ud));
+        return user.departments.some(ud => adminDeptIds.includes(getEntityId(ud)));
     }
     return false;
 };

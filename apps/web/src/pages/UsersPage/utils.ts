@@ -1,5 +1,6 @@
-import { User, UserRole, UserStatus, Department } from '@emergensee/shared';
+import { UserRole, UserStatus, Department } from '@emergensee/shared';
 import { getUserStatusTone } from '@/consts/ui';
+import { UserWithOptionalObjectId, getEntityId } from '@/types/entities';
 import * as consts from './consts';
 
 export const isGlobalAdmin = (userRole?: UserRole): boolean => userRole === UserRole.ADMIN;
@@ -14,12 +15,14 @@ export const filterDepartments = (departments: Department[], searchTerm: string)
 	return departments.filter(d => (d.name || '').toLowerCase().includes(normTerm));
 };
 
-export const filterUsers = (users: User[], selectedDeptId: string): User[] => {
+export const filterUsers = (
+	users: UserWithOptionalObjectId[],
+	selectedDeptId: string,
+): UserWithOptionalObjectId[] => {
 	if (selectedDeptId === consts.allDeptsId) return users;
 	return users.filter(user => {
 		return user.departments?.some(deptId => {
-			const idStr = typeof deptId === 'string' ? deptId : (deptId as any)._id || (deptId as any).id;
-			return idStr === selectedDeptId;
+			return getEntityId(deptId) === selectedDeptId;
 		});
 	});
 };

@@ -1,8 +1,11 @@
 import { useEffect } from 'react';
 import { WebSocketEventType } from '@emergensee/shared';
-import { websocketService } from 'services/websocketService';
+import { WebSocketPayload, websocketService } from 'services/websocketService';
 
-export function useWebSocket(eventType: WebSocketEventType, callback: (data: any) => void) {
+export function useWebSocket<TEventType extends WebSocketEventType>(
+	eventType: TEventType,
+	callback: (data: WebSocketPayload<TEventType>) => void,
+) {
 	useEffect(() => {
 		websocketService.connect();
 		websocketService.on(eventType, callback);

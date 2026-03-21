@@ -110,11 +110,11 @@
 	}
 
 	.ui-table-cell {
-		@apply whitespace-nowrap px-6 py-4;
+		@apply whitespace-nowrap px-6 py-4 text-left;
 	}
 
 	.ui-table-cell-message {
-		@apply px-6 py-4 text-center text-sm text-gray-500;
+		@apply px-6 py-4 text-left text-sm text-gray-500;
 	}
 
 	.ui-loading-state {

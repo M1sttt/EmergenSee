@@ -14,6 +14,7 @@ import GenericTable, { type GenericTableColumn } from '@/components/common/Gener
 import EventForm from '@/components/EventForm';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { Loader } from '@/components/common/Loader';
+import { getEntityId } from '@/types/entities';
 import { Badge, Button, IconButton } from '@/components/ui';
 import {
 	EVENTS_PAGE_QUERY_KEYS,
@@ -115,14 +116,16 @@ export default function EventsPage() {
 		{
 			id: 'actions',
 			header: strings.columnActions,
-			headerClassName: 'px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider',
-			cellClassName: 'px-6 py-4 whitespace-nowrap text-right text-sm font-medium',
+			headerClassName: 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider',
+			cellClassName: 'px-6 py-4 whitespace-nowrap text-left text-sm font-medium',
 			renderCell: event => {
-				const eventId = event.id || (event as any)._id;
+				const eventId = getEntityId(event);
+				const isResolved = event.status === EventStatus.RESOLVED;
 				return (
-					<div className="flex justify-end gap-2">
+					<div className="flex justify-start gap-2">
 							<IconButton
 							onClick={() => handleEdit(event)}
+							disabled={isResolved}
 							className="text-blue-600"
 							tooltipText={strings.tooltipEdit}
 						>
@@ -130,6 +133,7 @@ export default function EventsPage() {
 							</IconButton>
 							<IconButton
 							onClick={() => handleCloseEvent(eventId)}
+							disabled={isResolved}
 							className="text-green-600"
 							tooltipText={strings.tooltipCloseEvent}
 						>
@@ -158,7 +162,7 @@ export default function EventsPage() {
 			<GenericTable
 				columns={eventColumns}
 				rows={events}
-				getRowKey={event => (event.id || (event as any)._id) as string}
+				getRowKey={event => getEntityId(event)}
 				isLoading={isLoading}
 				loadingContent={
 					<div className="ui-loading-state">

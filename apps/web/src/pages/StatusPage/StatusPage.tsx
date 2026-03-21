@@ -16,7 +16,7 @@ import {
   useStatusPageStatusUpdatesQuery,
   useStatusPageUsersQuery,
 } from 'hooks/data/useStatusPageData';
-import { getEntityId } from './utils';
+import { getEntityId, toDate } from '@/types/entities';
 import * as strings from './strings';
 import * as consts from './consts';
 
@@ -46,7 +46,10 @@ export default function StatusPage() {
   const userAdminDepts = departments.filter(department => department.admins?.includes(currentUser?.id || ''));
   const isDeptAdmin = userAdminDepts.length > 0;
 
-  const validDepartments = isGlobalAdmin ? departments : isDeptAdmin ? userAdminDepts : [];
+  const validDepartments = useMemo(
+    () => (isGlobalAdmin ? departments : isDeptAdmin ? userAdminDepts : []),
+    [departments, isDeptAdmin, isGlobalAdmin, userAdminDepts],
+  );
 
   const eventOptions = useMemo(
     () =>
@@ -61,7 +64,7 @@ export default function StatusPage() {
     () => [
       { value: consts.allDeptsValue, label: strings.allDepartments },
       ...validDepartments.map(department => ({
-        value: department.id || (department as any)._id || '',
+        value: getEntityId(department),
         label: department.name,
       })),
     ],
@@ -75,7 +78,7 @@ export default function StatusPage() {
     if (selectedDeptId !== 'all') {
       filteredUsers = users.filter(user => user.departments?.includes(selectedDeptId));
     } else if (!isGlobalAdmin && isDeptAdmin) {
-      const adminDeptIds = userAdminDepts.map(department => department.id || (department as any)._id);
+      const adminDeptIds = userAdminDepts.map(getEntityId);
       filteredUsers = users.filter(user =>
         user.departments?.some(departmentId => adminDeptIds.includes(departmentId)),
       );
@@ -83,18 +86,13 @@ export default function StatusPage() {
 
     return filteredUsers.map(user => {
       const userStatuses = statusUpdates.filter(statusUpdate => {
-        const statusRecord = statusUpdate as {
-          userId?: unknown;
-          eventId?: unknown;
-        };
-
-        const uid = getEntityId(statusRecord.userId);
-        const eid = getEntityId(statusRecord.eventId);
+        const uid = getEntityId(statusUpdate.userId);
+        const eid = getEntityId(statusUpdate.eventId);
         return uid === user.id && eid === effectiveSelectedEventId;
       });
 
       userStatuses.sort(
-        (a, b) => new Date((b as any).createdAt).getTime() - new Date((a as any).createdAt).getTime(),
+        (a, b) => toDate(b.createdAt).getTime() - toDate(a.createdAt).getTime(),
       );
 
       return {
@@ -147,29 +145,29 @@ export default function StatusPage() {
         header: strings.columnLastUpdated,
         renderCell: ({ status }) => (
           <div className="text-sm text-gray-500">
-            {status ? format(new Date((status as any).createdAt), consts.dateFormat) : '-'}
+            {status ? format(toDate(status.createdAt), consts.dateFormat) : '-'}
           </div>
         ),
       },
       {
         id: 'actions',
         header: strings.columnActions,
-        headerClassName: 'px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider',
-        cellClassName: 'px-6 py-4 whitespace-nowrap text-right text-sm font-medium',
+        headerClassName: 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider',
+        cellClassName: 'px-6 py-4 whitespace-nowrap text-left text-sm font-medium',
         renderCell: ({ user }) => {
           const canReport =
             isGlobalAdmin ||
             (isDeptAdmin &&
               (user.departments || []).some(departmentId =>
                 userAdminDepts
-                  .map(department => department.id || (department as any)._id)
+                  .map(getEntityId)
                   .includes(departmentId),
               ));
 
           if (!canReport) return null;
 
           return (
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-start gap-2">
               <IconButton
                 onClick={() =>
                   reportMutation.mutate({
