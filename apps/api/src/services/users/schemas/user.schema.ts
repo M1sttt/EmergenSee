@@ -3,13 +3,19 @@ import { Document } from 'mongoose';
 import { UserRole, UserStatus } from '@emergensee/shared';
 
 export type UserDocument = User & Document;
+type SerializedUser = {
+  _id?: { toString(): string };
+  __v?: unknown;
+  password?: unknown;
+  id?: string;
+};
 
 @Schema({
   timestamps: true,
   toJSON: {
     virtuals: true,
-    transform: (_doc, ret: any) => {
-      ret.id = ret._id.toString();
+    transform: (_doc, ret: SerializedUser) => {
+      ret.id = ret._id?.toString();
       delete ret._id;
       delete ret.__v;
       delete ret.password;

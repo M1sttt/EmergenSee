@@ -3,6 +3,15 @@ import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { Injectable } from '@nestjs/common';
 import { UsersService } from '../../users/users.service';
 
+type GoogleProfile = {
+    id: string;
+    emails?: Array<{ value: string }>;
+    name?: {
+        givenName?: string;
+        familyName?: string;
+    };
+};
+
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     constructor(
@@ -21,13 +30,19 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     async validate(
         _accessToken: string,
         _refreshToken: string,
-        profile: any,
+        profile: GoogleProfile,
         done: VerifyCallback,
-    ): Promise<any> {
+    ): Promise<void> {
         const { id, emails, name } = profile;
+        const email = emails?.[0]?.value;
+        if (!email) {
+            done(new Error('Google profile missing email'));
+            return;
+        }
+
         const user = await this.usersService.findOrCreateGoogleUser({
             googleId: id,
-            email: emails[0].value,
+            email,
             firstName: name?.givenName ?? '',
             lastName: name?.familyName ?? '',
         });

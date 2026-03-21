@@ -2,13 +2,19 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
 export type DepartmentDocument = Department & Document;
+type SerializedDepartment = {
+    _id?: { toString(): string };
+    __v?: unknown;
+    departmentKey?: unknown;
+    id?: string;
+};
 
 @Schema({
     timestamps: true,
     toJSON: {
         virtuals: true,
-        transform: (_doc, ret: any) => {
-            ret.id = ret._id.toString();
+        transform: (_doc, ret: SerializedDepartment) => {
+            ret.id = ret._id?.toString();
             delete ret._id;
             delete ret.__v;
             delete ret.departmentKey;
