@@ -10,6 +10,7 @@ export const responderLocationSchema = z.object({
 
 export const createStatusUpdateSchema = z.object({
   status: responderStatusSchema,
+  userId: z.string().optional(),
   location: responderLocationSchema.optional(),
   eventId: z.string().optional(),
   notes: z.string().optional(),

@@ -16,10 +16,7 @@ export enum EventPriority {
 }
 
 export enum EventStatus {
-  PENDING = 'pending',
-  DISPATCHED = 'dispatched',
-  EN_ROUTE = 'en_route',
-  ON_SCENE = 'on_scene',
+  ONGOING = 'ongoing',
   RESOLVED = 'resolved',
   CANCELLED = 'cancelled',
 }
@@ -37,8 +34,8 @@ export interface Event {
   title: string;
   description: string;
   location: Location;
-  address: string;
   reportedBy?: string;
+  departments: string[];
   assignedTo?: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -51,8 +48,8 @@ export interface CreateEventDto {
   title: string;
   description: string;
   location: Location;
-  address: string;
   reportedBy?: string;
+  departments: string[];
 }
 
 export interface UpdateEventDto {
@@ -62,7 +59,7 @@ export interface UpdateEventDto {
   title?: string;
   description?: string;
   location?: Location;
-  address?: string;
+  departments?: string[];
   assignedTo?: string[];
   resolvedAt?: Date;
 }

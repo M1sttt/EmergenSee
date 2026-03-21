@@ -1,287 +1,348 @@
 # EmergenSee
 
-A real-time emergency response coordination system built with modern web technologies.
+EmergenSee is a real-time emergency coordination platform for organizations that need to create incidents quickly, notify relevant responders, track responder safety status, and manage users/departments from a single system.  
+Target users include operations/admin teams, department managers, and field responders.
 
-## Overview
+## Table of Contents
 
-EmergenSee is a comprehensive emergency response platform that enables real-time coordination between dispatchers and field responders. The system provides live event tracking, geographic visualization, status updates, and role-based access control.
+- [System Purpose](#system-purpose)
+- [Core Functionality](#core-functionality)
+- [Process Workflows](#process-workflows)
+- [System Architecture](#system-architecture)
+- [Monorepo Structure](#monorepo-structure)
+- [Setup & Installation](#setup--installation)
+- [Environment Variables](#environment-variables)
+- [Scripts](#scripts)
+- [API & Realtime Interfaces](#api--realtime-interfaces)
 
-## Architecture
+## System Purpose
 
-This is a Turborepo monorepo containing:
+EmergenSee solves three operational problems end-to-end:
 
-- **apps/api** - NestJS backend with MongoDB
-- **apps/web** - React + Vite frontend with Tailwind CSS
-- **packages/shared** - Shared types, schemas, and constants
-- **packages/ui** - Reusable UI components
-- **packages/eslint-config** - Shared ESLint configuration
-- **packages/tsconfig** - Shared TypeScript configuration
+1. **Incident Coordination**: create and close emergency events with priority/type/location.
+2. **Responder Accountability**: collect responder status updates (`SAFE`, `NEED_HELP`, `AWAY`, `UNKNOWN`) during active events.
+3. **Organizational Control**: manage users, departments, and department membership with role-aware UI/API behavior.
 
-## Tech Stack
+## Core Functionality
 
-### Backend (API)
-- NestJS - Progressive Node.js framework
-- MongoDB with Mongoose - Database and ODM
-- JWT - Authentication
-- Socket.io - Real-time WebSocket communication
-- Passport - Authentication strategies
+### 1) Authentication & Session Management
+- Email/password login and registration.
+- Google Identity Services token login (`/auth/google/token`).
+- JWT access + refresh token flow.
+- Protected frontend routes with redirect to login when unauthenticated.
 
-### Frontend (Web)
-- React 18 - UI library
-- Vite - Build tool and dev server
-- TypeScript - Type safety
-- TanStack Query - Server state management
-- Zustand - Client state management
-- React Router - Routing
-- React Hook Form - Form handling
-- Tailwind CSS - Styling
-- Leaflet - Map visualization
-- Socket.io Client - WebSocket client
+### 2) Event Management
+- Create, edit, list, and resolve events.
+- Event form captures type, priority, title, description, location, and related departments.
+- Resolved events disable edit/close actions in UI.
+- Real-time event updates via WebSocket broadcast.
 
-### Shared Packages
-- Zod - Schema validation
-- TypeScript - Shared types and interfaces
+### 3) Recursive Department Coverage for Events
+- When an event is created/updated with departments, backend expands departments recursively to include nested sub-departments.
+- Expansion is executed in MongoDB using `$graphLookup`.
+- Events persist the flattened department scope for downstream status filtering/reporting.
 
-## Features
+### 4) Status Tracking (Safety Check Lifecycle)
+- Status page shows active events and responder statuses.
+- Department filter is scoped to the currently selected active event’s departments.
+- Authorized users can submit responder statuses from action buttons.
+- Latest status per user/event is displayed with timestamp.
 
-### Core Features
-- Real-time event management
-- Live map visualization
-- User management with role-based access
-- Status tracking for field responders
-- WebSocket updates for real-time coordination
+### 5) Emergency Report Fast-Action Page
+- If user belongs to a department related to an ongoing event, emergency report page is available.
+- One-click status reporting for urgent scenarios (`SAFE` or `NEED_HELP`).
 
-### User Roles
-1. **Admin** - Full system access
-2. **Dispatcher** - Create/manage events, view status
-3. **Field Responder** - Update status, view assigned events
-4. **Viewer** - Read-only access
+### 6) User Management
+- Create, update, delete users.
+- Filter users by department in UI.
+- Department membership updates are supported from department member modal.
 
-### Event Management
-- Create, update, and track emergency events
-- Priority levels: Critical, High, Medium, Low
-- Event types: Fire, Medical, Accident, Crime, Natural Disaster, Hazmat, Other
-- Status tracking: Pending, Dispatched, En Route, On Scene, Resolved, Cancelled
-- Geographic location tracking
-- Event assignment to responders
+### 7) Department Management
+- Create/update/delete departments.
+- Assign admins and sub-departments.
+- Manage department members through modal workflows.
 
-### Real-time Features
-- Live event updates via WebSocket
-- Status update notifications
-- Live map markers
-- Automatic dashboard refresh
+### 8) Real-Time Synchronization
+- Backend emits event/status updates over Socket.IO.
+- Frontend WebSocket hooks invalidate React Query caches to auto-refresh screens.
 
-## Getting Started
+## Process Workflows
 
-### Prerequisites
-- Node.js 18+ and pnpm
-- MongoDB instance (local or cloud)
+### Authentication Flow
 
-### Installation
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant W as Web App
+    participant A as API /auth
+    participant US as UsersService
+    participant DB as MongoDB
 
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd EmergenSee
+    U->>W: Submit credentials (or Google token)
+    W->>A: POST /auth/login or /auth/google/token
+    A->>US: Validate credentials / findOrCreateGoogleUser
+    US->>DB: Query user + verify/create
+    DB-->>US: User record
+    US-->>A: Auth result
+    A-->>W: accessToken + refreshToken + user
+    W->>W: Store auth state (Zustand)
+    W-->>U: Navigate to protected app routes
 ```
 
-2. Install dependencies:
+### Event Creation & Recursive Department Expansion
+
+```mermaid
+flowchart TD
+    A[User submits EventForm] --> B[POST /events]
+    B --> C[EventsService.create]
+    C --> D[expandDepartmentIdsRecursively]
+    D --> E[$graphLookup on departments/subDepartments]
+    E --> F[Flatten + dedupe department IDs]
+    F --> G[Save event as ONGOING]
+    G --> H[Emit EVENT_CREATED via WebSocket]
+    H --> I[Clients invalidate events query]
+    I --> J[UI refreshes event lists/status context]
+```
+
+### Event Close Lifecycle
+
+```mermaid
+flowchart LR
+    A[Operator clicks Close Event] --> B[PATCH /events/:id status=RESOLVED]
+    B --> C[EventsService.update]
+    C --> D[Persist RESOLVED status]
+    D --> E[Emit EVENT_UPDATED]
+    E --> F[Frontend invalidates events data]
+    F --> G[Resolved event shown as closed]
+```
+
+### Safety Check / Status Lifecycle
+
+```mermaid
+sequenceDiagram
+    participant M as Manager/Responder UI
+    participant S as Status API
+    participant DB as MongoDB
+    participant WS as WebSocket Gateway
+    participant C as Connected Clients
+
+    M->>S: POST /status (userId,eventId,status)
+    S->>DB: Save StatusUpdate
+    DB-->>S: Saved status update
+    S->>WS: emit STATUS_UPDATED
+    WS-->>C: Broadcast status change
+    C->>C: Invalidate status queries
+    C-->>M: Latest status table re-renders
+```
+
+### Department Member Management Flow
+
+```mermaid
+flowchart TD
+    A[Open Department Members Modal] --> B[Select users]
+    B --> C[Submit add/remove action]
+    C --> D[Parallel user updates via /users/:id]
+    D --> E[Users query invalidated]
+    E --> F[Department views reflect new membership]
+```
+
+## System Architecture
+
+### Technology Stack
+
+| Layer | Technology |
+|---|---|
+| Monorepo | Turborepo + pnpm workspaces |
+| Frontend | React 18, Vite, TypeScript |
+| Styling | Tailwind CSS |
+| Frontend State | TanStack Query + Zustand |
+| Forms/Validation | react-hook-form + Zod/shared DTO contracts |
+| Backend | NestJS 10, TypeScript |
+| Database | MongoDB + Mongoose |
+| Realtime | Socket.IO (Nest gateway + web client) |
+| API Docs | Swagger (`/docs`) |
+
+### High-Level Architecture Diagram
+
+```mermaid
+flowchart TB
+    subgraph Client
+        W[React + Vite Web App]
+    end
+
+    subgraph Server
+        N[NestJS API]
+        G[Socket.IO Gateway]
+    end
+
+    subgraph Data
+        M[(MongoDB)]
+    end
+
+    W <-- REST --> N
+    W <-- WebSocket --> G
+    N <--> M
+    G <--> M
+```
+
+### Frontend Component Architecture (Atomic-Inspired)
+
+The frontend follows a layered component model:
+
+- **UI primitives (`src/components/ui`)**: reusable low-level components such as `Button`, `Input`, `Label`, `Textarea`, `Badge`, `IconButton`, `FieldError`.
+- **Common reusable blocks (`src/components/common`)**: higher-level shared widgets such as `GenericTable`, `Loader`, `ConfirmModal`.
+- **Feature/domain components**: `EventForm`, `DepartmentForm`, `DepartmentMembersModal`, user form modules.
+- **Pages (`src/pages`)** compose feature components and orchestrate queries/mutations.
+
+### Backend Service-Based Architecture
+
+Backend is organized by domain modules under `apps/api/src/services`:
+
+- `auth` (login/register/refresh/google token)
+- `users` (CRUD + google account linking)
+- `events` (CRUD, nearby search, recursive department expansion)
+- `status` (status updates and retrieval)
+- `departments` (department hierarchy/admin structure)
+- `websocket` (event/status broadcasts)
+
+Each module follows NestJS separation of concerns:
+- **Controller**: HTTP contract.
+- **Service**: business logic.
+- **Schema/DTO**: persistence and input contracts.
+
+## Monorepo Structure
+
+```text
+apps/
+  api/      # NestJS backend
+  web/      # React + Vite frontend
+packages/
+  shared/   # shared types/schemas/constants
+  ui/       # shared UI package
+  eslint-config/
+  tsconfig/
+docs/       # extended project documentation
+```
+
+## Setup & Installation
+
+### Prerequisites
+
+- Node.js >= 20
+- pnpm >= 8
+- MongoDB (local or remote)
+
+### 1) Install dependencies
+
 ```bash
 pnpm install
 ```
 
-3. Set up environment variables:
+### 2) Configure environment files
 
-For the API (`apps/api/.env`):
-```env
-PORT=3001
-NODE_ENV=development
-MONGODB_URI=mongodb://localhost:27017/emergensee
-JWT_SECRET=your-secret-key
-JWT_EXPIRES_IN=15m
-JWT_REFRESH_SECRET=your-refresh-secret
-JWT_REFRESH_EXPIRES_IN=7d
-CORS_ORIGIN=http://localhost:5173
-```
+Create the following files from examples:
 
-For the Web app (`apps/web/.env`):
-```env
-VITE_API_URL=http://localhost:3001/api/v1
-VITE_WS_URL=http://localhost:3001
-```
+- `apps/api/.env`
+- `apps/web/.env`
 
-4. Start MongoDB (if running locally):
+### 3) Start MongoDB
+
+Option A: Docker
+
 ```bash
 docker-compose up -d
 ```
 
-5. Start the development servers:
+Option B: local Mongo service.
+
+### 4) Run in development
+
+From repository root:
+
 ```bash
 pnpm dev
 ```
 
-This will start:
-- API server at http://localhost:3001
-- Web app at http://localhost:5173
+Expected local endpoints:
+- Web: `http://localhost:5173`
+- API: `http://localhost:3001`
+- Swagger: `http://localhost:3001/docs`
 
-## Project Structure
+## Environment Variables
 
-```
-EmergenSee/
-├── apps/
-│   ├── api/                    # NestJS Backend
-│   │   ├── src/
-│   │   │   ├── auth/          # Authentication module
-│   │   │   ├── users/         # User management
-│   │   │   ├── events/        # Event management
-│   │   │   ├── status/        # Status updates
-│   │   │   ├── websocket/     # WebSocket gateway
-│   │   │   └── common/        # Guards, decorators, etc.
-│   │   └── package.json
-│   │
-│   └── web/                    # React Frontend
-│       ├── src/
-│       │   ├── components/    # React components
-│       │   ├── pages/         # Page components
-│       │   ├── services/      # API services
-│       │   ├── store/         # State management
-│       │   └── hooks/         # Custom hooks
-│       └── package.json
-│
-├── packages/
-│   ├── shared/                # Shared code
-│   │   ├── src/
-│   │   │   ├── types/        # TypeScript types
-│   │   │   ├── schemas/      # Zod schemas
-│   │   │   └── constants/    # Shared constants
-│   │   └── package.json
-│   │
-│   ├── ui/                    # Shared UI components
-│   ├── eslint-config/         # ESLint configs
-│   └── tsconfig/              # TypeScript configs
-│
-├── turbo.json                 # Turborepo configuration
-├── package.json               # Root package.json
-└── pnpm-workspace.yaml        # PNPM workspace config
+### API (`apps/api/.env`)
+
+```env
+PORT=3001
+NODE_ENV=development
+MONGODB_URI=mongodb://localhost:27017/emergensee
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+JWT_EXPIRES_IN=15m
+JWT_REFRESH_SECRET=your-super-secret-refresh-key-change-this-in-production
+JWT_REFRESH_EXPIRES_IN=7d
+CORS_ORIGIN=http://localhost:5173
+GOOGLE_CLIENT_ID=your-google-client-id
+WEBSOCKET_PORT=3002
 ```
 
-## API Endpoints
+### Web (`apps/web/.env`)
 
-### Authentication
-- `POST /api/v1/auth/login` - User login
-- `POST /api/v1/auth/refresh` - Refresh access token
-
-### Users
-- `GET /api/v1/users` - Get all users
-- `GET /api/v1/users/:id` - Get user by ID
-- `POST /api/v1/users` - Create user (Admin only)
-- `PATCH /api/v1/users/:id` - Update user (Admin only)
-- `DELETE /api/v1/users/:id` - Delete user (Admin only)
-
-### Events
-- `GET /api/v1/events` - Get all events
-- `GET /api/v1/events/:id` - Get event by ID
-- `GET /api/v1/events/nearby` - Get nearby events
-- `POST /api/v1/events` - Create event (Admin/Dispatcher)
-- `PATCH /api/v1/events/:id` - Update event (Admin/Dispatcher)
-- `DELETE /api/v1/events/:id` - Delete event (Admin/Dispatcher)
-
-### Status
-- `GET /api/v1/status` - Get all status updates
-- `GET /api/v1/status/:id` - Get status update by ID
-- `GET /api/v1/status/user/:userId` - Get user's status updates
-- `GET /api/v1/status/user/:userId/latest` - Get user's latest status
-- `POST /api/v1/status` - Create status update
-- `PATCH /api/v1/status/:id` - Update status (Admin/Dispatcher)
-- `DELETE /api/v1/status/:id` - Delete status (Admin/Dispatcher)
-
-## WebSocket Events
-
-### Client can listen to:
-- `event:created` - New event created
-- `event:updated` - Event updated
-- `event:deleted` - Event deleted
-- `status:updated` - Status update created
-- `user:joined` - User connected
-- `user:left` - User disconnected
-- `connected` - Successfully connected
-- `error` - Error occurred
+```env
+VITE_API_URL=http://localhost:3001
+VITE_WS_URL=http://localhost:3001
+VITE_GOOGLE_CLIENT_ID=your-google-client-id
+```
 
 ## Scripts
 
-### Root Level
-- `pnpm dev` - Start all apps in development mode
-- `pnpm build` - Build all apps
-- `pnpm lint` - Lint all apps
-- `pnpm clean` - Clean all build artifacts
+### Root
 
-### API
-- `pnpm dev` - Start API in development mode
-- `pnpm build` - Build API
-- `pnpm start` - Start production build
-- `pnpm lint` - Lint API code
-- `pnpm test` - Run tests
+| Command | Description |
+|---|---|
+| `pnpm dev` | Run all apps in dev mode via Turborepo |
+| `pnpm build` | Build all packages/apps |
+| `pnpm test` | Run tests across workspace |
+| `pnpm lint` | Lint workspace |
+| `pnpm typecheck` | Type-check workspace |
 
-### Web
-- `pnpm dev` - Start web app in development mode
-- `pnpm build` - Build web app for production
-- `pnpm preview` - Preview production build
-- `pnpm lint` - Lint web app code
+### API (`apps/api`)
 
-## Development
+| Command | Description |
+|---|---|
+| `pnpm build` | Build NestJS API |
+| `pnpm start` | Start API |
+| `pnpm dev` | Start API in watch mode |
+| `pnpm start:prod` | Run compiled API (`dist/main`) |
+| `pnpm test` | Unit tests |
+| `pnpm test:e2e` | E2E tests |
 
-### Adding New Features
+### Web (`apps/web`)
 
-1. Define types in `packages/shared/src/types`
-2. Add schemas in `packages/shared/src/schemas`
-3. Create API endpoints in `apps/api/src`
-4. Add services and components in `apps/web/src`
-5. Update documentation
+| Command | Description |
+|---|---|
+| `pnpm dev` | Start Vite dev server |
+| `pnpm build` | Build web app |
+| `pnpm preview` | Preview production build |
+| `pnpm lint` | Lint frontend |
+| `pnpm type-check` | TypeScript check |
 
-### Code Style
+## API & Realtime Interfaces
 
-This project uses:
-- ESLint for code linting
-- Prettier for code formatting
-- TypeScript for type safety
+- REST base URL: `http://localhost:3001`
+- Swagger docs: `http://localhost:3001/docs`
+- Main API domains:
+  - `/auth`
+  - `/users`
+  - `/events`
+  - `/status`
+  - `/departments`
+- WebSocket event types include:
+  - `EVENT_CREATED`
+  - `EVENT_UPDATED`
+  - `EVENT_DELETED`
+  - `STATUS_UPDATED`
+  - `CONNECTED` / `DISCONNECTED`
 
-Run `pnpm lint` to check for issues.
+---
 
-## Deployment
-
-### API Deployment
-
-1. Build the API:
-```bash
-cd apps/api
-pnpm build
-```
-
-2. Set environment variables for production
-3. Deploy to your hosting provider (Heroku, AWS, etc.)
-
-### Web Deployment
-
-1. Build the web app:
-```bash
-cd apps/web
-pnpm build
-```
-
-2. Deploy the `dist` folder to a static hosting service (Vercel, Netlify, etc.)
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests and linting
-5. Submit a pull request
-
-## License
-
-MIT
-
-## Support
-
-For issues and questions, please open an issue on GitHub.
+For deeper implementation details, see the `docs/` directory (`ARCHITECTURE.md`, `API.md`, `WEBSOCKET.md`, `DEVELOPMENT.md`, `SECURITY.md`).

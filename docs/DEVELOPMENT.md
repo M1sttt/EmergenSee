@@ -42,7 +42,7 @@ CORS_ORIGIN=http://localhost:5173
 
 **apps/web/.env**
 ```env
-VITE_API_URL=http://localhost:3001/api/v1
+VITE_API_URL=http://localhost:3001
 VITE_WS_URL=http://localhost:3001
 ```
 
@@ -484,7 +484,7 @@ chore: update dependencies
 ### Web Environment Variables
 | Variable | Description | Default |
 |----------|-------------|---------|
-| VITE_API_URL | API base URL | http://localhost:3001/api/v1 |
+| VITE_API_URL | API base URL | http://localhost:3001 |
 | VITE_WS_URL | WebSocket URL | http://localhost:3001 |
 
 ## Performance Tips

@@ -1,15 +1,24 @@
 import { api } from './api';
-import { LoginDto, AuthResponse } from '@emergensee/shared';
+import { LoginDto, AuthResponse, RegisterDto } from '@emergensee/shared';
 
 export const authService = {
-  login: async (data: LoginDto): Promise<AuthResponse> => {
-    const response = await api.post<AuthResponse>('/auth/login', data);
-    return response.data;
-  },
+	login: async (data: LoginDto): Promise<AuthResponse> => {
+		const response = await api.post<AuthResponse>('/auth/login', data);
+		return response.data;
+	},
 
-  logout: () => {
-    // Clear local storage and redirect
-    localStorage.clear();
-    window.location.href = '/login';
-  },
+	register: async (data: RegisterDto): Promise<AuthResponse> => {
+		const response = await api.post<AuthResponse>('/auth/register', data);
+		return response.data;
+	},
+
+	loginWithGoogleToken: async (credential: string): Promise<AuthResponse> => {
+		const response = await api.post<AuthResponse>('/auth/google/token', { credential });
+		return response.data;
+	},
+
+	logout: () => {
+		localStorage.removeItem('auth-storage');
+		window.location.href = '/login';
+	},
 };

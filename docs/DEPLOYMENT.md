@@ -29,7 +29,7 @@ CORS_ORIGIN=https://your-domain.com
 
 #### Web (.env.production)
 ```env
-VITE_API_URL=https://api.your-domain.com/api/v1
+VITE_API_URL=https://api.your-domain.com
 VITE_WS_URL=https://api.your-domain.com
 ```
 
@@ -375,7 +375,7 @@ kubectl apply -f k8s/
 
 1. **Check API Health**
 ```bash
-curl https://api.your-domain.com/api/v1/health
+curl https://api.your-domain.com/health
 ```
 
 2. **Check Web App**

@@ -1,0 +1,13 @@
+export const title = 'Dashboard';
+export const totalEvents = 'Total Events';
+export const activeEvents = 'Active Events';
+export const criticalEvents = 'Critical Events';
+export const highPriority = 'High Priority';
+export const recentEvents = 'Recent Events';
+export const recentStatusUpdates = 'Recent Status Updates';
+export const statusUpdate = 'Status Update';
+export const noNotes = 'No notes';
+export const loadingEvents = 'Loading events...';
+export const loadingStatus = 'Loading status...';
+export const errorEvents = 'Error loading events.';
+export const errorStatus = 'Error loading status updates.';
