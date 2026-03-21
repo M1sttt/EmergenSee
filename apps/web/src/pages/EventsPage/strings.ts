@@ -1,0 +1,13 @@
+﻿export const title = 'Events';
+export const loading = 'Loading...';
+export const error = 'Failed to load events.';
+export const createBtn = 'Create Event';
+export const confirmClose = 'Are you sure you want to close this event?';
+export const columnTitle = 'Title';
+export const columnType = 'Type';
+export const columnPriority = 'Priority';
+export const columnStatus = 'Status';
+export const columnActions = 'Actions';
+export const noEventsFound = 'No events found.';
+export const tooltipEdit = 'Edit';
+export const tooltipCloseEvent = 'Close Event';
