@@ -49,14 +49,14 @@ export class CreateEventDto {
     location!: LocationDto;
 
     @IsString()
-    @IsNotEmpty()
-    @ApiProperty({ description: 'The address of the event', example: '123 Main St' })
-    address!: string;
-
-    @IsString()
     @IsOptional()
     @ApiProperty({ description: 'The user ID who reported the event', required: false, example: 'user123' })
     reportedBy?: string;
+
+    @IsArray()
+    @IsString({ each: true })
+    @ApiProperty({ description: 'The departments associated with the event', type: [String] })
+    departments!: string[];
 }
 
 export class UpdateEventDto {
@@ -72,7 +72,7 @@ export class UpdateEventDto {
 
     @IsEnum(EventStatus)
     @IsOptional()
-    @ApiProperty({ description: 'The status of the event', required: false, enum: EventStatus, example: EventStatus.DISPATCHED })
+    @ApiProperty({ description: 'The status of the event', required: false, enum: EventStatus, example: EventStatus.ONGOING })
     status?: EventStatus;
 
     @IsString()
@@ -91,11 +91,6 @@ export class UpdateEventDto {
     @ApiProperty({ description: 'The location of the event', required: false })
     location?: LocationDto;
 
-    @IsString()
-    @IsOptional()
-    @ApiProperty({ description: 'The address of the event', required: false, example: '123 Main St' })
-    address?: string;
-
     @IsArray()
     @IsString({ each: true })
     @IsOptional()
@@ -107,4 +102,10 @@ export class UpdateEventDto {
     @IsOptional()
     @ApiProperty({ description: 'The resolved timestamp of the event', required: false })
     resolvedAt?: Date;
+
+    @IsArray()
+    @IsString({ each: true })
+    @IsOptional()
+    @ApiProperty({ description: 'The departments associated with the event', required: false, type: [String] })
+    departments?: string[];
 }

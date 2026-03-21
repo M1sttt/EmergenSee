@@ -11,29 +11,24 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
-import { Roles } from '../../common/decorators/roles.decorator';
 import { StatusService } from './status.service';
-import { UserRole } from '@emergensee/shared';
 import { CreateStatusUpdateDto, UpdateStatusUpdateDto } from './status.dto';
 
 @ApiTags('Status')
 @ApiBearerAuth('access-token')
 @Controller('status')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 export class StatusController {
   constructor(private readonly statusService: StatusService) { }
 
   @ApiOperation({ summary: 'Create a status update for the current user' })
   @Post()
-  @Roles(UserRole.ADMIN, UserRole.DISPATCHER, UserRole.FIELD_RESPONDER)
   create(@Request() req, @Body() createStatusUpdateDto: CreateStatusUpdateDto) {
-    return this.statusService.create(req.user.userId, createStatusUpdateDto);
+    return this.statusService.create(createStatusUpdateDto.userId || req.user.userId, createStatusUpdateDto);
   }
 
   @ApiOperation({ summary: 'List status updates' })
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.DISPATCHER)
   findAll() {
     return this.statusService.findAll();
   }
@@ -41,7 +36,6 @@ export class StatusController {
   @ApiOperation({ summary: 'Get status updates by user id' })
   @ApiParam({ name: 'userId', description: 'User id' })
   @Get('user/:userId')
-  @Roles(UserRole.ADMIN, UserRole.DISPATCHER)
   findByUser(@Param('userId') userId: string) {
     return this.statusService.findByUser(userId);
   }
@@ -63,7 +57,6 @@ export class StatusController {
   @ApiOperation({ summary: 'Update status update by id' })
   @ApiParam({ name: 'id', description: 'Status update id' })
   @Patch(':id')
-  @Roles(UserRole.ADMIN, UserRole.DISPATCHER)
   update(@Param('id') id: string, @Body() updateStatusUpdateDto: UpdateStatusUpdateDto) {
     return this.statusService.update(id, updateStatusUpdateDto);
   }
@@ -71,7 +64,6 @@ export class StatusController {
   @ApiOperation({ summary: 'Delete status update by id' })
   @ApiParam({ name: 'id', description: 'Status update id' })
   @Delete(':id')
-  @Roles(UserRole.ADMIN, UserRole.DISPATCHER)
   remove(@Param('id') id: string) {
     return this.statusService.remove(id);
   }

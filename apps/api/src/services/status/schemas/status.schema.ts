@@ -4,7 +4,17 @@ import { ResponderStatus, ResponderLocation } from '@emergensee/shared';
 
 export type StatusUpdateDocument = StatusUpdate & Document;
 
-@Schema({ timestamps: true })
+@Schema({
+  timestamps: true,
+  toJSON: {
+    virtuals: true,
+    transform: (_doc, ret: any) => {
+      ret.id = ret._id.toString();
+      delete ret._id;
+      delete ret.__v;
+    }
+  }
+})
 export class StatusUpdate {
   @Prop({ required: true, type: Types.ObjectId, ref: 'User' })
   userId: Types.ObjectId;
