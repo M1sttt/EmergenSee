@@ -38,15 +38,10 @@ export class CreateUserDto {
     @ApiProperty({ description: 'The phone number of the user', required: false, example: '+1234567890' })
     phoneNumber?: string;
 
-    @IsString()
+    @IsString({ each: true })
     @IsOptional()
-    @ApiProperty({ description: 'The badge number of the user', required: false, example: 'B12345' })
-    badgeNumber?: string;
-
-    @IsString()
-    @IsOptional()
-    @ApiProperty({ description: 'The department of the user', required: false, example: 'Engineering' })
-    department?: string;
+    @ApiProperty({ description: 'The departments of the user', required: false, type: [String] })
+    departments?: string[];
 }
 
 export class UpdateUserDto {
@@ -54,6 +49,12 @@ export class UpdateUserDto {
     @IsOptional()
     @ApiProperty({ description: 'The email of the user', required: false, example: 'user@example.com' })
     email?: string;
+
+    @IsString()
+    @MinLength(6)
+    @IsOptional()
+    @ApiProperty({ description: 'The password of the user', minLength: 6, required: false, example: 'password123' })
+    password?: string;
 
     @IsString()
     @IsOptional()
@@ -80,13 +81,8 @@ export class UpdateUserDto {
     @ApiProperty({ description: 'The phone number of the user', required: false, example: '+1234567890' })
     phoneNumber?: string;
 
-    @IsString()
+    @IsString({ each: true })
     @IsOptional()
-    @ApiProperty({ description: 'The badge number of the user', required: false, example: 'B12345' })
-    badgeNumber?: string;
-
-    @IsString()
-    @IsOptional()
-    @ApiProperty({ description: 'The department of the user', required: false, example: 'Engineering' })
-    department?: string;
+    @ApiProperty({ description: 'The departments of the user', required: false, type: [String] })
+    departments?: string[];
 }

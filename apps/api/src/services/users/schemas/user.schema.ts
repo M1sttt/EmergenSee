@@ -4,7 +4,18 @@ import { UserRole, UserStatus } from '@emergensee/shared';
 
 export type UserDocument = User & Document;
 
-@Schema({ timestamps: true })
+@Schema({
+  timestamps: true,
+  toJSON: {
+    virtuals: true,
+    transform: (_doc, ret: any) => {
+      ret.id = ret._id.toString();
+      delete ret._id;
+      delete ret.__v;
+      delete ret.password;
+    }
+  }
+})
 export class User {
   @Prop({ required: true, unique: true })
   email: string;
@@ -27,11 +38,8 @@ export class User {
   @Prop()
   phoneNumber?: string;
 
-  @Prop()
-  badgeNumber?: string;
-
-  @Prop()
-  department?: string;
+  @Prop({ type: [String], default: [] })
+  departments?: string[];
 
   @Prop({ sparse: true })
   googleId?: string;

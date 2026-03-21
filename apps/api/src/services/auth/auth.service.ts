@@ -43,7 +43,7 @@ export class AuthService {
       password: registerDto.password,
       firstName: registerDto.firstName,
       lastName: registerDto.lastName,
-      role: UserRole.FIELD_RESPONDER, // default role for self-registration
+      role: UserRole.MEMBER, // default role for self-registration
     });
     return this.generateAuthResponse(user);
   }
