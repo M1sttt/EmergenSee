@@ -3,13 +3,18 @@ import { Document, Types } from 'mongoose';
 import { ResponderStatus, ResponderLocation } from '@emergensee/shared';
 
 export type StatusUpdateDocument = StatusUpdate & Document;
+type SerializedStatusUpdate = {
+  _id?: { toString(): string };
+  __v?: unknown;
+  id?: string;
+};
 
 @Schema({
   timestamps: true,
   toJSON: {
     virtuals: true,
-    transform: (_doc, ret: any) => {
-      ret.id = ret._id.toString();
+    transform: (_doc, ret: SerializedStatusUpdate) => {
+      ret.id = ret._id?.toString();
       delete ret._id;
       delete ret.__v;
     }

@@ -19,6 +19,15 @@ import {
   RegisterRequestDto,
   UserResponseDto,
 } from './dto/auth.dto';
+import { Request } from 'express';
+
+type AuthenticatedRequest = Request & {
+  user: {
+    userId: string;
+    email: string;
+    role: string;
+  };
+};
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -34,7 +43,7 @@ export class AuthController {
   @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  async getMe(@Req() req: any) {
+  async getMe(@Req() req: AuthenticatedRequest) {
     return this.usersService.findOne(req.user.userId);
   }
 

@@ -6,7 +6,12 @@ import {
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { WebSocketEventType } from '@emergensee/shared';
+import { Event, StatusUpdate, WebSocketEventType } from '@emergensee/shared';
+import { EventDocument } from '../events/schemas/event.schema';
+import { StatusUpdateDocument } from '../status/schemas/status.schema';
+
+type EventSocketPayload = Event | EventDocument;
+type StatusSocketPayload = StatusUpdate | StatusUpdateDocument;
 
 @WSGateway({
   cors: {
@@ -41,7 +46,7 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
     client.emit('pong', { timestamp: new Date() });
   }
 
-  emitEventCreated(event: any) {
+  emitEventCreated(event: EventSocketPayload) {
     this.server.emit(WebSocketEventType.EVENT_CREATED, {
       type: WebSocketEventType.EVENT_CREATED,
       payload: { event },
@@ -49,7 +54,7 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
     });
   }
 
-  emitEventUpdated(event: any) {
+  emitEventUpdated(event: EventSocketPayload) {
     this.server.emit(WebSocketEventType.EVENT_UPDATED, {
       type: WebSocketEventType.EVENT_UPDATED,
       payload: { event },
@@ -65,7 +70,7 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
     });
   }
 
-  emitStatusUpdated(statusUpdate: any, userId: string) {
+  emitStatusUpdated(statusUpdate: StatusSocketPayload, userId: string) {
     this.server.emit(WebSocketEventType.STATUS_UPDATED, {
       type: WebSocketEventType.STATUS_UPDATED,
       payload: { statusUpdate, userId },

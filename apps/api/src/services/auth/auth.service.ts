@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
-import { OAuth2Client } from 'google-auth-library';
+import { OAuth2Client, TokenPayload } from 'google-auth-library';
 import { UsersService } from '../users/users.service';
 import { UserDocument } from '../users/schemas/user.schema';
 import { AuthResponse, LoginDto, RegisterDto, UserRole } from '@emergensee/shared';
@@ -56,7 +56,7 @@ export class AuthService {
     const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
     const client = new OAuth2Client(clientId);
 
-    let payload: any;
+    let payload: TokenPayload | undefined;
     try {
       const ticket = await client.verifyIdToken({
         idToken,
