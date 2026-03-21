@@ -1,10 +1,10 @@
 import { forwardRef, memo, useMemo } from 'react';
 import ReactSelect, { GroupBase, Props as SelectProps, SelectInstance } from 'react-select';
-import { maxOptionsMenuHeight } from './SelectDropdown.constants';
+import { maxOptionsMenuHeight } from './consts';
 import { SelectDropdownField } from './SelectDropdownField';
-import { buildSelectDropdownStyles } from './SelectDropdown.styles';
-import { SelectDropdownProps, SelectOption } from './SelectDropdown.types';
-import { getSelectedOption, mapOnChangeValue } from './SelectDropdown.utils';
+import { buildSelectDropdownStyles } from './styles';
+import { SelectDropdownProps, SelectOption } from './types';
+import { getSelectedOption, mapOnChangeValue } from './utils';
 
 const SelectDropdown = forwardRef<
 	SelectInstance<SelectOption, boolean, GroupBase<SelectOption>>,

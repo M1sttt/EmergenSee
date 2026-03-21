@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from 'store/authStore';
 import { authService } from 'services/authService';
@@ -9,6 +9,7 @@ import { LAYOUT_QUERY_KEYS, useLayoutEventsQuery, useLayoutUserStatusesQuery } f
 import logo from 'assets/logo.png';
 import { cn } from '@/utils/cn';
 import { getEntityId } from '@/types/entities';
+import { SidebarNavigation } from './SidebarNavigation';
 import * as consts from './consts';
 import * as strings from './strings';
 import * as utils from './utils';
@@ -49,7 +50,6 @@ export default function Layout() {
   }, [relevantOngoingEvent, myStatuses]);
 
   const navigation = utils.getNavigationLinks(hasRelevantOngoingEvent, hasReportedForEvent);
-  const isActive = (path: string) => location.pathname === path;
   const userInitials = `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}`.toUpperCase() || 'U';
 
   const CollapseIcon = consts.collapseIcon;
@@ -82,40 +82,11 @@ export default function Layout() {
             {isSidebarExpanded && <p className="mt-1 justify-self-center text-xs text-gray-600">{strings.appSubtitle}</p>}
           </div>
 
-          <nav className={cn('flex-1 space-y-1 py-4', isSidebarExpanded ? 'px-4' : 'px-2')}>
-            {navigation.map(item => {
-              const active = isActive(item.href);
-              const isEmergency = Boolean(item.isEmergency);
-              const needsPulse = Boolean(item.needsPulse);
-
-              const baseClasses = cn(
-                'flex items-center rounded-lg px-4 py-3 text-sm font-medium transition-colors',
-                isEmergency
-                  ? active
-                    ? 'bg-red-600 text-white'
-                    : cn('bg-red-500 text-white shadow-md hover:bg-red-600', needsPulse && 'animate-pulse')
-                  : active
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-50',
-              );
-
-              const { Icon } = item;
-
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  title={!isSidebarExpanded ? item.name : undefined}
-                  className={cn(baseClasses, !isSidebarExpanded && 'justify-center px-2')}
-                >
-                  <span className={cn('text-lg', isSidebarExpanded && 'mr-3')}>
-                    <Icon />
-                  </span>
-                  {isSidebarExpanded && item.name}
-                </Link>
-              );
-            })}
-          </nav>
+          <SidebarNavigation
+            navigation={navigation}
+            isSidebarExpanded={isSidebarExpanded}
+            currentPath={location.pathname}
+          />
 
           <div className={cn('border-t border-gray-200 px-4 py-4', !isSidebarExpanded && 'text-center')}>
             <button

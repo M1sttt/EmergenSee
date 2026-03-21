@@ -1,7 +1,0 @@
-module.exports = {
-  extends: ["@emergensee/eslint-config/react.js"],
-  parser: "@typescript-eslint/parser",
-  parserOptions: {
-    project: true,
-  },
-};

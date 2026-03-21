@@ -1,5 +1,5 @@
 import { GroupBase, StylesConfig } from 'react-select';
-import { SelectOption } from './SelectDropdown.types';
+import { SelectOption } from './types';
 
 export const buildSelectDropdownStyles = (
 	error?: string,

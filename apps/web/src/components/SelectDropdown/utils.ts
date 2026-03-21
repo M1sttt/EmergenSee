@@ -1,5 +1,5 @@
 import { GroupBase, OnChangeValue, Props as SelectProps } from 'react-select';
-import { SelectOption } from './SelectDropdown.types';
+import { SelectOption } from './types';
 
 export const getSelectedOption = (
 	isMulti: boolean,
