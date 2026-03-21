@@ -8,6 +8,8 @@ import {
 	FaChevronRight,
 	FaSignOutAlt,
 	FaHeartbeat,
+	FaBars,
+	FaTimes,
 } from 'react-icons/fa';
 import { AiFillAlert } from 'react-icons/ai';
 
@@ -33,3 +35,5 @@ export const emergencyIcon = AiFillAlert;
 export const collapseIcon = FaChevronLeft;
 export const expandIcon = FaChevronRight;
 export const logoutIcon = FaSignOutAlt;
+export const menuIcon = FaBars;
+export const closeIcon = FaTimes;

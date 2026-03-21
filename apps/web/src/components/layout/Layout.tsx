@@ -23,6 +23,7 @@ export default function Layout() {
 	const navigate = useNavigate();
 	const user = useAuthStore(state => state.user);
 	const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+	const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 	const queryClient = useQueryClient();
 
 	useWebSocket(WebSocketEventType.EVENT_CREATED, () => {
@@ -52,6 +53,7 @@ export default function Layout() {
 		const eventId = getEntityId(relevantOngoingEvent);
 		return utils.hasUserReportedForEvent(eventId, myStatuses);
 	}, [relevantOngoingEvent, myStatuses]);
+	const shouldShowEmergencyHeader = hasRelevantOngoingEvent && !hasReportedForEvent;
 
 	const navigation = utils.getNavigationLinks(hasRelevantOngoingEvent, hasReportedForEvent);
 	const userInitials = `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}`.toUpperCase() || 'U';
@@ -59,22 +61,43 @@ export default function Layout() {
 	const CollapseIcon = consts.collapseIcon;
 	const ExpandIcon = consts.expandIcon;
 	const LogoutIcon = consts.logoutIcon;
+	const MenuIcon = consts.menuIcon;
+	const CloseIcon = consts.closeIcon;
 
 	return (
 		<div className="flex h-screen bg-gray-100">
+			{isMobileSidebarOpen && (
+				<button
+					type="button"
+					aria-label={strings.closeSidebar}
+					onClick={() => setIsMobileSidebarOpen(false)}
+					className="fixed inset-0 z-30 bg-black/40 lg:hidden"
+				/>
+			)}
+
 			<div
 				className={cn(
-					'relative bg-white shadow-lg transition-all duration-200',
-					isSidebarExpanded ? 'w-64' : 'w-20',
+					'fixed inset-y-0 left-0 z-40 bg-white shadow-lg transition-all duration-200 lg:relative lg:inset-auto',
+					isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+					isSidebarExpanded ? 'w-64 lg:w-64' : 'w-64 lg:w-20',
 				)}
 			>
 				<button
 					type="button"
 					aria-label={isSidebarExpanded ? strings.collapseSidebar : strings.expandSidebar}
 					onClick={() => setIsSidebarExpanded(prev => !prev)}
-					className="absolute -right-3 top-8 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 bg-white text-xs text-gray-600 shadow-sm hover:bg-gray-50"
+					className="absolute -right-3 top-8 z-10 hidden h-6 w-6 items-center justify-center rounded-full border border-gray-200 bg-white text-xs text-gray-600 shadow-sm hover:bg-gray-50 lg:flex"
 				>
 					{isSidebarExpanded ? <CollapseIcon /> : <ExpandIcon />}
+				</button>
+
+				<button
+					type="button"
+					aria-label={strings.closeSidebar}
+					onClick={() => setIsMobileSidebarOpen(false)}
+					className="absolute right-3 top-3 z-10 inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 lg:hidden"
+				>
+					<CloseIcon />
 				</button>
 
 				<div className="flex h-full flex-col">
@@ -94,6 +117,7 @@ export default function Layout() {
 						navigation={navigation}
 						isSidebarExpanded={isSidebarExpanded}
 						currentPath={location.pathname}
+						onNavigate={() => setIsMobileSidebarOpen(false)}
 					/>
 
 					<div className={cn('border-t border-gray-200 px-4 py-4', !isSidebarExpanded && 'text-center')}>
@@ -142,7 +166,31 @@ export default function Layout() {
 					</div>
 				</div>
 			</div>
-			<div className="flex-1 overflow-auto">
+			<div className="relative flex-1 overflow-auto pt-14 lg:pt-0">
+				<button
+					type="button"
+					aria-label={strings.openSidebar}
+					onClick={() => setIsMobileSidebarOpen(true)}
+					className="fixed left-4 top-4 z-20 inline-flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50 lg:hidden"
+				>
+					<MenuIcon />
+				</button>
+
+				{shouldShowEmergencyHeader && (
+					<div className="sticky top-0 z-10 border-b border-red-200 bg-red-50 px-4 py-3 lg:px-6">
+						<div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
+							<p className="text-sm font-semibold text-red-700">{strings.emergencyHeaderTitle}</p>
+							<button
+								type="button"
+								onClick={() => navigate(consts.emergencyReportRoute)}
+								className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700"
+							>
+								{strings.emergencyHeaderAction}
+							</button>
+						</div>
+					</div>
+				)}
+
 				<Outlet />
 			</div>
 		</div>

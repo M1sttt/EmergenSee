@@ -82,38 +82,40 @@ function GenericTableInner<RowType>({
 
 	return (
 		<div className={mergedContainerClassName}>
-			<table className={mergedTableClassName}>
-				<thead className={mergedHeadClassName}>
-					<tr>
-						{columns.map(column => (
-							<TableHeaderCell key={column.id} className={column.headerClassName}>
-								{column.header}
-							</TableHeaderCell>
-						))}
-					</tr>
-				</thead>
-				<tbody className={mergedBodyClassName}>
-					{isLoading ? (
-						<MessageRow colSpan={columns.length} className={mergedLoadingRowClassName}>
-							{loadingContent}
-						</MessageRow>
-					) : rows.length === 0 ? (
-						<MessageRow colSpan={columns.length} className={mergedEmptyRowClassName}>
-							{emptyContent}
-						</MessageRow>
-					) : (
-						rows.map((row, rowIndex) => (
-							<tr key={getRowKey(row, rowIndex)}>
-								{columns.map(column => (
-									<TableBodyCell key={column.id} className={column.cellClassName}>
-										{column.renderCell(row, rowIndex)}
-									</TableBodyCell>
-								))}
-							</tr>
-						))
-					)}
-				</tbody>
-			</table>
+			<div className={cn('max-h-[34rem] overflow-x-auto overflow-y-auto lg:overflow-x-visible')}>
+				<table className={cn(mergedTableClassName, 'min-w-[640px] lg:min-w-full')}>
+					<thead className={mergedHeadClassName}>
+						<tr>
+							{columns.map(column => (
+								<TableHeaderCell key={column.id} className={column.headerClassName}>
+									{column.header}
+								</TableHeaderCell>
+							))}
+						</tr>
+					</thead>
+					<tbody className={mergedBodyClassName}>
+						{isLoading ? (
+							<MessageRow colSpan={columns.length} className={mergedLoadingRowClassName}>
+								{loadingContent}
+							</MessageRow>
+						) : rows.length === 0 ? (
+							<MessageRow colSpan={columns.length} className={mergedEmptyRowClassName}>
+								{emptyContent}
+							</MessageRow>
+						) : (
+							rows.map((row, rowIndex) => (
+								<tr key={getRowKey(row, rowIndex)}>
+									{columns.map(column => (
+										<TableBodyCell key={column.id} className={column.cellClassName}>
+											{column.renderCell(row, rowIndex)}
+										</TableBodyCell>
+									))}
+								</tr>
+							))
+						)}
+					</tbody>
+				</table>
+			</div>
 		</div>
 	);
 }
