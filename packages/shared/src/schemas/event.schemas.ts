@@ -16,8 +16,8 @@ export const createEventSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().min(1, 'Description is required'),
   location: locationSchema,
-  address: z.string().min(1, 'Address is required'),
   reportedBy: z.string().optional(),
+  departments: z.array(z.string()).min(1, 'At least one department is required'),
 });
 
 export const updateEventSchema = z.object({
@@ -27,7 +27,7 @@ export const updateEventSchema = z.object({
   title: z.string().min(1, 'Title is required').optional(),
   description: z.string().min(1, 'Description is required').optional(),
   location: locationSchema.optional(),
-  address: z.string().min(1, 'Address is required').optional(),
   assignedTo: z.array(z.string()).optional(),
   resolvedAt: z.date().optional(),
+  departments: z.array(z.string()).optional(),
 });

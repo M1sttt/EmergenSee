@@ -35,25 +35,20 @@ export const EVENT_PRIORITY_LABELS = {
 } as const;
 
 export const EVENT_STATUS_LABELS = {
-  pending: 'Pending',
-  dispatched: 'Dispatched',
-  en_route: 'En Route',
-  on_scene: 'On Scene',
+  ongoing: 'Ongoing',
   resolved: 'Resolved',
   cancelled: 'Cancelled',
 } as const;
 
 export const USER_ROLE_LABELS = {
   admin: 'Admin',
-  dispatcher: 'Dispatcher',
-  field_responder: 'Field Responder',
   viewer: 'Viewer',
+  member: 'Member',
 } as const;
 
 export const RESPONDER_STATUS_LABELS = {
-  available: 'Available',
-  busy: 'Busy',
-  en_route: 'En Route',
-  on_scene: 'On Scene',
-  off_duty: 'Off Duty',
+  away: 'Away',
+  need_help: 'Need Help',
+  safe: 'Safe',
+  unknown: 'Unknown',
 } as const;

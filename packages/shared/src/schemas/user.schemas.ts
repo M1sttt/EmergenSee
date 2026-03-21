@@ -11,19 +11,18 @@ export const createUserSchema = z.object({
   lastName: z.string().min(1, 'Last name is required'),
   role: userRoleSchema,
   phoneNumber: z.string().optional(),
-  badgeNumber: z.string().optional(),
-  department: z.string().optional(),
+  departments: z.array(z.string()).optional(),
 });
 
 export const updateUserSchema = z.object({
   email: z.string().email('Invalid email address').optional(),
+  password: z.string().min(8, 'Password must be at least 8 characters').optional(),
   firstName: z.string().min(1, 'First name is required').optional(),
   lastName: z.string().min(1, 'Last name is required').optional(),
   role: userRoleSchema.optional(),
   status: userStatusSchema.optional(),
   phoneNumber: z.string().optional(),
-  badgeNumber: z.string().optional(),
-  department: z.string().optional(),
+  departments: z.array(z.string()).optional(),
 });
 
 export const loginSchema = z.object({

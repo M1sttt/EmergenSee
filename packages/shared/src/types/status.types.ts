@@ -1,9 +1,8 @@
 export enum ResponderStatus {
-  AVAILABLE = 'available',
-  BUSY = 'busy',
-  EN_ROUTE = 'en_route',
-  ON_SCENE = 'on_scene',
-  OFF_DUTY = 'off_duty',
+  AWAY = 'away',
+  NEED_HELP = 'need_help',
+  SAFE = 'safe',
+  UNKNOWN = 'unknown',
 }
 
 export interface ResponderLocation {
@@ -16,7 +15,7 @@ export interface StatusUpdate {
   userId: string;
   status: ResponderStatus;
   location?: ResponderLocation;
-  eventId?: string;
+  eventId: string;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -24,8 +23,9 @@ export interface StatusUpdate {
 
 export interface CreateStatusUpdateDto {
   status: ResponderStatus;
+  userId?: string;
   location?: ResponderLocation;
-  eventId?: string;
+  eventId: string;
   notes?: string;
 }
 

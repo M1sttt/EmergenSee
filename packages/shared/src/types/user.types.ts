@@ -1,8 +1,7 @@
 export enum UserRole {
   ADMIN = 'admin',
-  DISPATCHER = 'dispatcher',
-  FIELD_RESPONDER = 'field_responder',
   VIEWER = 'viewer',
+  MEMBER = 'member',
 }
 
 export enum UserStatus {
@@ -19,8 +18,7 @@ export interface User {
   role: UserRole;
   status: UserStatus;
   phoneNumber?: string;
-  badgeNumber?: string;
-  department?: string;
+  departments?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -32,8 +30,7 @@ export interface CreateUserDto {
   lastName: string;
   role: UserRole;
   phoneNumber?: string;
-  badgeNumber?: string;
-  department?: string;
+  departments?: string[];
 }
 
 export interface UpdateUserDto {
@@ -43,8 +40,7 @@ export interface UpdateUserDto {
   role?: UserRole;
   status?: UserStatus;
   phoneNumber?: string;
-  badgeNumber?: string;
-  department?: string;
+  departments?: string[];
 }
 
 export interface LoginDto {
