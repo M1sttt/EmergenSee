@@ -13,6 +13,8 @@ export function useLayoutEventsQuery() {
 	return useQuery<Event[]>({
 		queryKey: LAYOUT_QUERY_KEYS.events,
 		queryFn: eventsService.getAll,
+		refetchInterval: 10000,
+		refetchOnMount: 'always',
 	});
 }
 
@@ -21,5 +23,7 @@ export function useLayoutUserStatusesQuery(userId?: string) {
 		queryKey: userId ? LAYOUT_QUERY_KEYS.userStatus(userId) : [...LAYOUT_QUERY_KEYS.status, 'unknown'],
 		queryFn: () => statusService.getByUser(userId!),
 		enabled: !!userId,
+		refetchInterval: userId ? 10000 : false,
+		refetchOnMount: 'always',
 	});
 }
