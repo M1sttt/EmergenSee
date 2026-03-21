@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+﻿import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './services/auth/auth.module';
@@ -6,6 +6,7 @@ import { UsersModule } from './services/users/users.module';
 import { EventsModule } from './services/events/events.module';
 import { StatusModule } from './services/status/status.module';
 import { WebsocketModule } from './services/websocket/websocket.module';
+import { DepartmentsModule } from './services/departments/departments.module';
 
 @Module({
   imports: [
@@ -19,6 +20,8 @@ import { WebsocketModule } from './services/websocket/websocket.module';
     EventsModule,
     StatusModule,
     WebsocketModule,
+    DepartmentsModule,
   ],
 })
 export class AppModule { }
+
