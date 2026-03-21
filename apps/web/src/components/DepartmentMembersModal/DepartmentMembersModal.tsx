@@ -150,6 +150,7 @@ const DepartmentMembersModal: React.FC<DepartmentMembersModalProps> = ({ departm
 										onSuccess: () => {
 											setSelectedUserIds(new Set());
 											setSearchQuery('');
+											onClose();
 										},
 									},
 								)
