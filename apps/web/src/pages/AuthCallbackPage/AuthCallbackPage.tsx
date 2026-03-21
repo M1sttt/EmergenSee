@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from 'store/authStore';
 import { MdErrorOutline, MdArrowBack } from 'react-icons/md';
+import { toast } from 'sonner';
 import * as utils from './utils';
 import * as strings from './strings';
 import * as consts from './consts';
@@ -17,6 +18,7 @@ const AuthCallbackPage: React.FC = () => {
 
 		if (!accessToken || !refreshToken) {
 			setError(strings.authFailed);
+			toast.error(strings.authFailed);
 			return;
 		}
 
@@ -25,9 +27,11 @@ const AuthCallbackPage: React.FC = () => {
 		try {
 			const user = await utils.fetchUserProfile(accessToken);
 			setAuth(user, accessToken, refreshToken);
+			toast.success(strings.authSuccess);
 			navigate(consts.dashboardRoute, { replace: true });
 		} catch (err) {
 			setError(strings.profileLoadFailed);
+			toast.error(strings.profileLoadFailed);
 		}
 	}, [navigate, setAuth, updateToken]);
 

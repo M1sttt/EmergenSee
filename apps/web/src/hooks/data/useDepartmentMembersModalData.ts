@@ -3,6 +3,8 @@ import { User } from '@emergensee/shared';
 import { usersService } from 'services/usersService';
 import * as consts from '@/components/DepartmentMembersModal/consts';
 import * as utils from '@/components/DepartmentMembersModal/utils';
+import { toast } from 'sonner';
+import * as strings from './strings';
 
 export const DEPARTMENT_MEMBERS_MODAL_QUERY_KEYS = {
 	users: ['users'] as const,
@@ -40,6 +42,10 @@ export function useDepartmentMembersModalUpdateMutation() {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: DEPARTMENT_MEMBERS_MODAL_QUERY_KEYS.users });
+			toast.success(strings.departmentMembersUpdateSuccess);
+		},
+		onError: () => {
+			toast.error(strings.departmentMembersUpdateError);
 		},
 	});
 }

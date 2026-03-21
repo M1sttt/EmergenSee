@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CreateEventDto, Department, Event, UpdateEventDto } from '@emergensee/shared';
 import { departmentsService } from 'services/departmentsService';
 import { eventsService } from 'services/eventsService';
+import { toast } from 'sonner';
+import * as strings from './strings';
 
 export const EVENT_FORM_QUERY_KEYS = {
 	departments: ['departments'] as const,
@@ -22,7 +24,11 @@ export function useEventFormCreateMutation(onSuccess: () => void) {
 		mutationFn: (data: CreateEventDto) => eventsService.create(data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: EVENT_FORM_QUERY_KEYS.events });
+			toast.success(strings.eventCreateSuccess);
 			onSuccess();
+		},
+		onError: () => {
+			toast.error(strings.eventCreateError);
 		},
 	});
 }
@@ -35,7 +41,11 @@ export function useEventFormUpdateMutation(onSuccess: () => void) {
 			eventsService.update(id, data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: EVENT_FORM_QUERY_KEYS.events });
+			toast.success(strings.eventEditSuccess);
 			onSuccess();
+		},
+		onError: () => {
+			toast.error(strings.eventEditError);
 		},
 	});
 }

@@ -10,6 +10,7 @@ import StatusPage from 'pages/StatusPage';
 import ProfilePage from 'pages/ProfilePage';
 import EmergencyReportPage from 'pages/EmergencyReportPage';
 import Layout from 'components/Layout';
+import { Toaster } from 'sonner';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
 	const isAuthenticated = useAuthStore(state => state.isAuthenticated);
@@ -21,6 +22,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function App() {
 	return (
 		<Router>
+			<Toaster richColors position="bottom-right" />
 			<Routes>
 				<Route path="/login" element={<LoginPage />} />
 				<Route

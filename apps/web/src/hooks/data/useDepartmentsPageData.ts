@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Department, User } from '@emergensee/shared';
 import { departmentsService } from 'services/departmentsService';
 import { usersService } from 'services/usersService';
+import { toast } from 'sonner';
+import * as strings from './strings';
 
 export const DEPARTMENTS_PAGE_QUERY_KEYS = {
 	departments: ['departments'] as const,
@@ -29,6 +31,10 @@ export function useDepartmentsPageDeleteMutation() {
 		mutationFn: (id: string) => departmentsService.delete(id),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: DEPARTMENTS_PAGE_QUERY_KEYS.departments });
+			toast.success(strings.departmentDeleteSuccess);
+		},
+		onError: () => {
+			toast.error(strings.departmentDeleteError);
 		},
 	});
 }

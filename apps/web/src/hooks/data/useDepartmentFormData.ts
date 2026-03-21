@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CreateDepartmentDto, Department, UpdateDepartmentDto } from '@emergensee/shared';
 import { departmentsService } from 'services/departmentsService';
+import { toast } from 'sonner';
+import * as strings from './strings';
 
 export const DEPARTMENT_FORM_QUERY_KEYS = {
 	departments: ['departments'] as const,
@@ -44,12 +46,14 @@ export function useDepartmentFormSaveMutation(params: {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: DEPARTMENT_FORM_QUERY_KEYS.departments });
+			toast.success(strings.departmentSaveSuccess);
 			params.onSuccess();
 		},
 		onError: (error: unknown) => {
 			const message =
 				(error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
 				'An error occurred';
+			toast.error(strings.departmentSaveError);
 			params.onError(message);
 		},
 	});

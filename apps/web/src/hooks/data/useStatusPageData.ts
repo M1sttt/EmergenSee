@@ -11,6 +11,8 @@ import { departmentsService } from 'services/departmentsService';
 import { eventsService } from 'services/eventsService';
 import { statusService } from 'services/statusService';
 import { usersService } from 'services/usersService';
+import { toast } from 'sonner';
+import * as strings from './strings';
 
 export const STATUS_PAGE_QUERY_KEYS = {
 	events: ['events'] as const,
@@ -61,6 +63,10 @@ export function useStatusPageCreateStatusMutation() {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: STATUS_PAGE_QUERY_KEYS.status });
+			toast.success(strings.statusReportSuccess);
+		},
+		onError: () => {
+			toast.error(strings.statusReportError);
 		},
 	});
 }

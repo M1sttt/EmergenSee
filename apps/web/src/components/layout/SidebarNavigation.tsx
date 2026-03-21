@@ -6,9 +6,15 @@ interface SidebarNavigationProps {
 	navigation: NavigationLink[];
 	isSidebarExpanded: boolean;
 	currentPath: string;
+	onNavigate?: () => void;
 }
 
-export function SidebarNavigation({ navigation, isSidebarExpanded, currentPath }: SidebarNavigationProps) {
+export function SidebarNavigation({
+	navigation,
+	isSidebarExpanded,
+	currentPath,
+	onNavigate,
+}: SidebarNavigationProps) {
 	return (
 		<nav className={cn('flex-1 space-y-1 py-4', isSidebarExpanded ? 'px-4' : 'px-2')}>
 			{navigation.map(item => {
@@ -32,6 +38,7 @@ export function SidebarNavigation({ navigation, isSidebarExpanded, currentPath }
 					<Link
 						key={item.name}
 						to={item.href}
+						onClick={onNavigate}
 						title={!isSidebarExpanded ? item.name : undefined}
 						className={cn(baseClasses, !isSidebarExpanded && 'justify-center px-2')}
 					>
