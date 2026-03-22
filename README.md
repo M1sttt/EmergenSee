@@ -282,14 +282,12 @@ JWT_REFRESH_SECRET=your-super-secret-refresh-key-change-this-in-production
 JWT_REFRESH_EXPIRES_IN=7d
 CORS_ORIGIN=http://localhost:5173
 GOOGLE_CLIENT_ID=your-google-client-id
-WEBSOCKET_PORT=3002
 ```
 
 ### Web (`apps/web/.env`)
 
 ```env
 VITE_API_URL=http://localhost:3001
-VITE_WS_URL=http://localhost:3001
 VITE_GOOGLE_CLIENT_ID=your-google-client-id
 ```
 
