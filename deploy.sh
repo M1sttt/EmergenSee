@@ -103,7 +103,6 @@ validate_env_files() {
   validate_required_env_var "${api_env}" "JWT_REFRESH_SECRET"
   validate_required_env_var "${api_env}" "GOOGLE_CLIENT_ID"
   validate_required_env_var "${web_env}" "VITE_API_URL"
-  validate_required_env_var "${web_env}" "VITE_WS_URL"
   validate_required_env_var "${web_env}" "VITE_GOOGLE_CLIENT_ID"
 }
 

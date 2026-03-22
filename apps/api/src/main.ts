@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { setupSwagger } from './config/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -19,38 +19,7 @@ async function bootstrap() {
     }),
   );
 
-
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('EmergenSee API')
-    .setDescription('REST API for the EmergenSee emergency response platform')
-    .setVersion('1.0.0')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        description: 'JWT access token',
-      },
-      'access-token',
-    )
-    .build();
-
-  const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig, {
-    deepScanRoutes: true,
-  });
-
-  SwaggerModule.setup('docs', app, swaggerDocument, {
-    useGlobalPrefix: true,
-    customSiteTitle: 'EmergenSee API Docs',
-    swaggerOptions: {
-      persistAuthorization: true,
-      displayRequestDuration: true,
-      docExpansion: 'none',
-      filter: true,
-      tagsSorter: 'alpha',
-      operationsSorter: 'alpha',
-    },
-  });
+  setupSwagger(app);
 
   const port = process.env.PORT || 3001;
   await app.listen(port);

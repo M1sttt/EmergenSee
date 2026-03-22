@@ -11,7 +11,7 @@ import {
 	WebSocketEventType,
 } from '@emergensee/shared';
 
-const WS_URL = import.meta.env.VITE_WS_URL || 'http://localhost:3001';
+const WS_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 interface WebSocketPayloadMap {
 	[WebSocketEventType.EVENT_CREATED]: EventCreatedPayload;
