@@ -251,11 +251,10 @@ fi
 # 1) Git pull
 # ----------------------------
 cd "${REPO_ROOT}"
-require_clean_git
-DEPLOY_BRANCH="$(detect_deploy_branch "${BRANCH}")"
-log "Updating repository from origin/${DEPLOY_BRANCH}..."
+DEPLOY_BRANCH="master"
+log "Force syncing repository to origin/${DEPLOY_BRANCH}..."
 git fetch origin "${DEPLOY_BRANCH}"
-git pull --ff-only origin "${DEPLOY_BRANCH}"
+git reset --hard "origin/${DEPLOY_BRANCH}"
 
 if [[ "${PKG_MGR}" == "pnpm" ]]; then
   log "Installing workspace dependencies at repo root..."
