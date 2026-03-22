@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types, Schema as MongooseSchema } from 'mongoose';
-import { EventType, EventPriority, EventStatus, Location } from '@emergensee/shared';
+import { EventType, EventPriority, EventStatus } from '@emergensee/shared';
+import type { Location } from '@emergensee/shared';
 
 export type EventDocument = Event & Document;
 type SerializedEvent = {
