@@ -44,6 +44,9 @@ export class User {
   @Prop({ sparse: true })
   googleId?: string;
 
+  @Prop({ type: [String], default: [] })
+  faceImages?: string[];
+
   @Prop()
   createdAt: Date;
 
