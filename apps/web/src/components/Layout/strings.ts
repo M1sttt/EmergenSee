@@ -13,5 +13,6 @@ export const users = 'Users';
 export const departments = 'Departments';
 export const status = 'Status';
 export const emergencyReport = 'Emergency Report';
+export const camera = 'Camera';
 export const emergencyHeaderTitle = 'Emergency active: report your status now.';
 export const emergencyHeaderAction = 'Report Status';

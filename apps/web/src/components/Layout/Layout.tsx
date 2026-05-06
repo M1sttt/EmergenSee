@@ -55,7 +55,7 @@ export default function Layout() {
 	}, [relevantOngoingEvent, myStatuses]);
 	const shouldShowEmergencyHeader = hasRelevantOngoingEvent && !hasReportedForEvent;
 
-	const navigation = utils.getNavigationLinks(hasRelevantOngoingEvent, hasReportedForEvent);
+	const navigation = utils.getNavigationLinks(hasRelevantOngoingEvent, hasReportedForEvent, user?.role);
 	const userInitials = `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}`.toUpperCase() || 'U';
 
 	const CollapseIcon = consts.collapseIcon;

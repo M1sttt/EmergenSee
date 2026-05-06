@@ -7,6 +7,7 @@ export * from './useLayoutData';
 export * from './useDashboardPageData';
 export * from './useMapPageData';
 export * from './useEmergencyReportPageData';
+export * from './useCameraPageData';
 export * from './useDepartmentFormData';
 export * from './useDepartmentMembersModalData';
 export * from './useEventFormData';
