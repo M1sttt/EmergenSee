@@ -86,6 +86,14 @@ class WebSocketService {
 	emit<TPayload>(eventType: string, data: TPayload) {
 		this.socket?.emit(eventType, data);
 	}
+
+	onRaw(eventName: string, callback: (data: unknown) => void): void {
+		this.socket?.on(eventName, callback);
+	}
+
+	offRaw(eventName: string, callback: (data: unknown) => void): void {
+		this.socket?.off(eventName, callback);
+	}
 }
 
 export const websocketService = new WebSocketService();

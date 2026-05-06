@@ -81,24 +81,42 @@ export class AuthService {
     return this.generateAuthResponse(user);
   }
 
+  async cameraLogin(code: string, password: string): Promise<AuthResponse> {
+    const user = await this.usersService.findByCameraCode(code);
+    if (!user) throw new UnauthorizedException('Invalid code or password');
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) throw new UnauthorizedException('Invalid code or password');
+    user.sessionVersion = (user.sessionVersion ?? 0) + 1;
+    await user.save();
+    return this.generateAuthResponse(user);
+  }
+
   private generateAuthResponse(user: UserDocument): AuthResponse {
-    const payload = { sub: user._id.toString(), email: user.email, role: user.role };
-    const accessToken = this.jwtService.sign(payload);
-    const refreshToken = this.jwtService.sign(payload, {
+    const jwtPayload: Record<string, unknown> = {
+      sub: user._id.toString(),
+      email: user.email,
+      role: user.role,
+    };
+    if (user.role === UserRole.CAMERA) {
+      jwtPayload.sessionVersion = user.sessionVersion ?? 0;
+    }
+    const accessToken = this.jwtService.sign(jwtPayload);
+    const refreshToken = this.jwtService.sign(jwtPayload, {
       secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN', '7d'),
     });
 
-    const userObject = user.toObject();
+    const userObject = user.toObject() as Record<string, unknown>;
     delete userObject.password;
+    delete userObject.sessionVersion;
 
     return {
       accessToken,
       refreshToken,
       user: {
         ...userObject,
-        id: userObject._id.toString(),
-      },
+        id: (userObject._id as { toString(): string }).toString(),
+      } as AuthResponse['user'],
     };
   }
 

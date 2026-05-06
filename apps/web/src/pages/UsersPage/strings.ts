@@ -17,3 +17,6 @@ export const emptyPhone = '-';
 export const actionEdit = 'Edit';
 export const actionDelete = 'Delete';
 export const error = 'Error loading data';
+export const columnCode = 'Camera Code';
+export const copyCode = 'Copy code';
+export const codeCopied = 'Copied!';

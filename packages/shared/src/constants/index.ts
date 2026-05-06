@@ -44,6 +44,7 @@ export const USER_ROLE_LABELS = {
   admin: 'Admin',
   viewer: 'Viewer',
   member: 'Member',
+  camera: 'Camera',
 } as const;
 
 export const RESPONDER_STATUS_LABELS = {

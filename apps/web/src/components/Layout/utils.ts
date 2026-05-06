@@ -54,7 +54,10 @@ export const getNavigationLinks = (
 		{ name: strings.departments, href: consts.departmentsRoute, Icon: consts.departmentsIcon },
 		{ name: strings.status, href: consts.statusRoute, Icon: consts.statusIcon },
 		...(userRole === UserRole.ADMIN
-			? [{ name: strings.camera, href: consts.cameraRoute, Icon: consts.cameraIcon }]
+			? [
+					{ name: strings.camera, href: consts.cameraRoute, Icon: consts.cameraIcon },
+					{ name: strings.cameraStations, href: consts.adminCamerasRoute, Icon: consts.adminCamerasIcon },
+				]
 			: []),
 	];
 

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { CreateUserDto, Department, UpdateUserDto } from '@emergensee/shared';
+import { CreateUserDto, Department, UpdateUserDto, User } from '@emergensee/shared';
 import { departmentsService } from 'services/departmentsService';
 import { usersService } from 'services/usersService';
 import { toast } from 'sonner';
@@ -17,15 +17,15 @@ export function useUserFormDepartmentsQuery() {
 	});
 }
 
-export function useUserFormCreateMutation(onSuccess: () => void) {
+export function useUserFormCreateMutation(onSuccess: (user: User) => void) {
 	const queryClient = useQueryClient();
 
 	return useMutation({
 		mutationFn: (data: CreateUserDto) => usersService.create(data),
-		onSuccess: () => {
+		onSuccess: (user: User) => {
 			queryClient.invalidateQueries({ queryKey: USER_FORM_QUERY_KEYS.users });
 			toast.success(strings.userCreateSuccess);
-			onSuccess();
+			onSuccess(user);
 		},
 		onError: () => {
 			toast.error(strings.userCreateError);

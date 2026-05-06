@@ -9,6 +9,7 @@ export interface UserFormData {
 	phoneNumber?: string;
 	departments?: string[];
 	password?: string;
+	location?: string;
 }
 
 export const getManagedDepartments = (
@@ -44,14 +45,16 @@ export const prepareCreateUserData = (
 		? selectedDepartments
 		: mergeDepartmentsForDepartmentAdmin(selectedDepartments, [], managedDepartments);
 
+	const role = isGlobalAdmin ? data.role || UserRole.MEMBER : UserRole.MEMBER;
+	const isCameraRole = role === UserRole.CAMERA;
+
 	return {
-		email: data.email,
+		...(isCameraRole ? {} : { email: data.email, firstName: data.firstName, lastName: data.lastName }),
 		password: data.password || '',
-		firstName: data.firstName,
-		lastName: data.lastName,
-		role: isGlobalAdmin ? data.role || UserRole.MEMBER : UserRole.MEMBER,
+		role,
 		phoneNumber: data.phoneNumber,
 		departments,
+		location: data.location,
 	};
 };
 
@@ -72,6 +75,7 @@ export const prepareUpdateUserData = (
 		lastName: data.lastName,
 		phoneNumber: data.phoneNumber,
 		departments,
+		location: data.location,
 	};
 
 	if (isGlobalAdmin && data.role) {

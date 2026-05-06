@@ -13,30 +13,55 @@ export class UsersService {
   ) { }
 
   async create(createUserDto: CreateUserDto): Promise<UserDocument> {
-    const existingUser = await this.userModel.findOne({ email: createUserDto.email });
+    let dto = { ...createUserDto };
+
+    if (dto.role === UserRole.CAMERA) {
+      const code = this._generateCameraCode();
+      dto = {
+        ...dto,
+        email: `${code.toLowerCase().replace('-', '')}@camera.local`,
+        firstName: code,
+        lastName: '',
+      };
+      const hashedPassword = await bcrypt.hash(dto.password, 10);
+      const createdUser = new this.userModel({ ...dto, password: hashedPassword, cameraCode: code });
+      return createdUser.save();
+    }
+
+    const existingUser = await this.userModel.findOne({ email: dto.email });
     if (existingUser) {
       throw new ConflictException('User with this email already exists');
     }
 
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-    const createdUser = new this.userModel({
-      ...createUserDto,
-      password: hashedPassword,
-    });
-
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const createdUser = new this.userModel({ ...dto, password: hashedPassword });
     return createdUser.save();
   }
 
   async findAll(): Promise<UserDocument[]> {
-    return this.userModel.find().select('-password').exec();
+    return this.userModel.find().select('-password -sessionVersion').exec();
   }
 
   async findOne(id: string): Promise<UserDocument> {
-    const user = await this.userModel.findById(id).select('-password').exec();
+    const user = await this.userModel.findById(id).select('-password -sessionVersion').exec();
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
     return user;
+  }
+
+  async findByCameraCode(code: string): Promise<UserDocument | null> {
+    return this.userModel.findOne({ cameraCode: code.toUpperCase() }).exec();
+  }
+
+  async findOneForSessionCheck(id: string): Promise<UserDocument | null> {
+    return this.userModel.findById(id).select('sessionVersion role').exec();
+  }
+
+  private _generateCameraCode(): string {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const rand = Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    return `CAM-${rand}`;
   }
 
   async findByEmail(email: string): Promise<UserDocument | null> {
