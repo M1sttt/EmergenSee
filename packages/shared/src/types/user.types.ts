@@ -19,6 +19,7 @@ export interface User {
   status: UserStatus;
   phoneNumber?: string;
   departments?: string[];
+  faceImages?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
