@@ -22,6 +22,7 @@ export interface User {
   departments?: string[];
   location?: string;
   cameraCode?: string;
+  faceImages?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
