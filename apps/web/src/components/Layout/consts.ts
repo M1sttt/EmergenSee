@@ -1,4 +1,5 @@
 import {
+	FaCamera,
 	FaChartBar,
 	FaExclamationCircle,
 	FaMap,
@@ -12,6 +13,7 @@ import {
 	FaTimes,
 } from 'react-icons/fa';
 import { AiFillAlert } from 'react-icons/ai';
+import { MdVideocam } from 'react-icons/md';
 
 export const dashboardRoute = '/dashboard';
 export const eventsRoute = '/events';
@@ -20,6 +22,8 @@ export const usersRoute = '/users';
 export const departmentsRoute = '/departments';
 export const statusRoute = '/status';
 export const emergencyReportRoute = '/emergency-report';
+export const cameraRoute = '/camera';
+export const adminCamerasRoute = '/admin/cameras';
 export const profileRoute = '/profile';
 
 export const eventsQueryKey = ['events'] as const;
@@ -32,6 +36,8 @@ export const usersIcon = FaUsers;
 export const departmentsIcon = FaBuilding;
 export const statusIcon = FaHeartbeat;
 export const emergencyIcon = AiFillAlert;
+export const cameraIcon = FaCamera;
+export const adminCamerasIcon = MdVideocam;
 export const collapseIcon = FaChevronLeft;
 export const expandIcon = FaChevronRight;
 export const logoutIcon = FaSignOutAlt;

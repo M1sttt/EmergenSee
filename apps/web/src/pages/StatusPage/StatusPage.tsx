@@ -102,6 +102,7 @@ export default function StatusPage() {
 		if (!effectiveSelectedEventId) return [];
 
 		let filteredUsers = users.filter(user =>
+			user.role !== UserRole.CAMERA &&
 			user.departments?.some(departmentId => activeEventDepartmentIds.has(getEntityId(departmentId))),
 		);
 

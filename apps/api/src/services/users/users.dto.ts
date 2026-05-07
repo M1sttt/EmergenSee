@@ -11,8 +11,9 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateUserDto {
     @IsEmail()
-    @ApiProperty({ description: 'The email of the user', example: 'user@example.com' })
-    email!: string;
+    @IsOptional()
+    @ApiProperty({ description: 'The email of the user', required: false, example: 'user@example.com' })
+    email?: string;
 
     @IsString()
     @MinLength(6)
@@ -21,13 +22,15 @@ export class CreateUserDto {
 
     @IsString()
     @IsNotEmpty()
-    @ApiProperty({ description: 'The first name of the user', example: 'John' })
-    firstName!: string;
+    @IsOptional()
+    @ApiProperty({ description: 'The first name of the user', required: false, example: 'John' })
+    firstName?: string;
 
     @IsString()
     @IsNotEmpty()
-    @ApiProperty({ description: 'The last name of the user', example: 'Doe' })
-    lastName!: string;
+    @IsOptional()
+    @ApiProperty({ description: 'The last name of the user', required: false, example: 'Doe' })
+    lastName?: string;
 
     @IsEnum(UserRole)
     @ApiProperty({ description: 'The role of the user', enum: UserRole, example: UserRole.VIEWER })
@@ -42,6 +45,11 @@ export class CreateUserDto {
     @IsOptional()
     @ApiProperty({ description: 'The departments of the user', required: false, type: [String] })
     departments?: string[];
+
+    @IsString()
+    @IsOptional()
+    @ApiProperty({ description: 'Physical location label for camera-role users', required: false, example: 'Main Entrance' })
+    location?: string;
 }
 
 export class UpdateUserDto {
@@ -85,4 +93,9 @@ export class UpdateUserDto {
     @IsOptional()
     @ApiProperty({ description: 'The departments of the user', required: false, type: [String] })
     departments?: string[];
+
+    @IsString()
+    @IsOptional()
+    @ApiProperty({ description: 'Physical location label for camera-role users', required: false, example: 'Main Entrance' })
+    location?: string;
 }

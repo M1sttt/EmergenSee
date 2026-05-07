@@ -1,0 +1,13 @@
+export const title = 'Camera Stations';
+export const noCameraUsers = 'No camera stations configured. Create a user with the Camera role to get started.';
+export const selectStation = 'Select a station tab to view its live feed.';
+export const offline = 'Offline';
+export const online = 'Live';
+export const noActiveFeed = 'No active feed from this station.';
+export const noRecognized = 'No faces recognized yet.';
+export const noConfirmed = 'No one confirmed yet.';
+export const tabPending = 'Pending';
+export const tabConfirmed = 'Confirmed';
+export const confidenceLabel = 'Confidence';
+export const noEventTitle = 'No Active Event';
+export const noEventDesc = 'Confirm requires an ongoing event.';

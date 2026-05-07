@@ -104,3 +104,15 @@ export class RefreshTokenResponseDto {
   @ApiProperty()
   accessToken: string;
 }
+
+export class CameraLoginDto {
+  @ApiProperty({ description: 'Camera station code', example: 'CAM-X7K2P' })
+  @IsString()
+  @IsNotEmpty()
+  code: string;
+
+  @ApiProperty({ example: 'password123' })
+  @IsString()
+  @IsNotEmpty()
+  password: string;
+}

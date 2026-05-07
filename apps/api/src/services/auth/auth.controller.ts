@@ -12,6 +12,7 @@ import { UsersService } from '../users/users.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import {
   AuthResponseDto,
+  CameraLoginDto,
   GoogleTokenRequestDto,
   LoginRequestDto,
   RefreshTokenRequestDto,
@@ -71,6 +72,15 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async refresh(@Body() body: RefreshTokenRequestDto) {
     return this.authService.refreshToken(body.refreshToken);
+  }
+
+  @ApiOperation({ summary: 'Sign in with camera station code' })
+  @ApiOkResponse({ type: AuthResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Invalid code or password' })
+  @Post('camera-login')
+  @HttpCode(HttpStatus.OK)
+  async cameraLogin(@Body() body: CameraLoginDto) {
+    return this.authService.cameraLogin(body.code, body.password);
   }
 
   // ── Google Identity Services ──────────────────────────────────────────────

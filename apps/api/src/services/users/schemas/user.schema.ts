@@ -7,6 +7,7 @@ type SerializedUser = {
   _id?: { toString(): string };
   __v?: unknown;
   password?: unknown;
+  sessionVersion?: unknown;
   id?: string;
 };
 
@@ -19,20 +20,21 @@ type SerializedUser = {
       delete ret._id;
       delete ret.__v;
       delete ret.password;
+      delete ret.sessionVersion;
     }
   }
 })
 export class User {
-  @Prop({ required: true, unique: true })
+  @Prop({ unique: true, sparse: true })
   email: string;
 
   @Prop({ required: true })
   password: string;
 
-  @Prop({ required: true })
+  @Prop()
   firstName: string;
 
-  @Prop({ required: true })
+  @Prop()
   lastName: string;
 
   @Prop({ required: true, enum: UserRole })
@@ -46,6 +48,15 @@ export class User {
 
   @Prop({ type: [String], default: [] })
   departments?: string[];
+
+  @Prop()
+  location?: string;
+
+  @Prop({ sparse: true, unique: true })
+  cameraCode?: string;
+
+  @Prop({ default: 0 })
+  sessionVersion: number;
 
   @Prop({ sparse: true })
   googleId?: string;

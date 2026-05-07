@@ -17,6 +17,11 @@ export const authService = {
 		return response.data;
 	},
 
+	cameraLogin: async (code: string, password: string): Promise<AuthResponse> => {
+		const response = await api.post<AuthResponse>('/auth/camera-login', { code, password });
+		return response.data;
+	},
+
 	logout: () => {
 		localStorage.removeItem('auth-storage');
 		window.location.href = '/login';

@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { LoginDto, RegisterDto } from '@emergensee/shared';
+import { FaCamera } from 'react-icons/fa';
 import { authService } from 'services/authService';
 import { useAuthStore } from 'store/authStore';
 import { useGoogleGSI } from 'hooks/useGoogleGSI';
@@ -11,7 +12,12 @@ import * as strings from './strings';
 import * as consts from './consts';
 import * as utils from './utils';
 
-type Mode = 'login' | 'register';
+type Mode = 'login' | 'register' | 'camera';
+
+interface CameraLoginForm {
+	code: string;
+	password: string;
+}
 
 export default function LoginPage() {
 	const navigate = useNavigate();
@@ -91,10 +97,29 @@ export default function LoginPage() {
 		}
 	};
 
+	const cameraForm = useForm<CameraLoginForm>();
+
+	const onCameraLogin = async (data: CameraLoginForm) => {
+		setIsLoading(true);
+		setError(null);
+		try {
+			const response = await authService.cameraLogin(data.code.trim().toUpperCase(), data.password);
+			setAuth(response.user, response.accessToken, response.refreshToken);
+			toast.success(strings.cameraLoginSuccess);
+			navigate('/station', { replace: true });
+		} catch (err: unknown) {
+			setError(utils.extractErrorMessage(err, strings.cameraLoginFailed));
+			toast.error(strings.cameraLoginFailed);
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
 	const switchMode = (next: Mode) => {
 		setError(null);
 		loginForm.reset();
 		registerForm.reset();
+		cameraForm.reset();
 		setMode(next);
 	};
 
@@ -112,18 +137,22 @@ export default function LoginPage() {
 					</div>
 				)}
 
-				<div className="flex justify-center mb-4">
-					<div ref={gsiContainerRef} className="w-full" />
-				</div>
+				{mode !== 'camera' && (
+					<>
+						<div className="flex justify-center mb-4">
+							<div ref={gsiContainerRef} className="w-full" />
+						</div>
 
-				<div className="relative mb-4">
-					<div className="absolute inset-0 flex items-center">
-						<div className="w-full border-t border-gray-200" />
-					</div>
-					<div className="relative flex justify-center text-xs">
-						<span className="px-2 bg-white text-gray-400">{strings.orEmail}</span>
-					</div>
-				</div>
+						<div className="relative mb-4">
+							<div className="absolute inset-0 flex items-center">
+								<div className="w-full border-t border-gray-200" />
+							</div>
+							<div className="relative flex justify-center text-xs">
+								<span className="px-2 bg-white text-gray-400">{strings.orEmail}</span>
+							</div>
+						</div>
+					</>
+				)}
 
 				{mode === 'login' && (
 					<form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-5">
@@ -269,6 +298,69 @@ export default function LoginPage() {
 						</p>
 					</form>
 				)}
+
+				{mode === 'camera' && (
+					<form onSubmit={cameraForm.handleSubmit(onCameraLogin)} className="space-y-5">
+						<div className="flex items-center gap-2 rounded-lg bg-blue-50 px-4 py-3 text-sm text-blue-700">
+							<FaCamera />
+							<span>Enter the camera code assigned to this device.</span>
+						</div>
+
+						<div>
+							<Label htmlFor="cam-code">{strings.cameraCode}</Label>
+							<Input
+								{...cameraForm.register('code', { required: strings.cameraCodeRequired })}
+								type="text"
+								id="cam-code"
+								placeholder={strings.cameraCodePlaceholder}
+								autoComplete="off"
+								className="uppercase tracking-widest"
+							/>
+							{cameraForm.formState.errors.code && (
+								<FieldError className="text-xs">{cameraForm.formState.errors.code.message}</FieldError>
+							)}
+						</div>
+
+						<div>
+							<Label htmlFor="cam-password">{strings.password}</Label>
+							<Input
+								{...cameraForm.register('password', { required: strings.passwordRequired })}
+								type="password"
+								id="cam-password"
+								autoComplete="current-password"
+							/>
+							{cameraForm.formState.errors.password && (
+								<FieldError className="text-xs">{cameraForm.formState.errors.password.message}</FieldError>
+							)}
+						</div>
+
+						<Button type="submit" disabled={isLoading} variant="primary" fullWidth>
+							{isLoading ? strings.loggingIn : strings.cameraLoginBtn}
+						</Button>
+					</form>
+				)}
+
+				{/* Bottom switcher */}
+				<div className="mt-5 border-t border-gray-100 pt-4 text-center">
+					{mode === 'camera' ? (
+						<button
+							type="button"
+							onClick={() => switchMode('login')}
+							className="text-sm text-gray-500 hover:text-blue-600"
+						>
+							← {strings.switchToStaff}
+						</button>
+					) : (
+						<button
+							type="button"
+							onClick={() => switchMode('camera')}
+							className="flex items-center gap-1.5 mx-auto text-sm text-gray-400 hover:text-blue-600 transition-colors"
+						>
+							<FaCamera className="text-xs" />
+							{strings.switchToCamera}
+						</button>
+					)}
+				</div>
 			</div>
 		</div>
 	);

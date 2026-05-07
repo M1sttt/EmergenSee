@@ -1,0 +1,14 @@
+export const title = 'Camera Mode';
+export const noEventTitle = 'No Active Event';
+export const noEventDesc = 'Camera mode requires an ongoing event. Create or activate an event first.';
+export const cameraError = 'Could not access camera. Please allow camera permissions and reload.';
+export const scanning = 'Scanning for faces...';
+export const recognizedTitle = 'Recognized Persons';
+export const noRecognized = 'No faces recognized yet. Hold a registered face in view.';
+export const tabPending = 'Pending';
+export const tabConfirmed = 'Confirmed';
+export const noConfirmed = 'No one confirmed yet.';
+export const confirmButton = 'Mark as Safe';
+export const dismissButton = 'Dismiss';
+export const confidenceLabel = 'Confidence';
+export const loadingUsers = 'Loading...';

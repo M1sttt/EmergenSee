@@ -2,6 +2,7 @@ export enum UserRole {
   ADMIN = 'admin',
   VIEWER = 'viewer',
   MEMBER = 'member',
+  CAMERA = 'camera',
 }
 
 export enum UserStatus {
@@ -19,18 +20,21 @@ export interface User {
   status: UserStatus;
   phoneNumber?: string;
   departments?: string[];
+  location?: string;
+  cameraCode?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface CreateUserDto {
-  email: string;
+  email?: string;
   password: string;
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
   role: UserRole;
   phoneNumber?: string;
   departments?: string[];
+  location?: string;
 }
 
 export interface UpdateUserDto {
@@ -41,6 +45,7 @@ export interface UpdateUserDto {
   status?: UserStatus;
   phoneNumber?: string;
   departments?: string[];
+  location?: string;
 }
 
 export interface LoginDto {

@@ -1,8 +1,9 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useAuthStore } from 'store/authStore';
-import { USER_ROLE_LABELS } from '@emergensee/shared';
+import { USER_ROLE_LABELS, UserRole } from '@emergensee/shared';
 import UserForm from 'components/users/UserForm';
-import { FiEdit, FiTrash2 } from 'react-icons/fi';
+import { FiCheck, FiCopy, FiEdit, FiTrash2 } from 'react-icons/fi';
+import { FaCamera } from 'react-icons/fa';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
 import GenericTable, { type GenericTableColumn } from '@/components/common/GenericTable';
 import SelectDropdown from '@/components/SelectDropdown';
@@ -17,6 +18,28 @@ import {
 	useUsersPageDeleteUserMutation,
 	useUsersPageUsersQuery,
 } from 'hooks/data/useUsersPageData';
+
+function CameraCodeCell({ code }: { code: string }) {
+	const [copied, setCopied] = useState(false);
+	const handleCopy = () => {
+		navigator.clipboard.writeText(code).then(() => {
+			setCopied(true);
+			setTimeout(() => setCopied(false), 2000);
+		});
+	};
+	return (
+		<div className="flex items-center gap-2">
+			<span className="font-mono text-sm font-medium tracking-wider text-blue-700">{code}</span>
+			<button
+				onClick={handleCopy}
+				className="text-gray-400 transition-colors hover:text-blue-600"
+				title={copied ? strings.codeCopied : strings.copyCode}
+			>
+				{copied ? <FiCheck size={14} className="text-green-600" /> : <FiCopy size={14} />}
+			</button>
+		</div>
+	);
+}
 
 const UsersPage = () => {
 	const currentUser = useAuthStore(state => state.user);
@@ -81,29 +104,45 @@ const UsersPage = () => {
 		[availableDepartments],
 	);
 	const displayedUsers = useMemo(() => utils.filterUsers(users, selectedDeptId), [users, selectedDeptId]);
+	const hasCameraUsers = useMemo(() => displayedUsers.some(u => u.role === UserRole.CAMERA), [displayedUsers]);
 
 	const userColumns = useMemo<GenericTableColumn<UserWithOptionalObjectId>[]>(() => {
 		const columns: GenericTableColumn<UserWithOptionalObjectId>[] = [
 			{
 				id: 'name',
 				header: strings.columnName,
-				renderCell: user => (
-					<div
-						className="max-w-[150px] truncate text-sm font-medium text-gray-900"
-						title={`${user.firstName} ${user.lastName}`}
-					>
-						{user.firstName} {user.lastName}
-					</div>
-				),
+				renderCell: user => {
+					if (user.role === UserRole.CAMERA) {
+						return (
+							<div className="flex items-center gap-1.5 text-sm font-medium text-gray-900">
+								<FaCamera className="shrink-0 text-blue-400" size={12} />
+								<span>{user.cameraCode ?? user.firstName}</span>
+							</div>
+						);
+					}
+					return (
+						<div
+							className="max-w-[150px] truncate text-sm font-medium text-gray-900"
+							title={`${user.firstName} ${user.lastName}`}
+						>
+							{user.firstName} {user.lastName}
+						</div>
+					);
+				},
 			},
 			{
 				id: 'email',
 				header: strings.columnEmail,
-				renderCell: user => (
-					<div className="max-w-[200px] truncate text-sm text-gray-900" title={user.email}>
-						{user.email}
-					</div>
-				),
+				renderCell: user => {
+					if (user.role === UserRole.CAMERA) {
+						return <span className="text-sm text-gray-400">—</span>;
+					}
+					return (
+						<div className="max-w-[200px] truncate text-sm text-gray-900" title={user.email}>
+							{user.email}
+						</div>
+					);
+				},
 			},
 			{
 				id: 'role',
@@ -121,10 +160,25 @@ const UsersPage = () => {
 				id: 'phone',
 				header: strings.columnPhoneNumber,
 				renderCell: user => (
-					<div className="text-sm text-gray-900">{user.phoneNumber || strings.emptyPhone}</div>
+					<div className="text-sm text-gray-900">
+						{user.role === UserRole.CAMERA ? '—' : user.phoneNumber || strings.emptyPhone}
+					</div>
 				),
 			},
 		];
+
+		if (hasCameraUsers) {
+			columns.push({
+				id: 'code',
+				header: strings.columnCode,
+				renderCell: user =>
+					user.role === UserRole.CAMERA && user.cameraCode ? (
+						<CameraCodeCell code={user.cameraCode} />
+					) : (
+						<span className="text-sm text-gray-400">—</span>
+					),
+			});
+		}
 
 		if (canCreateUser) {
 			columns.push({
@@ -171,7 +225,7 @@ const UsersPage = () => {
 		}
 
 		return columns;
-	}, [canCreateUser, currentUser?.id, handleDelete, handleEdit, isAdmin, myAdminDepartments]);
+	}, [canCreateUser, currentUser?.id, handleDelete, handleEdit, hasCameraUsers, isAdmin, myAdminDepartments]);
 
 	const isLoading = isLoadingUsers || isLoadingDepartments;
 

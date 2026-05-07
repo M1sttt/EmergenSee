@@ -48,6 +48,11 @@ export class CreateStatusUpdateDto {
     @IsOptional()
     @ApiProperty({ description: 'Any notes provided by the responder', required: false, example: 'On my way' })
     notes?: string;
+
+    @IsString()
+    @IsOptional()
+    @ApiProperty({ description: 'Camera user ID that provided the recognition', required: false })
+    sourceCamera?: string;
 }
 
 export class UpdateStatusUpdateDto {

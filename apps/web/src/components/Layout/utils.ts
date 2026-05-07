@@ -1,4 +1,4 @@
-import { ResponderStatus, EventStatus } from '@emergensee/shared';
+import { ResponderStatus, EventStatus, UserRole } from '@emergensee/shared';
 import { IconType } from 'react-icons';
 import {
 	EventWithOptionalObjectId,
@@ -44,6 +44,7 @@ export interface NavigationLink {
 export const getNavigationLinks = (
 	hasRelevantOngoingEvent: boolean,
 	hasReportedForEvent: boolean,
+	userRole?: UserRole,
 ): NavigationLink[] => {
 	const baseNavigation: NavigationLink[] = [
 		{ name: strings.dashboard, href: consts.dashboardRoute, Icon: consts.dashboardIcon },
@@ -52,6 +53,12 @@ export const getNavigationLinks = (
 		{ name: strings.users, href: consts.usersRoute, Icon: consts.usersIcon },
 		{ name: strings.departments, href: consts.departmentsRoute, Icon: consts.departmentsIcon },
 		{ name: strings.status, href: consts.statusRoute, Icon: consts.statusIcon },
+		...(userRole === UserRole.ADMIN
+			? [
+					{ name: strings.camera, href: consts.cameraRoute, Icon: consts.cameraIcon },
+					{ name: strings.cameraStations, href: consts.adminCamerasRoute, Icon: consts.adminCamerasIcon },
+				]
+			: []),
 	];
 
 	if (hasRelevantOngoingEvent) {

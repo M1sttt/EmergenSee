@@ -17,6 +17,7 @@ export interface StatusUpdate {
   location?: ResponderLocation;
   eventId: string;
   notes?: string;
+  sourceCamera?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,6 +28,7 @@ export interface CreateStatusUpdateDto {
   location?: ResponderLocation;
   eventId: string;
   notes?: string;
+  sourceCamera?: string;
 }
 
 export interface UpdateStatusUpdateDto {

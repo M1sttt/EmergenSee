@@ -46,6 +46,9 @@ export class StatusUpdate {
   notes?: string;
 
   @Prop()
+  sourceCamera?: string;
+
+  @Prop()
   createdAt: Date;
 
   @Prop()
