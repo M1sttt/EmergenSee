@@ -20,7 +20,7 @@ export enum WebSocketEventType {
   ERROR = 'error',
 }
 
-export interface WebSocketEvent<T = any> {
+export interface WebSocketEvent<T = unknown> {
   type: WebSocketEventType;
   payload: T;
   timestamp: Date;
