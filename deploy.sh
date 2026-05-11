@@ -4,7 +4,7 @@ set -Eeuo pipefail
 # ----------------------------
 # Config
 # ----------------------------
-BRANCH="main"
+BRANCH="master"
 API_PM2_NAME="emergensee-api"
 NGINX_WEB_ROOT="/var/www/html/emergensee"
 DEPLOY_BRANCH=""
