@@ -13,6 +13,7 @@ import EmergencyReportPage from 'pages/EmergencyReportPage';
 import CameraPage from 'pages/CameraPage';
 import CameraStationPage from 'pages/CameraStationPage';
 import AdminCameraPage from 'pages/AdminCameraPage';
+import FaceRegistrationPage from 'pages/FaceRegistrationPage';
 import Layout from 'components/Layout';
 import { Toaster } from 'sonner';
 
@@ -72,6 +73,7 @@ function App() {
 					<Route path="camera" element={<AdminRoute><CameraPage /></AdminRoute>} />
 					<Route path="admin/cameras" element={<AdminRoute><AdminCameraPage /></AdminRoute>} />
 					<Route path="profile" element={<ProfilePage />} />
+					<Route path="register-face" element={<FaceRegistrationPage />} />
 				</Route>
 			</Routes>
 		</Router>

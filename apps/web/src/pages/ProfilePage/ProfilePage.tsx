@@ -1,9 +1,11 @@
 import React, { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useAuthStore } from 'store/authStore';
 import { usersService } from 'services/usersService';
 import { Button, FieldError, Input, Label } from '@/components/ui';
 import { toast } from 'sonner';
+import { MdFaceUnlock } from 'react-icons/md';
 import * as strings from './strings';
 import * as consts from './consts';
 import * as utils from './utils';
@@ -15,6 +17,7 @@ type ProfileFormData = {
 };
 
 const ProfilePage = () => {
+	const navigate = useNavigate();
 	const user = useAuthStore(state => state.user);
 	const updateUser = useAuthStore(state => state.updateUser);
 	const [isLoading, setIsLoading] = useState(false);
@@ -70,7 +73,33 @@ const ProfilePage = () => {
 				<p className="mt-1 text-sm text-gray-500">{strings.profileDescription}</p>
 			</div>
 
+			{/* Face Recognition card */}
 			<div className="ui-card overflow-hidden">
+				<div className="ui-card-body">
+					<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+						<div className="flex items-start gap-3">
+							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+								<MdFaceUnlock className="text-xl" />
+							</div>
+							<div>
+								<h2 className="font-semibold text-gray-900">{strings.faceIdSectionTitle}</h2>
+								<p className="mt-0.5 text-sm text-gray-500">{strings.faceIdSectionDescription}</p>
+							</div>
+						</div>
+						<Button
+							variant="secondary"
+							size="sm"
+							className="shrink-0"
+							onClick={() => navigate('/register-face')}
+						>
+							<MdFaceUnlock />
+							{strings.registerFaceButton}
+						</Button>
+					</div>
+				</div>
+			</div>
+
+			<div className="mt-6 ui-card overflow-hidden">
 				<form onSubmit={handleFormSubmit} className="ui-card-body space-y-6">
 					<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
 						<div>
