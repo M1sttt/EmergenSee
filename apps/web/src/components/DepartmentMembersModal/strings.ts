@@ -1,0 +1,11 @@
+export const manageMembers = 'Manage Members:';
+export const addMembers = 'Add Members';
+export const removeMembers = 'Remove Members';
+export const searchPlaceholder = 'Search users by name or email...';
+export const loadingUsers = 'Loading users...';
+export const noUsersFound = 'No users found.';
+export const processing = 'Processing...';
+export const addSelected = 'Add Selected';
+export const removeSelected = 'Remove Selected';
+export const closeText = 'Close';
+export const errorText = 'Error loading users.';

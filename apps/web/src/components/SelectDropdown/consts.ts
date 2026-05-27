@@ -1,0 +1,1 @@
+export const maxOptionsMenuHeight = 200;

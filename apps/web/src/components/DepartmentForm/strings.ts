@@ -1,0 +1,9 @@
+export const editDepartment = 'Edit Department';
+export const createDepartment = 'Create Department';
+export const nameLabel = 'Name';
+export const descriptionLabel = 'Description';
+export const subDepartmentsLabel = 'select sub departments';
+export const savingText = 'Saving...';
+export const saveText = 'Save';
+export const cancelText = 'Cancel';
+export const defaultError = 'An error occurred';

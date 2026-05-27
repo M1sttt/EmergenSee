@@ -1,0 +1,29 @@
+{
+  "name": "@emergensee/shared",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "module": "./src/index.ts",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc --build --force",
+    "lint": "eslint . --max-warnings 0",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@emergensee/eslint-config": "workspace:*",
+    "@emergensee/tsconfig": "workspace:*",
+    "eslint": "^8.57.0",
+    "typescript": "^5.3.3"
+  }
+}
