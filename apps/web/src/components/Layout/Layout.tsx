@@ -5,6 +5,7 @@ import { useAuthStore } from 'store/authStore';
 import { authService } from 'services/authService';
 import { WebSocketEventType } from '@emergensee/shared';
 import { useWebSocket } from 'hooks/useWebSocket';
+import { useOfflineStatusQueue } from 'hooks/useOfflineStatusQueue';
 import {
 	LAYOUT_QUERY_KEYS,
 	useLayoutEventsQuery,
@@ -25,6 +26,8 @@ export default function Layout() {
 	const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
 	const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 	const queryClient = useQueryClient();
+
+	useOfflineStatusQueue();
 
 	useWebSocket(WebSocketEventType.EVENT_CREATED, () => {
 		queryClient.invalidateQueries({ queryKey: LAYOUT_QUERY_KEYS.events });

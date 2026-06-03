@@ -13,6 +13,9 @@ export const statusReportError = 'Failed to report status.';
 export const emergencySafeReportSuccess = 'Reported as safe successfully.';
 export const emergencyHelpReportSuccess = 'Help request reported successfully.';
 export const emergencyReportError = 'Failed to submit emergency report.';
+export const emergencyReportQueued = "You're offline. Your report has been saved and will be sent automatically when you reconnect.";
+export const offlineQueueFlushed = 'Your offline report has been submitted successfully.';
+export const offlineQueueFlushError = 'Failed to submit your saved offline report. It will be retried when you reconnect.';
 
 export const eventCreateSuccess = 'Event created successfully.';
 export const eventCreateError = 'Failed to create event.';
