@@ -1,10 +1,12 @@
-import { useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from 'store/authStore';
 import { authService } from 'services/authService';
-import { WebSocketEventType } from '@emergensee/shared';
+import { DepartmentAlertPayload, WebSocketEventType } from '@emergensee/shared';
 import { useWebSocket } from 'hooks/useWebSocket';
+import { websocketService } from 'services/websocketService';
+import { toast } from 'sonner';
 import {
 	LAYOUT_QUERY_KEYS,
 	useLayoutEventsQuery,
@@ -38,6 +40,21 @@ export default function Layout() {
 	useWebSocket(WebSocketEventType.STATUS_UPDATED, () => {
 		queryClient.invalidateQueries({ queryKey: LAYOUT_QUERY_KEYS.status });
 	});
+
+	useEffect(() => {
+		if (user?.id) {
+			websocketService.identify(user.id);
+		}
+	}, [user?.id]);
+
+	const handleDepartmentAlert = useCallback((payload: DepartmentAlertPayload) => {
+		toast.warning(`${payload.userName} needs help!`, {
+			description: 'A colleague in your department is requesting assistance.',
+			duration: 10000,
+		});
+	}, []);
+
+	useWebSocket(WebSocketEventType.DEPARTMENT_ALERT, handleDepartmentAlert);
 
 	const { data: events = [] } = useLayoutEventsQuery();
 

@@ -55,6 +55,18 @@ export class CreateStatusUpdateDto {
     sourceCamera?: string;
 }
 
+export class AlertDepartmentDto {
+    @IsString()
+    @IsNotEmpty()
+    @ApiProperty({ description: 'The ID of the user who needs help' })
+    userId!: string;
+
+    @IsString()
+    @IsNotEmpty()
+    @ApiProperty({ description: 'The ID of the active event' })
+    eventId!: string;
+}
+
 export class UpdateStatusUpdateDto {
     @IsEnum(ResponderStatus)
     @IsOptional()

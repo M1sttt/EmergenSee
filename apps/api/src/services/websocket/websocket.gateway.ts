@@ -9,6 +9,7 @@ import { Server, Socket } from 'socket.io';
 import { Event, StatusUpdate, WebSocketEventType } from '@emergensee/shared';
 import { EventDocument } from '../events/schemas/event.schema';
 import { StatusUpdateDocument } from '../status/schemas/status.schema';
+import { UsersService } from '../users/users.service';
 
 type EventSocketPayload = Event | EventDocument;
 type StatusSocketPayload = StatusUpdate | StatusUpdateDocument;
@@ -24,6 +25,8 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
   server: Server;
 
   private connectedClients = new Map<string, Socket>();
+
+  constructor(private usersService: UsersService) {}
   // userId → { socketId, location } for active camera-role devices
   private activeCameraUsers = new Map<string, { socketId: string; location: string }>();
   // socketId → userId (reverse lookup for disconnect cleanup)
@@ -55,6 +58,18 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
   @SubscribeMessage('ping')
   handlePing(client: Socket): void {
     client.emit('pong', { timestamp: new Date() });
+  }
+
+  @SubscribeMessage('user:identify')
+  async handleUserIdentify(client: Socket, payload: { userId: string }): Promise<void> {
+    try {
+      const user = await this.usersService.findOne(payload.userId);
+      for (const deptId of user.departments || []) {
+        await client.join(`dept:${deptId.toString()}`);
+      }
+    } catch {
+      // user not found — no rooms to join
+    }
   }
 
   @SubscribeMessage('camera:join')
@@ -143,5 +158,16 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
       payload: { statusUpdate, userId },
       timestamp: new Date(),
     });
+  }
+
+  emitDepartmentAlert(payload: { userId: string; userName: string; departmentIds: string[]; eventId: string }) {
+    const message = {
+      type: WebSocketEventType.DEPARTMENT_ALERT,
+      payload,
+      timestamp: new Date(),
+    };
+    for (const deptId of payload.departmentIds) {
+      this.server.to(`dept:${deptId}`).emit(WebSocketEventType.DEPARTMENT_ALERT, message);
+    }
   }
 }
