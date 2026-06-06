@@ -13,6 +13,7 @@ import EmergencyReportPage from 'pages/EmergencyReportPage';
 import CameraPage from 'pages/CameraPage';
 import CameraStationPage from 'pages/CameraStationPage';
 import AdminCameraPage from 'pages/AdminCameraPage';
+import SheltersPage from 'pages/SheltersPage';
 import Layout from 'components/Layout';
 import { Toaster } from 'sonner';
 
@@ -65,6 +66,7 @@ function App() {
 					<Route path="dashboard" element={<DashboardPage />} />
 					<Route path="events" element={<EventsPage />} />
 					<Route path="map" element={<MapPage />} />
+					<Route path="shelters" element={<SheltersPage />} />
 					<Route path="users" element={<UsersPage />} />
 					<Route path="departments" element={<DepartmentsPage />} />
 					<Route path="status" element={<StatusPage />} />
