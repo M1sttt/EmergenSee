@@ -248,24 +248,44 @@ const SheltersPage = () => {
 		? (nearest.address || nearestGeocodedAddress)
 		: null;
 
+	const requestLocation = useCallback(
+		(onSuccess: (latlng: [number, number]) => void) => {
+			if (!navigator.geolocation) { toast.error(strings.locationUnavailable); return; }
+			setIsLocating(true);
+			navigator.geolocation.getCurrentPosition(
+				pos => {
+					const latlng: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+					setUserLocation(latlng);
+					setIsLocating(false);
+					onSuccess(latlng);
+				},
+				err => {
+					setIsLocating(false);
+					toast.error(err.code === GeolocationPositionError.PERMISSION_DENIED
+						? strings.locationDenied
+						: strings.locationUnavailable);
+				},
+				{ enableHighAccuracy: true, timeout: 10000 },
+			);
+		},
+		[],
+	);
+
 	const handleFindNearest = useCallback(() => {
 		if (!shelters.length) { toast.warning(strings.noSheltersLoaded); return; }
-		if (!navigator.geolocation) { toast.error(strings.locationUnavailable); return; }
-		setIsLocating(true);
-		navigator.geolocation.getCurrentPosition(
-			pos => {
-				setUserLocation([pos.coords.latitude, pos.coords.longitude]);
-				setIsLocating(false);
-			},
-			err => {
-				setIsLocating(false);
-				toast.error(err.code === GeolocationPositionError.PERMISSION_DENIED
-					? strings.locationDenied
-					: strings.locationUnavailable);
-			},
-			{ enableHighAccuracy: true, timeout: 10000 },
-		);
-	}, [shelters]);
+		// location will cause nearest to recompute → useEffect flies to shelter
+		if (userLocation) return; // already have it, useEffect already ran
+		requestLocation(() => {}); // nearest effect handles the fly
+	}, [shelters, userLocation, requestLocation]);
+
+	// Center the map on the user's own position (not the nearest shelter)
+	const handleCenterOnMe = useCallback(() => {
+		if (userLocation) {
+			setFlyTarget({ latlng: userLocation, zoom: 16 });
+		} else {
+			requestLocation(latlng => setFlyTarget({ latlng, zoom: 16 }));
+		}
+	}, [userLocation, requestLocation]);
 
 	useEffect(() => {
 		if (nearest) setFlyTarget({ latlng: nearest.latlng, zoom: 16 });
@@ -366,6 +386,20 @@ const SheltersPage = () => {
 
 			{/* ── Map ─────────────────────────────────────────────────────── */}
 			<div className="relative flex-1">
+
+				{/* Floating "My Location" button — sits above Leaflet */}
+				<button
+					onClick={handleCenterOnMe}
+					disabled={isLocating}
+					title="Center map on my location"
+					style={{ position: 'absolute', top: 12, right: 12, zIndex: 1000 }}
+					className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-lg ring-1 ring-black/10 transition-all hover:bg-blue-50 hover:ring-blue-400 active:scale-95 disabled:opacity-50"
+				>
+					{isLocating
+						? <span className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+						: <MdMyLocation className={`text-xl ${userLocation ? 'text-blue-600' : 'text-gray-500'}`} />
+					}
+				</button>
 
 				{/* Loading overlay */}
 				{isLoading && (
