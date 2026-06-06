@@ -34,3 +34,6 @@ export const departmentSaveError = 'Failed to save department.';
 
 export const departmentMembersUpdateSuccess = 'Department members updated successfully.';
 export const departmentMembersUpdateError = 'Failed to update department members.';
+
+export const alertDepartmentSuccess = 'Department alerted successfully.';
+export const alertDepartmentError = 'Failed to alert department.';

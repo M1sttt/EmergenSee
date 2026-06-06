@@ -35,4 +35,8 @@ export const statusService = {
 	delete: async (id: string): Promise<void> => {
 		await api.delete(`/status/${id}`);
 	},
+
+	alertDepartment: async (userId: string, eventId: string): Promise<void> => {
+		await api.post('/status/department-alert', { userId, eventId });
+	},
 };

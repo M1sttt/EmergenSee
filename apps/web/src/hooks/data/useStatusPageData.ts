@@ -70,3 +70,16 @@ export function useStatusPageCreateStatusMutation() {
 		},
 	});
 }
+
+export function useAlertDepartmentMutation() {
+	return useMutation({
+		mutationFn: (data: { userId: string; eventId: string }) =>
+			statusService.alertDepartment(data.userId, data.eventId),
+		onSuccess: () => {
+			toast.success(strings.alertDepartmentSuccess);
+		},
+		onError: () => {
+			toast.error(strings.alertDepartmentError);
+		},
+	});
+}

@@ -1,5 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 import {
+	DepartmentAlertPayload,
 	ErrorPayload,
 	EventCreatedPayload,
 	EventDeletedPayload,
@@ -18,6 +19,7 @@ interface WebSocketPayloadMap {
 	[WebSocketEventType.EVENT_UPDATED]: EventUpdatedPayload;
 	[WebSocketEventType.EVENT_DELETED]: EventDeletedPayload;
 	[WebSocketEventType.STATUS_UPDATED]: StatusUpdatedPayload;
+	[WebSocketEventType.DEPARTMENT_ALERT]: DepartmentAlertPayload;
 	[WebSocketEventType.USER_JOINED]: UserJoinedPayload;
 	[WebSocketEventType.USER_LEFT]: UserLeftPayload;
 	[WebSocketEventType.CONNECTED]: Record<string, never>;
@@ -30,9 +32,10 @@ export type WebSocketPayload<TEventType extends WebSocketEventType> = WebSocketP
 class WebSocketService {
 	private socket: Socket | null = null;
 	private listeners: Map<WebSocketEventType, Set<(data: unknown) => void>> = new Map();
+	private pendingUserId: string | null = null;
 
 	connect() {
-		if (this.socket?.connected) {
+		if (this.socket) {
 			return;
 		}
 
@@ -43,6 +46,9 @@ class WebSocketService {
 
 		this.socket.on('connect', () => {
 			console.log('WebSocket connected');
+			if (this.pendingUserId) {
+				this.socket?.emit('user:identify', { userId: this.pendingUserId });
+			}
 		});
 
 		this.socket.on('disconnect', () => {
@@ -57,6 +63,13 @@ class WebSocketService {
 				}
 			});
 		});
+	}
+
+	identify(userId: string) {
+		this.pendingUserId = userId;
+		if (this.socket?.connected) {
+			this.socket.emit('user:identify', { userId });
+		}
 	}
 
 	disconnect() {

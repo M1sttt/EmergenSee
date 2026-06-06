@@ -10,6 +10,9 @@ export enum WebSocketEventType {
   // Status updates
   STATUS_UPDATED = 'status:updated',
 
+  // Department alerts
+  DEPARTMENT_ALERT = 'department:alert',
+
   // User updates
   USER_JOINED = 'user:joined',
   USER_LEFT = 'user:left',
@@ -50,6 +53,13 @@ export interface UserJoinedPayload {
 
 export interface UserLeftPayload {
   userId: string;
+}
+
+export interface DepartmentAlertPayload {
+  userId: string;
+  userName: string;
+  departmentIds: string[];
+  eventId: string;
 }
 
 export interface ErrorPayload {
