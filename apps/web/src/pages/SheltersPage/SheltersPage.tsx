@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { useQuery } from '@tanstack/react-query';
 import L from 'leaflet';
@@ -234,7 +234,8 @@ const SheltersPage = () => {
 		queryKey: ['shelters-israel'],
 		queryFn: fetchShelters,
 		staleTime: sheltersCacheMs,
-		retry: 2,
+		gcTime: Infinity,  // keep in-memory for the whole session — no re-fetch on re-mount
+		retry: 1,
 	});
 
 	// Which categories are currently visible
@@ -292,12 +293,23 @@ const SheltersPage = () => {
 			},
 			err => {
 				setIsLocating(false);
-				toast.error(err.code === GeolocationPositionError.PERMISSION_DENIED
-					? strings.locationDenied : strings.locationUnavailable);
+				// Silently ignore on auto-request; user can still click the button
+				if (err.code !== GeolocationPositionError.PERMISSION_DENIED) {
+					toast.error(strings.locationUnavailable);
+				}
 			},
 			{ enableHighAccuracy: true, timeout: 10000 },
 		);
 	}, []);
+
+	// Auto-request location on mount — emergency app should know where you are immediately
+	const hasAutoLocated = useRef(false);
+	useEffect(() => {
+		if (!hasAutoLocated.current) {
+			hasAutoLocated.current = true;
+			requestLocation(() => {});
+		}
+	}, [requestLocation]);
 
 	const handleFindNearest = useCallback(() => {
 		if (!allShelters.length) { toast.warning(strings.noSheltersLoaded); return; }
@@ -485,7 +497,7 @@ const SheltersPage = () => {
 							</div>
 							<div className="text-center">
 								<p className="font-semibold text-gray-800">{strings.loading}</p>
-								<p className="mt-1 text-sm text-gray-500">Fetching all shelter types…</p>
+								<p className="mt-1 text-sm text-gray-500">Loading shelter database…</p>
 							</div>
 						</div>
 					</div>

@@ -39,33 +39,10 @@ export interface ShelterMarker {
 
 export const categorize = (el: ShelterElement): ShelterCategory => {
 	const t = el.tags ?? {};
-
-	// Hardened bunkers → NBC threat category
-	if (
-		t.building === 'bunker' ||
-		t.man_made === 'bunker' ||
-		t.shelter_type === 'nuclear' ||
-		t.shelter_type === 'fallout'
-	) return 'nbc';
-
-	// Emergency assembly / muster points
-	if (
-		t.emergency === 'assembly_point' ||
-		t.emergency === 'evacuee_assembly_point' ||
-		t.emergency === 'muster_point'
-	) return 'assembly';
-
-	// Flood / tsunami refuges
-	if (
-		t.shelter_type === 'flood' ||
-		t.flood_prone === 'shelter' ||
-		t.tsunami === 'assembly_point'
-	) return 'flood';
-
-	// Explicit bomb / missile shelters
+	if (t.building === 'bunker' || t.man_made === 'bunker' || t.shelter_type === 'nuclear' || t.shelter_type === 'fallout') return 'nbc';
+	if (t.emergency === 'assembly_point' || t.emergency === 'evacuee_assembly_point' || t.emergency === 'muster_point') return 'assembly';
+	if (t.shelter_type === 'flood' || t.flood_prone === 'shelter' || t.tsunami === 'assembly_point') return 'flood';
 	if (t.shelter_type === 'bomb_shelter') return 'missile';
-
-	// Plain amenity=shelter — general public shelter
 	return 'general';
 };
 
@@ -89,21 +66,12 @@ export const getShelterAddress = (el: ShelterElement): string => {
 	return parts.join(' ');
 };
 
-// ── Fetch ────────────────────────────────────────────────────────────────────
+// ── Core processing ──────────────────────────────────────────────────────────
 
-export const fetchShelters = async (): Promise<ShelterMarker[]> => {
-	const body = `data=${encodeURIComponent(consts.overpassQuery)}`;
-	const resp = await fetch(consts.overpassUrl, {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-		body,
-	});
-	if (!resp.ok) throw new Error(`Overpass error: ${resp.status}`);
-	const data: { elements: ShelterElement[] } = await resp.json();
-
+const processElements = (elements: ShelterElement[]): ShelterMarker[] => {
 	const seen = new Set<number>();
 	const markers: ShelterMarker[] = [];
-	for (const el of data.elements) {
+	for (const el of elements) {
 		if (seen.has(el.id)) continue;
 		if (el.lat === undefined && !el.center) continue;
 		seen.add(el.id);
@@ -115,6 +83,56 @@ export const fetchShelters = async (): Promise<ShelterMarker[]> => {
 			category: categorize(el),
 		});
 	}
+	return markers;
+};
+
+// ── Fetch with 3-layer cache strategy ────────────────────────────────────────
+//
+//  Layer 1 — localStorage  (<5 ms)  — persists across sessions, 7-day TTL
+//  Layer 2 — bundled JSON  (<200 ms) — /data/shelters-israel.json ships with app
+//  Layer 3 — live Overpass (5–30 s)  — last resort, refreshes localStorage
+//
+const STORAGE_KEY = 'shelters-v3'; // bump version when ShelterMarker shape changes
+const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+export const fetchShelters = async (): Promise<ShelterMarker[]> => {
+	// ── Layer 1: localStorage (instant) ──────────────────────────────────────
+	try {
+		const raw = localStorage.getItem(STORAGE_KEY);
+		if (raw) {
+			const { markers, ts } = JSON.parse(raw) as { markers: ShelterMarker[]; ts: number };
+			if (Array.isArray(markers) && markers.length > 0 && Date.now() - ts < MAX_AGE_MS) {
+				return markers;
+			}
+		}
+	} catch { /* ignore */ }
+
+	// ── Layer 2: bundled static file (fast, no external network) ─────────────
+	try {
+		const resp = await fetch('/data/shelters-israel.json');
+		if (resp.ok) {
+			const { elements } = await resp.json() as { elements: ShelterElement[] };
+			const markers = processElements(elements);
+			try {
+				localStorage.setItem(STORAGE_KEY, JSON.stringify({ markers, ts: Date.now() }));
+			} catch { /* storage quota — skip caching */ }
+			return markers;
+		}
+	} catch { /* static file missing — fall through */ }
+
+	// ── Layer 3: live Overpass API (last resort) ──────────────────────────────
+	const body = `data=${encodeURIComponent(consts.overpassQuery)}`;
+	const resp = await fetch(consts.overpassUrl, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+		body,
+	});
+	if (!resp.ok) throw new Error(`Overpass API error: ${resp.status}`);
+	const { elements } = await resp.json() as { elements: ShelterElement[] };
+	const markers = processElements(elements);
+	try {
+		localStorage.setItem(STORAGE_KEY, JSON.stringify({ markers, ts: Date.now() }));
+	} catch { /* skip */ }
 	return markers;
 };
 
@@ -138,15 +156,14 @@ export const findNearestShelter = (
 	return shelters.reduce((nearest, shelter) =>
 		haversineDistanceKm(userLatlng, shelter.latlng) <
 		haversineDistanceKm(userLatlng, nearest.latlng)
-			? shelter
-			: nearest,
+			? shelter : nearest,
 	);
 };
 
 export const formatDistance = (km: number): string =>
 	km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
 
-// ── Geocoding ────────────────────────────────────────────────────────────────
+// ── Reverse geocoding ────────────────────────────────────────────────────────
 
 export const reverseGeocode = async (latlng: [number, number]): Promise<string | null> => {
 	const [lat, lon] = latlng;
