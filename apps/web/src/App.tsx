@@ -4,7 +4,6 @@ import { UserRole } from '@emergensee/shared';
 import LoginPage from 'pages/LoginPage';
 import DashboardPage from 'pages/DashboardPage';
 import EventsPage from 'pages/EventsPage';
-import MapPage from 'pages/MapPage';
 import UsersPage from 'pages/UsersPage';
 import DepartmentsPage from 'pages/DepartmentsPage';
 import StatusPage from 'pages/StatusPage';
@@ -65,7 +64,6 @@ function App() {
 					<Route index element={<Navigate to="/dashboard" />} />
 					<Route path="dashboard" element={<DashboardPage />} />
 					<Route path="events" element={<EventsPage />} />
-					<Route path="map" element={<MapPage />} />
 					<Route path="shelters" element={<SheltersPage />} />
 					<Route path="users" element={<UsersPage />} />
 					<Route path="departments" element={<DepartmentsPage />} />
