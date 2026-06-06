@@ -29,6 +29,16 @@ export interface FaceImagesResponse {
 	images: RegisteredFaceImage[];
 }
 
+export interface RegisterResponse {
+	registered_as: string;
+}
+
+export interface BatchRegisterResponse {
+	registered_as: string;
+	frames_accepted: number;
+	frames_rejected: number;
+}
+
 const FACE_API_URL = import.meta.env.VITE_FACE_API_URL || 'http://localhost:8000';
 
 const faceApi = axios.create({ baseURL: FACE_API_URL });
@@ -46,5 +56,25 @@ export const faceRecognitionService = {
 	getImages: async (identity: string): Promise<FaceImagesResponse> => {
 		const response = await faceApi.get<FaceImagesResponse>(`/api/v1/faces/${encodeURIComponent(identity)}/images`);
 		return response.data;
+	},
+
+	register: async (name: string, blob: Blob): Promise<RegisterResponse> => {
+		const fd = new FormData();
+		fd.append('image', blob, 'face.jpg');
+		fd.append('name', name);
+		const response = await faceApi.post<RegisterResponse>('/api/v1/faces/register', fd);
+		return response.data;
+	},
+
+	registerBatch: async (name: string, blobs: Blob[]): Promise<BatchRegisterResponse> => {
+		const fd = new FormData();
+		blobs.forEach((b, i) => fd.append('images', b, `frame_${i}.jpg`));
+		fd.append('name', name);
+		const response = await faceApi.post<BatchRegisterResponse>('/api/v1/faces/register/batch', fd);
+		return response.data;
+	},
+
+	deleteFace: async (identity: string): Promise<void> => {
+		await faceApi.delete(`/api/v1/faces/${encodeURIComponent(identity)}`);
 	},
 };
