@@ -64,6 +64,9 @@ export class User {
   @Prop({ sparse: true, unique: true })
   faceIdentity?: string;
 
+  @Prop({ type: [String], default: [] })
+  faceImages?: string[];
+
   @Prop()
   createdAt: Date;
 
