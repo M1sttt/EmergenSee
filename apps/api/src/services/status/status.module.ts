@@ -4,11 +4,13 @@ import { StatusService } from './status.service';
 import { StatusController } from './status.controller';
 import { StatusUpdate, StatusUpdateSchema } from './schemas/status.schema';
 import { WebsocketModule } from '../websocket/websocket.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: StatusUpdate.name, schema: StatusUpdateSchema }]),
     WebsocketModule,
+    UsersModule,
   ],
   controllers: [StatusController],
   providers: [StatusService],

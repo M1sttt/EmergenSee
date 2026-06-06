@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
-import { FiAlertTriangle, FiCheckCircle } from 'react-icons/fi';
+import { FiAlertTriangle, FiBell, FiCheckCircle } from 'react-icons/fi';
 import { RiUserUnfollowLine } from 'react-icons/ri';
 import { EventStatus, RESPONDER_STATUS_LABELS, ResponderStatus, UserRole } from '@emergensee/shared';
 import { getResponderStatusTone } from '@/consts/ui';
@@ -10,6 +10,7 @@ import SelectDropdown from '@/components/SelectDropdown';
 import { Loader } from '@/components/common/Loader';
 import { Badge, IconButton, Label } from '@/components/ui';
 import {
+	useAlertDepartmentMutation,
 	useStatusPageCreateStatusMutation,
 	useStatusPageDepartmentsQuery,
 	useStatusPageEventsQuery,
@@ -31,6 +32,7 @@ export default function StatusPage() {
 	const { data: users = [], isLoading: isLoadingUsers } = useStatusPageUsersQuery();
 	const { data: statusUpdates = [], isLoading: isLoadingStatus } = useStatusPageStatusUpdatesQuery();
 	const reportMutation = useStatusPageCreateStatusMutation();
+	const alertMutation = useAlertDepartmentMutation();
 
 	const activeEvents = useMemo(() => events.filter(event => event.status === EventStatus.ONGOING), [events]);
 
@@ -178,7 +180,7 @@ export default function StatusPage() {
 				header: strings.columnActions,
 				headerClassName: 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider',
 				cellClassName: 'px-6 py-4 whitespace-nowrap text-left text-sm font-medium',
-				renderCell: ({ user }) => {
+				renderCell: ({ user, status }) => {
 					const canReport =
 						isGlobalAdmin ||
 						(isDeptAdmin &&
@@ -187,6 +189,8 @@ export default function StatusPage() {
 							));
 
 					if (!canReport) return null;
+
+					const isNeedHelp = status?.status === ResponderStatus.NEED_HELP;
 
 					return (
 						<div className="flex justify-start gap-2">
@@ -229,12 +233,26 @@ export default function StatusPage() {
 							>
 								<RiUserUnfollowLine size={16} />
 							</IconButton>
+							{isNeedHelp && (
+								<IconButton
+									onClick={() =>
+										alertMutation.mutate({
+											userId: user.id,
+											eventId: effectiveSelectedEventId,
+										})
+									}
+									className="text-yellow-600"
+									tooltipText={strings.alertDepartment}
+								>
+									<FiBell size={16} />
+								</IconButton>
+							)}
 						</div>
 					);
 				},
 			},
 		],
-		[effectiveSelectedEventId, isDeptAdmin, isGlobalAdmin, reportMutation, userAdminDepts],
+		[alertMutation, effectiveSelectedEventId, isDeptAdmin, isGlobalAdmin, reportMutation, userAdminDepts],
 	);
 
 	return (

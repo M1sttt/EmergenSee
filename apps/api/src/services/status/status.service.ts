@@ -4,12 +4,14 @@ import { Model } from 'mongoose';
 import { StatusUpdate, StatusUpdateDocument } from './schemas/status.schema';
 import { CreateStatusUpdateDto, UpdateStatusUpdateDto } from '@emergensee/shared';
 import { WebsocketGateway } from '../websocket/websocket.gateway';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class StatusService {
   constructor(
     @InjectModel(StatusUpdate.name) private statusUpdateModel: Model<StatusUpdateDocument>,
     private websocketGateway: WebsocketGateway,
+    private usersService: UsersService,
   ) {}
 
   async create(userId: string, createStatusUpdateDto: CreateStatusUpdateDto): Promise<StatusUpdate> {
@@ -86,5 +88,15 @@ export class StatusService {
     if (!result) {
       throw new NotFoundException(`Status update with ID ${id} not found`);
     }
+  }
+
+  async alertDepartment(userId: string, eventId: string): Promise<void> {
+    const user = await this.usersService.findOne(userId);
+    this.websocketGateway.emitDepartmentAlert({
+      userId,
+      userName: `${user.firstName} ${user.lastName}`,
+      departmentIds: (user.departments || []).map(id => id.toString()),
+      eventId,
+    });
   }
 }

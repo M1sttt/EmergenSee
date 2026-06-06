@@ -12,7 +12,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StatusService } from './status.service';
-import { CreateStatusUpdateDto, UpdateStatusUpdateDto } from './status.dto';
+import { AlertDepartmentDto, CreateStatusUpdateDto, UpdateStatusUpdateDto } from './status.dto';
 
 @ApiTags('Status')
 @ApiBearerAuth('access-token')
@@ -25,6 +25,12 @@ export class StatusController {
   @Post()
   create(@Request() req, @Body() createStatusUpdateDto: CreateStatusUpdateDto) {
     return this.statusService.create(createStatusUpdateDto.userId || req.user.userId, createStatusUpdateDto);
+  }
+
+  @ApiOperation({ summary: 'Alert all department members that a user needs help' })
+  @Post('department-alert')
+  alertDepartment(@Body() alertDepartmentDto: AlertDepartmentDto) {
+    return this.statusService.alertDepartment(alertDepartmentDto.userId, alertDepartmentDto.eventId);
   }
 
   @ApiOperation({ summary: 'List status updates' })

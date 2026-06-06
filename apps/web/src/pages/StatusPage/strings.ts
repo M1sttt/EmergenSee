@@ -17,3 +17,4 @@ export const markAway = 'Mark Away';
 export const noUsersFound = 'No users found for the selected criteria.';
 export const loading = 'Loading...';
 export const error = 'Error loading data. Please try again later.';
+export const alertDepartment = 'Alert Department';
