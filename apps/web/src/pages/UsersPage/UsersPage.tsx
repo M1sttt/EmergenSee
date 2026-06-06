@@ -2,8 +2,10 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { useAuthStore } from 'store/authStore';
 import { USER_ROLE_LABELS, UserRole } from '@emergensee/shared';
 import UserForm from 'components/users/UserForm';
+import { FaceRegistrationModal } from 'components/users/FaceRegistrationModal';
 import { FiCheck, FiCopy, FiEdit, FiTrash2 } from 'react-icons/fi';
 import { FaCamera } from 'react-icons/fa';
+import { MdFaceRetouchingNatural } from 'react-icons/md';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
 import GenericTable, { type GenericTableColumn } from '@/components/common/GenericTable';
 import SelectDropdown from '@/components/SelectDropdown';
@@ -48,6 +50,7 @@ const UsersPage = () => {
 	const [isFormOpen, setIsFormOpen] = useState(false);
 	const [selectedDeptId, setSelectedDeptId] = useState<string>(consts.allDeptsId);
 	const [userToDelete, setUserToDelete] = useState<string | null>(null);
+	const [userToRegisterFace, setUserToRegisterFace] = useState<UserWithOptionalObjectId | null>(null);
 
 	const { data: users = [], isLoading: isLoadingUsers, isError: isErrorUsers } = useUsersPageUsersQuery();
 
@@ -180,6 +183,21 @@ const UsersPage = () => {
 			});
 		}
 
+		if (isAdmin) {
+			columns.push({
+				id: 'faceId',
+				header: strings.columnFaceId,
+				renderCell: user => {
+					if (user.role === UserRole.CAMERA) return <span className="text-sm text-gray-400">—</span>;
+					return user.faceIdentity ? (
+						<Badge tone="success">{strings.faceRegistered_badge}</Badge>
+					) : (
+						<span className="text-sm text-gray-400">{strings.faceNotRegistered_badge}</span>
+					);
+				},
+			});
+		}
+
 		if (canCreateUser) {
 			columns.push({
 				id: 'actions',
@@ -209,6 +227,15 @@ const UsersPage = () => {
 							>
 								<FiEdit size={16} />
 							</IconButton>
+							{isAdmin && user.role !== UserRole.CAMERA && (
+								<IconButton
+									onClick={() => setUserToRegisterFace(user)}
+									className="text-green-600"
+									tooltipText={strings.actionRegisterFace}
+								>
+									<MdFaceRetouchingNatural size={18} />
+								</IconButton>
+							)}
 							{isAdmin && (
 								<IconButton
 									onClick={() => handleDelete(userId!)}
@@ -274,6 +301,13 @@ const UsersPage = () => {
 
 			{userToDelete !== null && (
 				<ConfirmModal message={strings.confirmDelete} onConfirm={confirmDelete} onCancel={cancelDelete} />
+			)}
+
+			{userToRegisterFace !== null && (
+				<FaceRegistrationModal
+					user={userToRegisterFace}
+					onClose={() => setUserToRegisterFace(null)}
+				/>
 			)}
 		</div>
 	);
