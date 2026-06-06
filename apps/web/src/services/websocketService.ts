@@ -1,4 +1,5 @@
 import { io, Socket } from 'socket.io-client';
+import { useAuthStore } from 'store/authStore';
 import {
 	DepartmentAlertPayload,
 	ErrorPayload,
@@ -39,9 +40,11 @@ class WebSocketService {
 			return;
 		}
 
+		const token = useAuthStore.getState().accessToken;
 		this.socket = io(WS_URL, {
 			transports: ['websocket'],
 			autoConnect: true,
+			auth: { token },
 		});
 
 		this.socket.on('connect', () => {
