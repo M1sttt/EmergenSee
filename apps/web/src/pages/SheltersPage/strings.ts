@@ -13,3 +13,4 @@ export const distanceAway = (d: string) => `${d} away`;
 export const locationDenied = 'Location access was denied. Please allow it in your browser settings.';
 export const locationUnavailable = 'Could not determine your location. Try again.';
 export const noSheltersLoaded = 'Shelters are still loading — try again in a moment.';
+export const getDirections = 'Open Route in Google Maps';
