@@ -1,7 +1,9 @@
+import axios from 'axios';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { CreateStatusUpdateDto, Event, ResponderStatus } from '@emergensee/shared';
 import { eventsService } from 'services/eventsService';
 import { statusService } from 'services/statusService';
+import { offlineQueue, OfflineQueuedError } from 'services/offlineQueue';
 import { toast } from 'sonner';
 import * as strings from './strings';
 
@@ -18,9 +20,21 @@ export function useEmergencyReportEventsQuery() {
 
 export function useEmergencyReportCreateStatusMutation(onSuccess?: (status: ResponderStatus) => void) {
 	return useMutation({
-		mutationFn: ({ status, eventId }: { status: ResponderStatus; eventId: string }) => {
+		mutationFn: async ({ status, eventId }: { status: ResponderStatus; eventId: string }) => {
 			const payload: CreateStatusUpdateDto = { status, eventId };
-			return statusService.create(payload);
+			if (!navigator.onLine) {
+				offlineQueue.enqueue(payload);
+				throw new OfflineQueuedError();
+			}
+			try {
+				return await statusService.create(payload);
+			} catch (error) {
+				if (axios.isAxiosError(error) && !error.response) {
+					offlineQueue.enqueue(payload);
+					throw new OfflineQueuedError();
+				}
+				throw error;
+			}
 		},
 		onSuccess: (_, variables) => {
 			onSuccess?.(variables.status);
@@ -30,7 +44,11 @@ export function useEmergencyReportCreateStatusMutation(onSuccess?: (status: Resp
 				toast.success(strings.emergencyHelpReportSuccess);
 			}
 		},
-		onError: () => {
+		onError: (error: unknown) => {
+			if (error instanceof OfflineQueuedError) {
+				toast.warning(strings.emergencyReportQueued);
+				return;
+			}
 			toast.error(strings.emergencyReportError);
 		},
 	});
