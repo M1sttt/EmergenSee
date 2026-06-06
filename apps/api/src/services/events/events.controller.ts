@@ -14,9 +14,13 @@ import {
   ApiOperation,
   ApiParam,
   ApiQuery,
+  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { UserRole } from '@emergensee/shared';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { EventsService } from './events.service';
 import { CreateEventDto, UpdateEventDto } from './events.dto';
 
@@ -27,8 +31,11 @@ import { CreateEventDto, UpdateEventDto } from './events.dto';
 export class EventsController {
   constructor(private readonly eventsService: EventsService) { }
 
-  @ApiOperation({ summary: 'Create a new event' })
+  @ApiOperation({ summary: 'Create a new event (admin or member)' })
+  @ApiResponse({ status: 403, description: 'Forbidden — admin or member role required.' })
   @Post()
+  @Roles(UserRole.ADMIN, UserRole.MEMBER)
+  @UseGuards(RolesGuard)
   create(@Body() createEventDto: CreateEventDto) {
     return this.eventsService.create(createEventDto);
   }
@@ -70,9 +77,12 @@ export class EventsController {
     return this.eventsService.update(id, updateEventDto);
   }
 
-  @ApiOperation({ summary: 'Delete event by id' })
+  @ApiOperation({ summary: 'Delete event by id (admin only)' })
   @ApiParam({ name: 'id', description: 'Event id' })
+  @ApiResponse({ status: 403, description: 'Forbidden — admin role required.' })
   @Delete(':id')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(RolesGuard)
   remove(@Param('id') id: string) {
     return this.eventsService.remove(id);
   }
