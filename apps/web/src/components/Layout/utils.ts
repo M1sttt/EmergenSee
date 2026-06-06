@@ -50,6 +50,7 @@ export const getNavigationLinks = (
 		{ name: strings.dashboard, href: consts.dashboardRoute, Icon: consts.dashboardIcon },
 		{ name: strings.events, href: consts.eventsRoute, Icon: consts.eventsIcon },
 		{ name: strings.map, href: consts.mapRoute, Icon: consts.mapIcon },
+		{ name: strings.shelters, href: consts.sheltersRoute, Icon: consts.sheltersIcon },
 		{ name: strings.users, href: consts.usersRoute, Icon: consts.usersIcon },
 		{ name: strings.departments, href: consts.departmentsRoute, Icon: consts.departmentsIcon },
 		{ name: strings.status, href: consts.statusRoute, Icon: consts.statusIcon },

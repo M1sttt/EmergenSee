@@ -11,6 +11,7 @@ import {
 	FaHeartbeat,
 	FaBars,
 	FaTimes,
+	FaShieldAlt,
 } from 'react-icons/fa';
 import { AiFillAlert } from 'react-icons/ai';
 import { MdVideocam } from 'react-icons/md';
@@ -25,6 +26,7 @@ export const emergencyReportRoute = '/emergency-report';
 export const cameraRoute = '/camera';
 export const adminCamerasRoute = '/admin/cameras';
 export const profileRoute = '/profile';
+export const sheltersRoute = '/shelters';
 
 export const eventsQueryKey = ['events'] as const;
 export const statusQueryKey = ['status'] as const;
@@ -38,6 +40,7 @@ export const statusIcon = FaHeartbeat;
 export const emergencyIcon = AiFillAlert;
 export const cameraIcon = FaCamera;
 export const adminCamerasIcon = MdVideocam;
+export const sheltersIcon = FaShieldAlt;
 export const collapseIcon = FaChevronLeft;
 export const expandIcon = FaChevronRight;
 export const logoutIcon = FaSignOutAlt;
