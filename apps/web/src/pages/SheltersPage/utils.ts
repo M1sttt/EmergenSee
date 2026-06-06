@@ -12,6 +12,8 @@ export interface ShelterElement {
 		'addr:street'?: string;
 		'addr:city'?: string;
 		'addr:housenumber'?: string;
+		'addr:neighbourhood'?: string;
+		shelter_type?: string;
 	};
 }
 
@@ -21,6 +23,33 @@ export interface ShelterMarker {
 	name: string;
 	address: string;
 }
+
+// Haversine formula — returns distance in km between two [lat, lon] points
+export const haversineDistanceKm = (a: [number, number], b: [number, number]): number => {
+	const R = 6371;
+	const dLat = ((b[0] - a[0]) * Math.PI) / 180;
+	const dLon = ((b[1] - a[1]) * Math.PI) / 180;
+	const lat1 = (a[0] * Math.PI) / 180;
+	const lat2 = (b[0] * Math.PI) / 180;
+	const x = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+	return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+};
+
+export const findNearestShelter = (
+	userLatlng: [number, number],
+	shelters: ShelterMarker[],
+): ShelterMarker | null => {
+	if (!shelters.length) return null;
+	return shelters.reduce((nearest, shelter) =>
+		haversineDistanceKm(userLatlng, shelter.latlng) <
+		haversineDistanceKm(userLatlng, nearest.latlng)
+			? shelter
+			: nearest,
+	);
+};
+
+export const formatDistance = (km: number): string =>
+	km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
 
 export const getShelterLatLng = (el: ShelterElement): [number, number] => {
 	if (el.lat !== undefined && el.lon !== undefined) return [el.lat, el.lon];
