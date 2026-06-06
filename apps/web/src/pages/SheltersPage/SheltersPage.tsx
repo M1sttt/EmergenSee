@@ -15,6 +15,7 @@ import {
 	haversineDistanceKm,
 	formatDistance,
 	getGoogleMapsDirectionsUrl,
+	reverseGeocode,
 	type ShelterMarker,
 } from './utils';
 
@@ -83,29 +84,41 @@ function ShelterPopup({
 	distanceLabel?: string;
 	userLocation?: [number, number] | null;
 }) {
+	// Lazy reverse-geocode only when OSM has no address for this shelter.
+	// staleTime: Infinity → result is cached for the whole session, never re-fetched.
+	const { data: geocodedAddress, isFetching } = useQuery({
+		queryKey: ['geocode', shelter.id],
+		queryFn: () => reverseGeocode(shelter.latlng),
+		enabled: !shelter.address,
+		staleTime: Infinity,
+		retry: 1,
+	});
+
+	const address = shelter.address || geocodedAddress;
 	const url = getGoogleMapsDirectionsUrl(shelter.latlng, userLocation ?? undefined);
+
 	return (
-		<div style={{ minWidth: 200, fontFamily: 'inherit' }}>
-			{/* Name */}
-			<div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 6 }}>
+		<div style={{ minWidth: 210, fontFamily: 'inherit' }}>
+			{/* Name + badge */}
+			<div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 8 }}>
 				<div style={{
-					width: 28, height: 28, borderRadius: '50%',
+					width: 30, height: 30, borderRadius: '50%',
 					background: distanceLabel ? '#fff7ed' : '#f0fdf4',
 					border: `2px solid ${distanceLabel ? '#f97316' : '#16a34a'}`,
 					display: 'flex', alignItems: 'center', justifyContent: 'center',
 					flexShrink: 0, marginTop: 1,
 				}}>
-					<span style={{ fontSize: 14 }}>{distanceLabel ? '🏆' : '🛡'}</span>
+					<span style={{ fontSize: 15 }}>{distanceLabel ? '🏆' : '🛡'}</span>
 				</div>
-				<div>
+				<div style={{ flex: 1, minWidth: 0 }}>
 					<p style={{ fontWeight: 700, fontSize: 14, margin: 0, color: '#111827', lineHeight: 1.3 }}>
 						{shelter.name}
 					</p>
 					{distanceLabel && (
 						<span style={{
-							display: 'inline-block', marginTop: 2,
+							display: 'inline-block', marginTop: 3,
 							background: '#fff7ed', color: '#c2410c',
-							fontWeight: 600, fontSize: 11, padding: '1px 6px',
+							fontWeight: 600, fontSize: 11, padding: '1px 7px',
 							borderRadius: 99, border: '1px solid #fed7aa',
 						}}>
 							{strings.distanceAway(distanceLabel)}
@@ -114,28 +127,40 @@ function ShelterPopup({
 				</div>
 			</div>
 
-			{/* Address */}
-			<div style={{ display: 'flex', alignItems: 'flex-start', gap: 5, marginBottom: 10 }}>
-				<span style={{ color: '#6b7280', fontSize: 13, marginTop: 1 }}>📍</span>
-				<p style={{ fontSize: 12, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
-					{shelter.address || strings.noAddress}
-				</p>
+			{/* Address row */}
+			<div style={{
+				display: 'flex', alignItems: 'flex-start', gap: 6,
+				marginBottom: 10, minHeight: 20,
+			}}>
+				<span style={{ fontSize: 13, marginTop: 1, flexShrink: 0 }}>📍</span>
+				{isFetching ? (
+					<span style={{ fontSize: 12, color: '#9ca3af', fontStyle: 'italic' }}>
+						{strings.fetchingAddress}
+					</span>
+				) : address ? (
+					<p style={{ fontSize: 12, color: '#4b5563', margin: 0, lineHeight: 1.55 }}>
+						{address}
+					</p>
+				) : (
+					<p style={{ fontSize: 12, color: '#9ca3af', margin: 0, fontStyle: 'italic' }}>
+						{strings.addressUnavailable}
+					</p>
+				)}
 			</div>
 
 			{/* Divider */}
-			<div style={{ height: 1, background: '#f3f4f6', marginBottom: 8 }} />
+			<div style={{ height: 1, background: '#e5e7eb', margin: '0 0 10px' }} />
 
-			{/* Directions link */}
+			{/* Directions button */}
 			<a
 				href={url}
 				target="_blank"
 				rel="noopener noreferrer"
 				style={{
 					display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-					padding: '7px 12px', borderRadius: 8,
+					padding: '8px 12px', borderRadius: 8,
 					background: '#2563eb', color: '#fff',
 					fontWeight: 600, fontSize: 12, textDecoration: 'none',
-					transition: 'background 0.15s',
 				}}
 				onMouseEnter={e => (e.currentTarget.style.background = '#1d4ed8')}
 				onMouseLeave={e => (e.currentTarget.style.background = '#2563eb')}
@@ -209,6 +234,19 @@ const SheltersPage = () => {
 			: null,
 		[nearest, userLocation],
 	);
+
+	// Geocode the nearest shelter's address for the banner when OSM has none
+	const { data: nearestGeocodedAddress, isFetching: isGeocodingNearest } = useQuery({
+		queryKey: ['geocode', nearest?.id ?? 'none'],
+		queryFn: () => reverseGeocode(nearest!.latlng),
+		enabled: !!nearest && !nearest.address,
+		staleTime: Infinity,
+		retry: 1,
+	});
+
+	const nearestAddress = nearest
+		? (nearest.address || nearestGeocodedAddress)
+		: null;
 
 	const handleFindNearest = useCallback(() => {
 		if (!shelters.length) { toast.warning(strings.noSheltersLoaded); return; }
@@ -289,12 +327,16 @@ const SheltersPage = () => {
 								{strings.nearestShelterLabel}
 							</p>
 							<p className="mt-0.5 truncate text-base font-bold text-gray-900">{nearest.name}</p>
-							{nearest.address && (
-								<div className="mt-0.5 flex items-center gap-1 text-sm text-gray-500">
-									<FiMapPin className="shrink-0 text-gray-400" size={12} />
-									<span className="truncate">{nearest.address}</span>
-								</div>
-							)}
+							<div className="mt-0.5 flex items-center gap-1 text-sm text-gray-500">
+								<FiMapPin className="shrink-0 text-gray-400" size={12} />
+								{isGeocodingNearest ? (
+									<span className="italic text-gray-400">{strings.fetchingAddress}</span>
+								) : nearestAddress ? (
+									<span className="truncate">{nearestAddress}</span>
+								) : (
+									<span className="italic text-gray-400">{strings.addressUnavailable}</span>
+								)}
+							</div>
 						</div>
 
 						{/* Distance */}

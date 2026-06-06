@@ -51,6 +51,32 @@ export const findNearestShelter = (
 export const formatDistance = (km: number): string =>
 	km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
 
+// Nominatim reverse geocoding — called lazily when a popup opens for a
+// shelter that has no address tags. Nominatim is free, no API key needed.
+// Rate limit is 1 req/s; we only call on popup click so that's fine.
+export const reverseGeocode = async (latlng: [number, number]): Promise<string | null> => {
+	const [lat, lon] = latlng;
+	try {
+		const resp = await fetch(
+			`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=he,en`,
+			{ headers: { 'User-Agent': 'EmergenSee/1.0 (emergensee.cs.colman.ac.il)' } },
+		);
+		if (!resp.ok) return null;
+		const data = await resp.json();
+		if (data.error) return null;
+		const a = data.address ?? {};
+		const parts = [
+			a.road ?? a.pedestrian ?? a.footway ?? a.path,
+			a.house_number,
+			a.neighbourhood ?? a.suburb,
+			a.city ?? a.town ?? a.village ?? a.municipality,
+		].filter(Boolean) as string[];
+		return parts.length ? parts.join(', ') : (data.display_name ?? null);
+	} catch {
+		return null;
+	}
+};
+
 export const getGoogleMapsDirectionsUrl = (
 	destination: [number, number],
 	origin?: [number, number],
