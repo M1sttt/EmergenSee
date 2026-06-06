@@ -13,6 +13,7 @@ import {
 	findNearestShelter,
 	haversineDistanceKm,
 	formatDistance,
+	getGoogleMapsDirectionsUrl,
 	type ShelterMarker,
 } from './utils';
 
@@ -54,9 +55,18 @@ function FlyTo({ latlng, zoom }: { latlng: [number, number]; zoom: number }) {
 
 // ── Popup content ───────────────────────────────────────────────────────────
 
-function ShelterPopup({ shelter, distanceLabel }: { shelter: ShelterMarker; distanceLabel?: string }) {
+function ShelterPopup({
+	shelter,
+	distanceLabel,
+	userLocation,
+}: {
+	shelter: ShelterMarker;
+	distanceLabel?: string;
+	userLocation?: [number, number] | null;
+}) {
+	const directionsUrl = getGoogleMapsDirectionsUrl(shelter.latlng, userLocation ?? undefined);
 	return (
-		<div style={{ minWidth: 180 }}>
+		<div style={{ minWidth: 190 }}>
 			<p style={{ fontWeight: 600, fontSize: 14, margin: '0 0 4px' }}>{shelter.name}</p>
 			{shelter.address ? (
 				<p style={{ fontSize: 12, color: '#6b7280', margin: '0 0 4px' }}>{shelter.address}</p>
@@ -64,10 +74,25 @@ function ShelterPopup({ shelter, distanceLabel }: { shelter: ShelterMarker; dist
 				<p style={{ fontSize: 12, color: '#9ca3af', margin: '0 0 4px' }}>{strings.noAddress}</p>
 			)}
 			{distanceLabel && (
-				<p style={{ fontSize: 12, color: '#f97316', fontWeight: 600, margin: 0 }}>
+				<p style={{ fontSize: 12, color: '#f97316', fontWeight: 600, margin: '0 0 6px' }}>
 					{strings.distanceAway(distanceLabel)}
 				</p>
 			)}
+			<a
+				href={directionsUrl}
+				target="_blank"
+				rel="noopener noreferrer"
+				style={{
+					display: 'inline-block',
+					marginTop: 4,
+					fontSize: 12,
+					color: '#1d4ed8',
+					fontWeight: 600,
+					textDecoration: 'none',
+				}}
+			>
+				🗺 {strings.getDirections}
+			</a>
 		</div>
 	);
 }
@@ -173,6 +198,14 @@ const SheltersPage = () => {
 					<span className="shrink-0 rounded-full bg-orange-100 px-3 py-1 text-sm font-semibold text-orange-700">
 						{strings.distanceAway(nearestDistance)}
 					</span>
+					<a
+						href={getGoogleMapsDirectionsUrl(nearest.latlng, userLocation ?? undefined)}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="shrink-0 flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 transition-colors"
+					>
+						🗺 {strings.getDirections}
+					</a>
 				</div>
 			)}
 
@@ -214,6 +247,7 @@ const SheltersPage = () => {
 									<ShelterPopup
 										shelter={shelter}
 										distanceLabel={isNearest && nearestDistance ? nearestDistance : undefined}
+										userLocation={userLocation}
 									/>
 								</Popup>
 							</Marker>

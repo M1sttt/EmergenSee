@@ -51,6 +51,19 @@ export const findNearestShelter = (
 export const formatDistance = (km: number): string =>
 	km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
 
+export const getGoogleMapsDirectionsUrl = (
+	destination: [number, number],
+	origin?: [number, number],
+): string => {
+	const params = new URLSearchParams({
+		api: '1',
+		destination: `${destination[0]},${destination[1]}`,
+		travelmode: 'walking',
+	});
+	if (origin) params.set('origin', `${origin[0]},${origin[1]}`);
+	return `https://www.google.com/maps/dir/?${params.toString()}`;
+};
+
 export const getShelterLatLng = (el: ShelterElement): [number, number] => {
 	if (el.lat !== undefined && el.lon !== undefined) return [el.lat, el.lon];
 	return [el.center!.lat, el.center!.lon];
