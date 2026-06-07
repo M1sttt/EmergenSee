@@ -61,6 +61,9 @@ export class User {
   @Prop({ sparse: true })
   googleId?: string;
 
+  @Prop({ default: null })
+  faceIdentity?: string | null;
+
   @Prop()
   createdAt: Date;
 

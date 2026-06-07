@@ -98,4 +98,9 @@ export class UpdateUserDto {
     @IsOptional()
     @ApiProperty({ description: 'Physical location label for camera-role users', required: false, example: 'Main Entrance' })
     location?: string;
+
+    @IsString()
+    @IsOptional()
+    @ApiProperty({ description: 'Face identity reference ID', required: false, nullable: true })
+    faceIdentity?: string | null;
 }
