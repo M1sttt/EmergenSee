@@ -46,7 +46,7 @@ export function useFaceRegistrationMutation(onSuccess: () => void) {
 	return useMutation({
 		mutationFn: async ({ user, blob }: { user: User; blob: Blob }) => {
 			const result = await faceRecognitionService.register(
-				`${user.firstName} ${user.lastName}`,
+				user.id,
 				blob,
 			);
 			await usersService.update(user.id, { faceIdentity: result.registered_as });
