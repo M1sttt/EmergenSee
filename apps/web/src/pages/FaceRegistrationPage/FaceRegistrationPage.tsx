@@ -5,7 +5,7 @@ import { useAuthStore } from 'store/authStore';
 import { faceRecognitionService } from 'services/faceRecognitionService';
 import { usersService } from 'services/usersService';
 import { Button } from '@/components/ui';
-import { FaArrowLeft, FaCamera, FaCheck, FaRedo } from 'react-icons/fa';
+import { FaArrowLeft, FaCamera, FaCheck, FaRedo, FaForward } from 'react-icons/fa';
 import { MdFaceUnlock } from 'react-icons/md';
 import * as consts from './consts';
 import type { FaceStatus, RegistrationPhase } from './consts';
@@ -40,18 +40,18 @@ function RegistrationOverlay({ phase, faceStatus, progress }: RegistrationOverla
 
 	return (
 		<svg
-			viewBox="0 0 160 90"
+			viewBox="0 0 160 100"
 			preserveAspectRatio="xMidYMid slice"
 			xmlns="http://www.w3.org/2000/svg"
 			className="pointer-events-none absolute inset-0 h-full w-full"
 		>
 			<defs>
 				<mask id="regMask">
-					<rect width="160" height="90" fill="white" />
-					<ellipse cx="80" cy="45" rx="28" ry="37" fill="black" />
+					<rect width="160" height="100" fill="white" />
+					<ellipse cx="80" cy="50" rx="23" ry="30" fill="black" />
 				</mask>
 				<clipPath id="regOvalClip">
-					<ellipse cx="80" cy="45" rx="28" ry="37" />
+					<ellipse cx="80" cy="50" rx="23" ry="30" />
 				</clipPath>
 				<linearGradient id="regScanGrad" x1="0" y1="0" x2="0" y2="1">
 					<stop offset="0%" stopColor="rgba(99,179,237,0)" />
@@ -60,38 +60,38 @@ function RegistrationOverlay({ phase, faceStatus, progress }: RegistrationOverla
 				</linearGradient>
 			</defs>
 
-			<rect width="160" height="90" fill="rgba(0,0,0,0.52)" mask="url(#regMask)" />
+			<rect width="160" height="100" fill="rgba(0,0,0,0.52)" mask="url(#regMask)" />
 
 			<ellipse
-				cx="80" cy="45" rx="28" ry="37"
+				cx="80" cy="50" rx="23" ry="30"
 				fill="none"
 				stroke={ovalColor}
 				strokeWidth="1.2"
 				style={{ transition: 'stroke 0.3s ease' }}
 			/>
 
-			<line x1="80"  y1="5"  x2="80"  y2="9"  stroke="white" strokeWidth="1.4" strokeLinecap="round" />
-			<line x1="80"  y1="81" x2="80"  y2="85" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
-			<line x1="49"  y1="45" x2="53"  y2="45" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
-			<line x1="107" y1="45" x2="111" y2="45" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
+			<line x1="80"  y1="17" x2="80"  y2="21" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
+			<line x1="80"  y1="79" x2="80"  y2="83" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
+			<line x1="54"  y1="50" x2="58"  y2="50" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
+			<line x1="102" y1="50" x2="106" y2="50" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
 
 			{progress > 0 && (
 				<circle
-					cx="80" cy="45" r={consts.RING_RADIUS}
+					cx="80" cy="50" r={consts.RING_RADIUS}
 					fill="none"
 					stroke={ringColor}
 					strokeWidth="2.5"
 					strokeDasharray={consts.RING_CIRCUMFERENCE}
 					strokeDashoffset={dashOffset}
 					strokeLinecap="round"
-					transform="rotate(-90 80 45)"
+					transform="rotate(-90 80 50)"
 					style={{ transition: 'stroke-dashoffset 0.2s ease-out' }}
 				/>
 			)}
 
 			{scanning && (
-				<rect x="52" y="0" width="56" height="7" fill="url(#regScanGrad)" clipPath="url(#regOvalClip)">
-					<animate attributeName="y" from="8" to="75" dur="1.6s" repeatCount="indefinite" />
+				<rect x="57" y="0" width="46" height="7" fill="url(#regScanGrad)" clipPath="url(#regOvalClip)">
+					<animate attributeName="y" from="20" to="73" dur="1.6s" repeatCount="indefinite" />
 					<animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.08;0.92;1" dur="1.6s" repeatCount="indefinite" />
 				</rect>
 			)}
@@ -166,34 +166,51 @@ const FaceRegistrationPage: React.FC = () => {
 	// Keep phaseRef in sync so setInterval callbacks always read the latest phase
 	useEffect(() => { phaseRef.current = phase; }, [phase]);
 
-	// Camera
+	// Camera — tries high-res first, falls back to basic constraints for mobile
 	useEffect(() => {
 		let stream: MediaStream | null = null;
-		navigator.mediaDevices
-			.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } } })
-			.then(s => {
+
+		const startCamera = (constraints: MediaStreamConstraints) =>
+			navigator.mediaDevices.getUserMedia(constraints).then(s => {
 				stream = s;
 				if (videoRef.current) videoRef.current.srcObject = s;
-			})
-			.catch(() => setCameraError(strings.cameraErrorMessage));
+			});
+
+		startCamera({ video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } } })
+			.catch(() => startCamera({ video: { facingMode: 'user' } }))
+			.catch(() => {
+				if (isMountedRef.current) setCameraError(strings.cameraErrorMessage);
+			});
+
 		return () => stream?.getTracks().forEach(t => t.stop());
 	}, []);
 
-	// Load MediaPipe FaceLandmarker
+	// Load MediaPipe FaceLandmarker — GPU with CPU fallback for mobile compatibility
 	useEffect(() => {
 		const load = async () => {
 			const vision = await FilesetResolver.forVisionTasks(consts.MEDIAPIPE_WASM_URL);
-			const lm = await FaceLandmarker.createFromOptions(vision, {
-				baseOptions: {
-					modelAssetPath: consts.FACE_LANDMARKER_MODEL_URL,
-					delegate: 'GPU',
-				},
-				runningMode: 'VIDEO',
+
+			const options = {
+				runningMode: 'VIDEO' as const,
 				numFaces: 1,
 				minFaceDetectionConfidence: consts.MIN_FACE_CONFIDENCE,
 				minFacePresenceConfidence: consts.MIN_FACE_CONFIDENCE,
 				minTrackingConfidence: 0.5,
-			});
+			};
+
+			let lm: FaceLandmarker;
+			try {
+				lm = await FaceLandmarker.createFromOptions(vision, {
+					baseOptions: { modelAssetPath: consts.FACE_LANDMARKER_MODEL_URL, delegate: 'GPU' },
+					...options,
+				});
+			} catch {
+				lm = await FaceLandmarker.createFromOptions(vision, {
+					baseOptions: { modelAssetPath: consts.FACE_LANDMARKER_MODEL_URL, delegate: 'CPU' },
+					...options,
+				});
+			}
+
 			landmarkerRef.current = lm;
 			if (isMountedRef.current) setPhase('phase1');
 		};
@@ -315,9 +332,17 @@ const FaceRegistrationPage: React.FC = () => {
 		setPhase('phase1');
 	}, []);
 
+	const handleSkip = useCallback(() => {
+		navigate(skipDestination, { replace: true });
+	}, [navigate, skipDestination]);
+
+	const handleDone = useCallback(() => {
+		navigate(isFirstTime ? skipDestination : -1 as never, { replace: isFirstTime });
+	}, [isFirstTime, skipDestination, navigate]);
+
 	if (cameraError) {
 		return (
-			<div className="ui-page flex flex-col items-center justify-center gap-4 text-center">
+			<div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-gray-100 p-6 text-center">
 				<FaCamera className="text-5xl text-gray-300" />
 				<p className="font-medium text-red-600">{cameraError}</p>
 				<Button variant="secondary" onClick={() => navigate(-1)}>
@@ -348,16 +373,20 @@ const FaceRegistrationPage: React.FC = () => {
 		return strings.frameCounter(totalFrameCount, consts.TOTAL_FRAMES);
 	})();
 
+	const showSkip = isFirstTime && phase !== 'success' && phase !== 'submitting';
+
 	return (
-		<div className="flex h-full flex-col gap-4 p-6">
+		<div className="flex flex-col gap-4 bg-gray-100 p-6" style={{ height: '100dvh' }}>
 			{/* Header */}
 			<div className="flex shrink-0 items-center gap-3">
-				<button
-					onClick={() => navigate(-1)}
-					className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
-				>
-					<FaArrowLeft />
-				</button>
+				{!isFirstTime && (
+					<button
+						onClick={() => navigate(-1)}
+						className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+					>
+						<FaArrowLeft />
+					</button>
+				)}
 				<h1 className="flex items-center gap-2 text-2xl font-bold text-gray-800">
 					<MdFaceUnlock className="text-blue-600" />
 					{strings.pageTitle}
@@ -456,7 +485,7 @@ const FaceRegistrationPage: React.FC = () => {
 				</div>
 
 				{phase === 'success' && (
-					<Button variant="primary" size="md" onClick={() => navigate(isFirstTime ? skipDestination : -1 as never)}>
+					<Button variant="primary" size="md" onClick={handleDone}>
 						<FaCheck />
 						{strings.doneButton}
 					</Button>
@@ -467,13 +496,16 @@ const FaceRegistrationPage: React.FC = () => {
 						{strings.retryButton}
 					</Button>
 				)}
-				{isFirstTime && phase !== 'success' && phase !== 'submitting' && (
+				{showSkip && (
 					<button
 						data-testid="skip-button"
-						onClick={() => navigate(skipDestination, { replace: true })}
+						onClick={handleSkip}
 						className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
 					>
-						{strings.skipButton}
+						<span className="flex items-center gap-1">
+							<FaForward className="text-xs" />
+							{strings.skipButton}
+						</span>
 					</button>
 				)}
 			</div>

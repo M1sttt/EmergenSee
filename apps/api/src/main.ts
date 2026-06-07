@@ -6,10 +6,15 @@ import { setupSwagger } from './config/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors({
-    origin: process.env.CORS_ORIGIN?.split(',').map(o => o.trim()) ?? ['http://localhost:5173'],
-    credentials: true,
-  });
+  const corsOrigin = process.env.CORS_ORIGIN;
+  app.enableCors(
+    corsOrigin === '*'
+      ? { origin: true, credentials: true }
+      : {
+          origin: corsOrigin?.split(',').map(o => o.trim()) ?? ['http://localhost:5173'],
+          credentials: true,
+        },
+  );
 
   app.useGlobalPipes(
     new ValidationPipe({

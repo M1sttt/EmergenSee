@@ -24,5 +24,5 @@ export const MEDIAPIPE_WASM_URL =
 export const FACE_LANDMARKER_MODEL_URL =
 	'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
 
-export const RING_RADIUS = 42;
+export const RING_RADIUS = 36;
 export const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
