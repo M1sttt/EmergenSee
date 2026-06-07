@@ -12,6 +12,7 @@ export const defaultError = 'Something went wrong. Please try again.';
 export const modelLoadError = 'Failed to load face detection models. Check your connection and try again.';
 export const doneButton = 'Done';
 export const retryButton = 'Try Again';
+export const skipButton = 'Skip for now';
 export const cameraErrorMessage = 'Could not access camera. Please allow camera permissions and reload.';
 
 export const noFaceHint = 'No face detected — move into the light';

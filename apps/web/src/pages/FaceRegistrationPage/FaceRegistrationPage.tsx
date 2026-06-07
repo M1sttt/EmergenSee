@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 import { useAuthStore } from 'store/authStore';
 import { faceRecognitionService } from 'services/faceRecognitionService';
+import { usersService } from 'services/usersService';
 import { Button } from '@/components/ui';
 import { FaArrowLeft, FaCamera, FaCheck, FaRedo } from 'react-icons/fa';
 import { MdFaceUnlock } from 'react-icons/md';
@@ -133,7 +134,12 @@ function PhaseDots({ phase }: { phase: RegistrationPhase }) {
 
 const FaceRegistrationPage: React.FC = () => {
 	const navigate = useNavigate();
+	const location = useLocation();
 	const user = useAuthStore(state => state.user);
+	const updateUser = useAuthStore(state => state.updateUser);
+
+	const isFirstTime = location.state?.firstTime === true;
+	const skipDestination: string = location.state?.from ?? '/dashboard';
 
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -287,6 +293,8 @@ const FaceRegistrationPage: React.FC = () => {
 			if (!user) return;
 			try {
 				await faceRecognitionService.registerBatch(user.id, framesRef.current);
+				const updatedUser = await usersService.update(user.id, { faceIdentity: user.id });
+				updateUser(updatedUser);
 				if (isMountedRef.current) setPhase('success');
 			} catch (err) {
 				if (isMountedRef.current) {
@@ -296,7 +304,7 @@ const FaceRegistrationPage: React.FC = () => {
 			}
 		};
 		submit();
-	}, [phase, user]);
+	}, [phase, user, updateUser]);
 
 	const handleRetry = useCallback(() => {
 		framesRef.current = [];
@@ -448,7 +456,7 @@ const FaceRegistrationPage: React.FC = () => {
 				</div>
 
 				{phase === 'success' && (
-					<Button variant="primary" size="md" onClick={() => navigate(-1)}>
+					<Button variant="primary" size="md" onClick={() => navigate(isFirstTime ? skipDestination : -1 as never)}>
 						<FaCheck />
 						{strings.doneButton}
 					</Button>
@@ -458,6 +466,15 @@ const FaceRegistrationPage: React.FC = () => {
 						<FaRedo />
 						{strings.retryButton}
 					</Button>
+				)}
+				{isFirstTime && phase !== 'success' && phase !== 'submitting' && (
+					<button
+						data-testid="skip-button"
+						onClick={() => navigate(skipDestination, { replace: true })}
+						className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+					>
+						{strings.skipButton}
+					</button>
 				)}
 			</div>
 		</div>

@@ -23,6 +23,7 @@ export const updateUserSchema = z.object({
   status: userStatusSchema.optional(),
   phoneNumber: z.string().optional(),
   departments: z.array(z.string()).optional(),
+  faceIdentity: z.string().nullable().optional(),
 });
 
 export const loginSchema = z.object({
