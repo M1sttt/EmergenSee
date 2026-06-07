@@ -29,6 +29,12 @@ export interface FaceImagesResponse {
 	images: RegisteredFaceImage[];
 }
 
+export interface BatchRegisterResponse {
+	registered_as: string;
+	frames_accepted: number;
+	frames_rejected: number;
+}
+
 const FACE_API_URL = import.meta.env.VITE_FACE_API_URL || 'http://localhost:8000';
 
 const faceApi = axios.create({ baseURL: FACE_API_URL });
@@ -45,6 +51,16 @@ export const faceRecognitionService = {
 
 	getImages: async (identity: string): Promise<FaceImagesResponse> => {
 		const response = await faceApi.get<FaceImagesResponse>(`/api/v1/faces/${encodeURIComponent(identity)}/images`);
+		return response.data;
+	},
+
+	registerBatch: async (identity: string, frames: Blob[]): Promise<BatchRegisterResponse> => {
+		const formData = new FormData();
+		formData.append('name', identity);
+		frames.forEach((blob, i) => formData.append('images', blob, `frame_${i}.jpg`));
+		const response = await faceApi.post<BatchRegisterResponse>('/api/v1/faces/register/batch', formData, {
+			headers: { 'Content-Type': 'multipart/form-data' },
+		});
 		return response.data;
 	},
 };

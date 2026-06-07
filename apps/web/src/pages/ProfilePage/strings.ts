@@ -11,3 +11,8 @@ export const defaultErrorMessage = 'Failed to update profile';
 export const firstNameRequiredError = 'First name is required';
 export const lastNameRequiredError = 'Last name is required';
 export const passwordMinLengthError = 'Password must be at least 8 characters';
+
+export const faceIdSectionTitle = 'Face Recognition';
+export const faceIdSectionDescription =
+	'Register your face so EmergenSee cameras can identify you during emergencies.';
+export const registerFaceButton = 'Register Face';
