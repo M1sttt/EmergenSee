@@ -14,9 +14,10 @@ import { UsersService } from '../users/users.service';
 type EventSocketPayload = Event | EventDocument;
 type StatusSocketPayload = StatusUpdate | StatusUpdateDocument;
 
+const corsOrigin = process.env.CORS_ORIGIN;
 @WSGateway({
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    origin: corsOrigin === '*' ? true : corsOrigin?.split(',').map(o => o.trim()) ?? ['http://localhost:5173'],
     credentials: true,
   },
 })
