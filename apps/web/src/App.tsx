@@ -38,6 +38,22 @@ function CameraRoleGuard({ children }: { children: React.ReactNode }) {
 	return <>{children}</>;
 }
 
+function FaceRegistrationGuard({ children }: { children: React.ReactNode }) {
+	const user = useAuthStore(state => state.user);
+	const location = useLocation();
+
+	if (
+		user &&
+		user.role !== UserRole.CAMERA &&
+		!localStorage.getItem(`face-reg-done-${user.id}`) &&
+		location.pathname !== '/register-face'
+	) {
+		return <Navigate to="/register-face" replace state={{ onboarding: true }} />;
+	}
+
+	return <>{children}</>;
+}
+
 function App() {
 	return (
 		<Router>
@@ -53,11 +69,21 @@ function App() {
 					}
 				/>
 				<Route
+					path="/register-face"
+					element={
+						<ProtectedRoute>
+							<FaceRegistrationPage />
+						</ProtectedRoute>
+					}
+				/>
+				<Route
 					path="/"
 					element={
 						<ProtectedRoute>
 							<CameraRoleGuard>
-								<Layout />
+								<FaceRegistrationGuard>
+									<Layout />
+								</FaceRegistrationGuard>
 							</CameraRoleGuard>
 						</ProtectedRoute>
 					}
@@ -73,7 +99,6 @@ function App() {
 					<Route path="camera" element={<AdminRoute><CameraPage /></AdminRoute>} />
 					<Route path="admin/cameras" element={<AdminRoute><AdminCameraPage /></AdminRoute>} />
 					<Route path="profile" element={<ProfilePage />} />
-					<Route path="register-face" element={<FaceRegistrationPage />} />
 				</Route>
 			</Routes>
 		</Router>
