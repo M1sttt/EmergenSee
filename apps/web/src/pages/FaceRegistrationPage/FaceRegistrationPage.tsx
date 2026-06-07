@@ -333,8 +333,9 @@ const FaceRegistrationPage: React.FC = () => {
 	}, []);
 
 	const handleSkip = useCallback(() => {
+		if (user) localStorage.setItem(`face-reg-done-${user.id}`, '1');
 		navigate(skipDestination, { replace: true });
-	}, [navigate, skipDestination]);
+	}, [user, navigate, skipDestination]);
 
 	const handleDone = useCallback(() => {
 		navigate(isFirstTime ? skipDestination : -1 as never, { replace: isFirstTime });

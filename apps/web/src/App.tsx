@@ -45,10 +45,11 @@ function FaceRegistrationGuard({ children }: { children: React.ReactNode }) {
 	if (
 		user &&
 		user.role !== UserRole.CAMERA &&
+		!user.faceIdentity &&
 		!localStorage.getItem(`face-reg-done-${user.id}`) &&
 		location.pathname !== '/register-face'
 	) {
-		return <Navigate to="/register-face" replace state={{ onboarding: true }} />;
+		return <Navigate to="/register-face" replace state={{ firstTime: true }} />;
 	}
 
 	return <>{children}</>;
