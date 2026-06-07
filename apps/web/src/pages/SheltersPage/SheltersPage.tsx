@@ -313,9 +313,12 @@ const SheltersPage = () => {
 
 	const handleFindNearest = useCallback(() => {
 		if (!allShelters.length) { toast.warning(strings.noSheltersLoaded); return; }
-		if (userLocation) return;
+		if (userLocation) {
+			if (nearest) setFlyTarget({ latlng: nearest.latlng, zoom: 16 });
+			return;
+		}
 		requestLocation(() => {});
-	}, [allShelters, userLocation, requestLocation]);
+	}, [allShelters, userLocation, nearest, requestLocation]);
 
 	const handleCenterOnMe = useCallback(() => {
 		if (userLocation) setFlyTarget({ latlng: userLocation, zoom: 16 });

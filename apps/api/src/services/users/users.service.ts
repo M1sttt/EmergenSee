@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
@@ -126,36 +126,19 @@ export class UsersService {
 
   private readonly faceRecognitionUrl = process.env.FACE_RECOGNITION_URL || 'http://localhost:8000';
 
-  private async registerWithFaceService(userId: string, filePath: string, filename: string, mimeType: string): Promise<void> {
+  private async unregisterFromFaceService(identity: string): Promise<void> {
     try {
-      const formData = new FormData();
-      formData.append('name', userId);
-      const buffer = fs.readFileSync(filePath);
-      formData.append('image', new Blob([buffer], { type: mimeType }), filename);
-      const res = await fetch(`${this.faceRecognitionUrl}/api/v1/faces/register`, {
-        method: 'POST',
-        body: formData,
-      });
+      const res = await fetch(`${this.faceRecognitionUrl}/api/v1/faces/${encodeURIComponent(identity)}`, { method: 'DELETE' });
       if (!res.ok) {
         const text = await res.text();
-        console.warn(`Face recognition service error (${res.status}): ${text}`);
+        console.warn(`Face recognition unregister failed (${res.status}): ${text}`);
       }
     } catch (err: any) {
       console.warn('Face recognition service unreachable:', err.message);
     }
   }
 
-  private async unregisterFromFaceService(userId: string): Promise<void> {
-    try {
-      await fetch(`${this.faceRecognitionUrl}/api/v1/faces/${userId}`, { method: 'DELETE' });
-    } catch (err: any) {
-      console.warn('Face recognition service unreachable:', err.message);
-    }
-  }
-
-  async addFaceImage(id: string, filename: string, filePath: string, mimeType: string): Promise<UserDocument> {
-    await this.registerWithFaceService(id, filePath, filename, mimeType);
-
+  async addFaceImage(id: string, filename: string): Promise<UserDocument> {
     const user = await this.userModel
       .findByIdAndUpdate(id, { $push: { faceImages: filename } }, { new: true })
       .select('-password')
@@ -165,8 +148,9 @@ export class UsersService {
   }
 
   async removeFaceImage(id: string, filename: string): Promise<UserDocument> {
-    const filepath = path.join(process.cwd(), 'uploads', 'faces', filename);
-    if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
+    if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+      throw new BadRequestException('Invalid filename');
+    }
 
     const user = await this.userModel
       .findByIdAndUpdate(id, { $pull: { faceImages: filename } }, { new: true })
@@ -174,8 +158,11 @@ export class UsersService {
       .exec();
     if (!user) throw new NotFoundException(`User with ID ${id} not found`);
 
-    if ((user.faceImages ?? []).length === 0) {
-      await this.unregisterFromFaceService(id);
+    const filepath = path.join(process.cwd(), 'uploads', 'faces', filename);
+    if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
+
+    if ((user.faceImages ?? []).length === 0 && user.faceIdentity) {
+      await this.unregisterFromFaceService(user.faceIdentity);
     }
 
     return user;

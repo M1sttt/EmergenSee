@@ -10,6 +10,10 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+  Request,
+  StreamableFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -53,10 +57,14 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
-  @ApiOperation({ summary: 'Update user by id' })
+  @ApiOperation({ summary: 'Update user by id (admin or own profile)' })
   @ApiParam({ name: 'id', description: 'User id' })
+  @ApiResponse({ status: 403, description: 'Forbidden — must be admin or updating own profile.' })
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @Request() req: any) {
+    if (req.user.role !== UserRole.ADMIN && req.user.userId !== id) {
+      throw new ForbiddenException();
+    }
     return this.usersService.update(id, updateUserDto);
   }
 
@@ -70,10 +78,11 @@ export class UsersController {
     return this.usersService.remove(id);
   }
 
-  @ApiOperation({ summary: 'Upload a face image for a user' })
+  @ApiOperation({ summary: 'Upload a face image for a user (admin or own profile)' })
   @ApiParam({ name: 'id', description: 'User id' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({ schema: { type: 'object', properties: { image: { type: 'string', format: 'binary' } } } })
+  @ApiResponse({ status: 403, description: 'Forbidden — must be admin or uploading to own profile.' })
   @Post(':id/face-images')
   @UseInterceptors(
     FileInterceptor('image', {
@@ -97,16 +106,42 @@ export class UsersController {
       limits: { fileSize: 5 * 1024 * 1024 },
     }),
   )
-  uploadFaceImage(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
+  uploadFaceImage(@Param('id') id: string, @UploadedFile() file: Express.Multer.File, @Request() req: any) {
+    if (req.user.role !== UserRole.ADMIN && req.user.userId !== id) {
+      throw new ForbiddenException();
+    }
     if (!file) throw new BadRequestException('Image file is required');
-    return this.usersService.addFaceImage(id, file.filename, file.path, file.mimetype);
+    return this.usersService.addFaceImage(id, file.filename);
   }
 
-  @ApiOperation({ summary: 'Delete a face image for a user' })
+  @ApiOperation({ summary: 'Get a face image for a user (admin or own profile)' })
   @ApiParam({ name: 'id', description: 'User id' })
   @ApiParam({ name: 'filename', description: 'Image filename' })
+  @ApiResponse({ status: 403, description: 'Forbidden — must be admin or accessing own image.' })
+  @Get(':id/face-images/:filename')
+  getFaceImage(@Param('id') id: string, @Param('filename') filename: string, @Request() req: any): StreamableFile {
+    if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+      throw new BadRequestException('Invalid filename');
+    }
+    if (req.user.role !== UserRole.ADMIN && req.user.userId !== id) {
+      throw new ForbiddenException();
+    }
+    const filePath = path.join(process.cwd(), 'uploads', 'faces', filename);
+    if (!fs.existsSync(filePath)) throw new NotFoundException('Image not found');
+    const ext = extname(filename).slice(1).toLowerCase();
+    const mimeTypes: Record<string, string> = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
+    return new StreamableFile(fs.createReadStream(filePath), { type: mimeTypes[ext] ?? 'application/octet-stream' });
+  }
+
+  @ApiOperation({ summary: 'Delete a face image for a user (admin or own profile)' })
+  @ApiParam({ name: 'id', description: 'User id' })
+  @ApiParam({ name: 'filename', description: 'Image filename' })
+  @ApiResponse({ status: 403, description: 'Forbidden — must be admin or deleting own image.' })
   @Delete(':id/face-images/:filename')
-  deleteFaceImage(@Param('id') id: string, @Param('filename') filename: string) {
+  deleteFaceImage(@Param('id') id: string, @Param('filename') filename: string, @Request() req: any) {
+    if (req.user.role !== UserRole.ADMIN && req.user.userId !== id) {
+      throw new ForbiddenException();
+    }
     return this.usersService.removeFaceImage(id, filename);
   }
 }

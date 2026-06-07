@@ -1,14 +1,41 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuthStore } from 'store/authStore';
 import { usersService } from 'services/usersService';
+import { api } from 'services/api';
 import { Button, FieldError, Input, Label } from '@/components/ui';
 import { FiUpload, FiTrash2, FiUser } from 'react-icons/fi';
 import * as strings from './strings';
 import * as consts from './consts';
 import * as utils from './utils';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+function FaceImageThumb({ userId, filename, onDelete }: { userId: string; filename: string; onDelete: () => void }) {
+	const [src, setSrc] = useState<string | null>(null);
+
+	useEffect(() => {
+		let objectUrl: string | null = null;
+		api.get(`/users/${userId}/face-images/${encodeURIComponent(filename)}`, { responseType: 'blob' })
+			.then(res => { objectUrl = URL.createObjectURL(res.data as Blob); setSrc(objectUrl); })
+			.catch(() => setSrc(null));
+		return () => { if (objectUrl) URL.revokeObjectURL(objectUrl); };
+	}, [userId, filename]);
+
+	return (
+		<div className="group relative aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+			{src
+				? <img src={src} alt="Face" className="h-full w-full object-cover" />
+				: <div className="h-full w-full flex items-center justify-center"><FiUser size={24} className="text-gray-300" /></div>
+			}
+			<button
+				onClick={onDelete}
+				className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity"
+				title="Remove photo"
+			>
+				<FiTrash2 className="text-white" size={20} />
+			</button>
+		</div>
+	);
+}
 
 type ProfileFormData = {
 	firstName: string;
@@ -175,20 +202,12 @@ const ProfilePage = () => {
 
 					<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
 						{faceImages.map(filename => (
-							<div key={filename} className="group relative aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
-								<img
-									src={`${API_URL}/uploads/faces/${filename}`}
-									alt="Face"
-									className="h-full w-full object-cover"
-								/>
-								<button
-									onClick={() => handleDeleteImage(filename)}
-									className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity"
-									title="Remove photo"
-								>
-									<FiTrash2 className="text-white" size={20} />
-								</button>
-							</div>
+							<FaceImageThumb
+								key={filename}
+								userId={user!.id}
+								filename={filename}
+								onDelete={() => handleDeleteImage(filename)}
+							/>
 						))}
 
 						{faceImages.length < 5 && (
