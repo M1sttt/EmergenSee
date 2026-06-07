@@ -40,6 +40,70 @@ async function injectAuth(page: Page): Promise<void> {
 	}, MOCK_USER);
 }
 
+const MOCK_USER_WITH_FACE = { ...MOCK_USER, faceIdentity: MOCK_USER.id };
+
+async function injectAuthWithFace(page: Page): Promise<void> {
+	await page.addInitScript((user) => {
+		localStorage.setItem(
+			'auth-storage',
+			JSON.stringify({
+				state: {
+					user,
+					accessToken: 'mock-access-token',
+					refreshToken: 'mock-refresh-token',
+					isAuthenticated: true,
+				},
+				version: 0,
+			}),
+		);
+	}, MOCK_USER_WITH_FACE);
+}
+
+test.describe('face registration guard redirect', () => {
+	test('user with faceIdentity set is not redirected away from /dashboard', async ({ page }) => {
+		await injectAuthWithFace(page);
+		await page.route('**/*', route => {
+			if (route.request().resourceType() === 'fetch' || route.request().resourceType() === 'xhr') {
+				return route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
+			}
+			return route.continue();
+		});
+
+		await page.goto('/dashboard');
+		await page.waitForLoadState('networkidle');
+
+		await expect(page).not.toHaveURL(/register-face/);
+		await expect(page).toHaveURL(/dashboard/);
+	});
+
+	test('skipping face registration sets localStorage and prevents redirect loop', async ({ page }) => {
+		await mockCamera(page);
+		await injectAuth(page);
+		await page.route(/cdn\.jsdelivr\.net|storage\.googleapis\.com/, route => route.abort());
+		await page.route('**/*', route => {
+			if (route.request().resourceType() === 'fetch' || route.request().resourceType() === 'xhr') {
+				return route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
+			}
+			return route.continue();
+		});
+
+		await page.goto('/login');
+		await page.waitForURL('**/register-face');
+
+		await page.getByTestId('skip-button').click();
+
+		const storedValue = await page.evaluate((userId) =>
+			localStorage.getItem(`face-reg-done-${userId}`),
+			MOCK_USER.id,
+		);
+		expect(storedValue).toBe('1');
+
+		await page.goto('/dashboard');
+		await page.waitForLoadState('networkidle');
+		await expect(page).not.toHaveURL(/register-face/);
+	});
+});
+
 test.describe('face registration skip button', () => {
 	test.beforeEach(async ({ context }) => {
 		await context.grantPermissions(['camera']);
