@@ -64,9 +64,6 @@ export class User {
   @Prop({ default: null })
   faceIdentity?: string | null;
 
-
-  faceImages?: string[];
-  @Prop({ type: [String], default: [] })
   @Prop()
   createdAt: Date;
 
