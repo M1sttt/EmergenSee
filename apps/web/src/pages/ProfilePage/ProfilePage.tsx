@@ -6,7 +6,6 @@ import { usersService } from 'services/usersService';
 import { api } from 'services/api';
 import { Button, FieldError, Input, Label } from '@/components/ui';
 import { FiUpload, FiTrash2, FiUser } from 'react-icons/fi';
-import { toast } from 'sonner';
 import { MdFaceUnlock } from 'react-icons/md';
 import * as strings from './strings';
 import * as consts from './consts';
