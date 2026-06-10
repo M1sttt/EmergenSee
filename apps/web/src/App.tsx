@@ -12,6 +12,7 @@ import EmergencyReportPage from 'pages/EmergencyReportPage';
 import CameraPage from 'pages/CameraPage';
 import CameraStationPage from 'pages/CameraStationPage';
 import AdminCameraPage from 'pages/AdminCameraPage';
+import FaceRegistrationPage from 'pages/FaceRegistrationPage';
 import SheltersPage from 'pages/SheltersPage';
 import Layout from 'components/Layout';
 import { Toaster } from 'sonner';
@@ -37,6 +38,23 @@ function CameraRoleGuard({ children }: { children: React.ReactNode }) {
 	return <>{children}</>;
 }
 
+function FaceRegistrationGuard({ children }: { children: React.ReactNode }) {
+	const user = useAuthStore(state => state.user);
+	const location = useLocation();
+
+	if (
+		user &&
+		user.role !== UserRole.CAMERA &&
+		!user.faceIdentity &&
+		!localStorage.getItem(`face-reg-done-${user.id}`) &&
+		location.pathname !== '/register-face'
+	) {
+		return <Navigate to="/register-face" replace state={{ firstTime: true }} />;
+	}
+
+	return <>{children}</>;
+}
+
 function App() {
 	return (
 		<Router>
@@ -52,11 +70,21 @@ function App() {
 					}
 				/>
 				<Route
+					path="/register-face"
+					element={
+						<ProtectedRoute>
+							<FaceRegistrationPage />
+						</ProtectedRoute>
+					}
+				/>
+				<Route
 					path="/"
 					element={
 						<ProtectedRoute>
 							<CameraRoleGuard>
-								<Layout />
+								<FaceRegistrationGuard>
+									<Layout />
+								</FaceRegistrationGuard>
 							</CameraRoleGuard>
 						</ProtectedRoute>
 					}

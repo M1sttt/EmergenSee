@@ -1,7 +1,7 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { LoginDto, RegisterDto } from '@emergensee/shared';
+import { LoginDto, RegisterDto, User, UserRole } from '@emergensee/shared';
 import { FaCamera } from 'react-icons/fa';
 import { authService } from 'services/authService';
 import { useAuthStore } from 'store/authStore';
@@ -31,6 +31,16 @@ export default function LoginPage() {
 	const gsiContainerRef = useRef<HTMLDivElement>(null);
 	const redirectPath = location.state?.from?.pathname || consts.defaultNextRoute;
 
+	const getPostLoginDestination = useMemo(
+		() => (user: User) => {
+			if (!user.faceIdentity && user.role !== UserRole.CAMERA) {
+				return { path: '/register-face', state: { firstTime: true, from: redirectPath } };
+			}
+			return { path: redirectPath, state: undefined };
+		},
+		[redirectPath],
+	);
+
 	const handleGoogleCredential = useCallback(
 		async (credential: string) => {
 			setIsLoading(true);
@@ -39,7 +49,8 @@ export default function LoginPage() {
 				const response = await authService.loginWithGoogleToken(credential);
 				setAuth(response.user, response.accessToken, response.refreshToken);
 				toast.success(strings.googleSignInSuccess);
-				navigate(redirectPath, { replace: true });
+				const dest = getPostLoginDestination(response.user);
+				navigate(dest.path, { replace: true, state: dest.state });
 			} catch (err: unknown) {
 				setError(utils.extractErrorMessage(err, strings.googleSignInFailed));
 				toast.error(strings.googleSignInFailed);
@@ -47,7 +58,7 @@ export default function LoginPage() {
 				setIsLoading(false);
 			}
 		},
-		[navigate, redirectPath, setAuth],
+		[navigate, setAuth, getPostLoginDestination],
 	);
 
 	useGoogleGSI(gsiContainerRef, handleGoogleCredential);
@@ -69,7 +80,8 @@ export default function LoginPage() {
 			utils.saveCredentials(data.email, data.password);
 			setAuth(response.user, response.accessToken, response.refreshToken);
 			toast.success(strings.loginSuccess);
-			navigate(redirectPath, { replace: true });
+			const dest = getPostLoginDestination(response.user);
+			navigate(dest.path, { replace: true, state: dest.state });
 		} catch (err: unknown) {
 			setError(utils.extractErrorMessage(err, strings.loginFailed));
 			toast.error(strings.loginFailed);
@@ -88,7 +100,8 @@ export default function LoginPage() {
 			utils.saveCredentials(data.email, data.password);
 			setAuth(response.user, response.accessToken, response.refreshToken);
 			toast.success(strings.registrationSuccess);
-			navigate(redirectPath, { replace: true });
+			const dest = getPostLoginDestination(response.user);
+			navigate(dest.path, { replace: true, state: dest.state });
 		} catch (err: unknown) {
 			setError(utils.extractErrorMessage(err, strings.registrationFailed));
 			toast.error(strings.registrationFailed);

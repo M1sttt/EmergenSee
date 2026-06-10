@@ -16,6 +16,7 @@ export default defineConfig({
     },
   },
   server: {
+    host: true,
     port: 5173,
     headers: {
       // Required by Google Identity Services to allow the sign-in popup

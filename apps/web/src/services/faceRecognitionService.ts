@@ -65,16 +65,17 @@ export const faceRecognitionService = {
 		const response = await faceApi.post<RegisterResponse>('/api/v1/faces/register', fd);
 		return response.data;
 	},
-
-	registerBatch: async (name: string, blobs: Blob[]): Promise<BatchRegisterResponse> => {
-		const fd = new FormData();
-		blobs.forEach((b, i) => fd.append('images', b, `frame_${i}.jpg`));
-		fd.append('name', name);
-		const response = await faceApi.post<BatchRegisterResponse>('/api/v1/faces/register/batch', fd);
-		return response.data;
-	},
-
 	deleteFace: async (identity: string): Promise<void> => {
 		await faceApi.delete(`/api/v1/faces/${encodeURIComponent(identity)}`);
+	},
+
+	registerBatch: async (identity: string, frames: Blob[]): Promise<BatchRegisterResponse> => {
+		const formData = new FormData();
+		formData.append('name', identity);
+		frames.forEach((blob, i) => formData.append('images', blob, `frame_${i}.jpg`));
+		const response = await faceApi.post<BatchRegisterResponse>('/api/v1/faces/register/batch', formData, {
+			headers: { 'Content-Type': 'multipart/form-data' },
+		});
+		return response.data;
 	},
 };

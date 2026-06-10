@@ -101,6 +101,6 @@ export class UpdateUserDto {
 
     @IsString()
     @IsOptional()
-    @ApiProperty({ description: 'Face recognition identity slug (set by face registration flow)', required: false, example: 'john_doe' })
-    faceIdentity?: string;
+    @ApiProperty({ description: 'Face identity reference ID', required: false, nullable: true })
+    faceIdentity?: string | null;
 }
