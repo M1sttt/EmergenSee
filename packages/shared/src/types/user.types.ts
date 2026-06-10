@@ -22,7 +22,7 @@ export interface User {
   departments?: string[];
   location?: string;
   cameraCode?: string;
-  faceIdentity?: string;
+  faceIdentity?: string | null;
   faceImages?: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -48,7 +48,7 @@ export interface UpdateUserDto {
   phoneNumber?: string;
   departments?: string[];
   location?: string;
-  faceIdentity?: string;
+  faceIdentity?: string | null;
 }
 
 export interface LoginDto {
