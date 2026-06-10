@@ -28,6 +28,8 @@ import { CreateUserDto, UpdateUserDto } from './users.dto';
 import * as fs from 'fs';
 import * as path from 'path';
 
+type AuthedRequest = { user: { userId: string; email: string; role: string } };
+
 @ApiTags('Users')
 @ApiBearerAuth('access-token')
 @Controller('users')
@@ -61,7 +63,7 @@ export class UsersController {
   @ApiParam({ name: 'id', description: 'User id' })
   @ApiResponse({ status: 403, description: 'Forbidden — must be admin or updating own profile.' })
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @Request() req: any) {
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @Request() req: AuthedRequest) {
     if (req.user.role !== UserRole.ADMIN && req.user.userId !== id) {
       throw new ForbiddenException();
     }
@@ -106,7 +108,7 @@ export class UsersController {
       limits: { fileSize: 5 * 1024 * 1024 },
     }),
   )
-  uploadFaceImage(@Param('id') id: string, @UploadedFile() file: Express.Multer.File, @Request() req: any) {
+  uploadFaceImage(@Param('id') id: string, @UploadedFile() file: Express.Multer.File, @Request() req: AuthedRequest) {
     if (req.user.role !== UserRole.ADMIN && req.user.userId !== id) {
       throw new ForbiddenException();
     }
@@ -119,7 +121,7 @@ export class UsersController {
   @ApiParam({ name: 'filename', description: 'Image filename' })
   @ApiResponse({ status: 403, description: 'Forbidden — must be admin or accessing own image.' })
   @Get(':id/face-images/:filename')
-  getFaceImage(@Param('id') id: string, @Param('filename') filename: string, @Request() req: any): StreamableFile {
+  getFaceImage(@Param('id') id: string, @Param('filename') filename: string, @Request() req: AuthedRequest): StreamableFile {
     if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
       throw new BadRequestException('Invalid filename');
     }
@@ -138,7 +140,7 @@ export class UsersController {
   @ApiParam({ name: 'filename', description: 'Image filename' })
   @ApiResponse({ status: 403, description: 'Forbidden — must be admin or deleting own image.' })
   @Delete(':id/face-images/:filename')
-  deleteFaceImage(@Param('id') id: string, @Param('filename') filename: string, @Request() req: any) {
+  deleteFaceImage(@Param('id') id: string, @Param('filename') filename: string, @Request() req: AuthedRequest) {
     if (req.user.role !== UserRole.ADMIN && req.user.userId !== id) {
       throw new ForbiddenException();
     }

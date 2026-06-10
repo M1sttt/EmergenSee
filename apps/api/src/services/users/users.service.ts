@@ -133,8 +133,8 @@ export class UsersService {
         const text = await res.text();
         console.warn(`Face recognition unregister failed (${res.status}): ${text}`);
       }
-    } catch (err: any) {
-      console.warn('Face recognition service unreachable:', err.message);
+    } catch (err: unknown) {
+      console.warn('Face recognition service unreachable:', (err as Error).message);
     }
   }
 

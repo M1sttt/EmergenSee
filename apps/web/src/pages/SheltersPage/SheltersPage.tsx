@@ -307,7 +307,7 @@ const SheltersPage = () => {
 	useEffect(() => {
 		if (!hasAutoLocated.current) {
 			hasAutoLocated.current = true;
-			requestLocation(() => {});
+			setTimeout(() => requestLocation(() => {}), 0);
 		}
 	}, [requestLocation]);
 
@@ -317,17 +317,16 @@ const SheltersPage = () => {
 			if (nearest) setFlyTarget({ latlng: nearest.latlng, zoom: 16 });
 			return;
 		}
-		requestLocation(() => {});
-	}, [allShelters, userLocation, nearest, requestLocation]);
+		requestLocation(latlng => {
+			const found = findNearestShelter(latlng, shelters);
+			if (found) setFlyTarget({ latlng: found.latlng, zoom: 16 });
+		});
+	}, [allShelters, userLocation, nearest, shelters, requestLocation]);
 
 	const handleCenterOnMe = useCallback(() => {
 		if (userLocation) setFlyTarget({ latlng: userLocation, zoom: 16 });
 		else requestLocation(latlng => setFlyTarget({ latlng, zoom: 16 }));
 	}, [userLocation, requestLocation]);
-
-	useEffect(() => {
-		if (nearest) setFlyTarget({ latlng: nearest.latlng, zoom: 16 });
-	}, [nearest]);
 
 	const toggleCategory = useCallback((cat: ShelterCategory) => {
 		setActiveCategories(prev => {
