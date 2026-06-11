@@ -146,6 +146,8 @@ const FaceRegistrationPage: React.FC = () => {
 	const landmarkerRef = useRef<FaceLandmarker | null>(null);
 	const framesRef = useRef<Blob[]>([]);
 	const phaseFrameCountRef = useRef(0);
+	const stableTicksRef = useRef(0);
+	const lastCaptureAtRef = useRef(0);
 	const isDetectingRef = useRef(false);
 	const isCapturingRef = useRef(false);
 	const isMountedRef = useRef(true);
@@ -267,11 +269,26 @@ const FaceRegistrationPage: React.FC = () => {
 
 		isDetectingRef.current = false;
 
-		if (!faceFound) { setFaceStatus('none'); return; }
-		if (!poseOk)    { setFaceStatus('detected'); return; }
+		if (!faceFound) { stableTicksRef.current = 0; setFaceStatus('none'); return; }
+		if (!poseOk)    { stableTicksRef.current = 0; setFaceStatus('detected'); return; }
+
+		// Pose must be held steady before capturing starts
+		stableTicksRef.current += 1;
+		if (stableTicksRef.current < consts.POSE_STABLE_TICKS) {
+			setFaceStatus('detected');
+			return;
+		}
+
+		// Space captures out so frames are distinct across the held pose
+		const now = performance.now();
+		if (now - lastCaptureAtRef.current < consts.MIN_CAPTURE_GAP_MS) {
+			setFaceStatus('capturing');
+			return;
+		}
 
 		// Correct pose — capture
 		setFaceStatus('capturing');
+		lastCaptureAtRef.current = now;
 		isCapturingRef.current = true;
 
 		const canvas = canvasRef.current;
@@ -299,6 +316,8 @@ const FaceRegistrationPage: React.FC = () => {
 	useEffect(() => {
 		if (!isCapturingPhase(phase)) return;
 		phaseFrameCountRef.current = 0;
+		stableTicksRef.current = 0;
+		lastCaptureAtRef.current = 0;
 		const interval = setInterval(detectAndCapture, consts.DETECTION_INTERVAL_MS);
 		return () => clearInterval(interval);
 	}, [phase, detectAndCapture]);
