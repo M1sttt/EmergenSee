@@ -5,7 +5,7 @@ import { useAuthStore } from 'store/authStore';
 import { faceRecognitionService } from 'services/faceRecognitionService';
 import { usersService } from 'services/usersService';
 import { Button } from '@/components/ui';
-import { FaArrowLeft, FaCamera, FaCheck, FaRedo, FaForward } from 'react-icons/fa';
+import { FaArrowLeft, FaArrowRight, FaCamera, FaCheck, FaRedo, FaForward } from 'react-icons/fa';
 import { MdFaceUnlock } from 'react-icons/md';
 import * as consts from './consts';
 import type { FaceStatus, RegistrationPhase } from './consts';
@@ -105,23 +105,32 @@ function RegistrationOverlay({ phase, faceStatus, progress }: RegistrationOverla
 
 function PhaseDots({ phase }: { phase: RegistrationPhase }) {
 	const phaseNum = getPhaseNumber(phase);
-	const allDone = phase === 'submitting' || phase === 'success' || phase === 'error';
+	const allDone = phase === 'review' || phase === 'submitting' || phase === 'success' || phase === 'error';
 	return (
-		<div className="flex items-center gap-3">
-			{[1, 2, 3].map(n => {
+		<div className="flex items-start gap-5">
+			{strings.phaseDotLabels.map((label, i) => {
+				const n = i + 1;
 				const completed = allDone || (phaseNum !== null && n < phaseNum);
 				const active = phaseNum === n;
 				return (
-					<div
-						key={n}
-						className={`rounded-full transition-all duration-300 ${
-							completed
-								? 'h-2.5 w-2.5 bg-green-500'
-								: active
-								? 'h-3 w-3 animate-pulse bg-blue-500'
-								: 'h-2.5 w-2.5 bg-gray-300'
-						}`}
-					/>
+					<div key={n} className="flex flex-col items-center gap-1">
+						<div
+							className={`rounded-full transition-all duration-300 ${
+								completed
+									? 'h-2.5 w-2.5 bg-green-500'
+									: active
+									? 'h-3 w-3 animate-pulse bg-blue-500'
+									: 'h-2.5 w-2.5 bg-gray-300'
+							}`}
+						/>
+						<span
+							className={`text-[10px] font-medium ${
+								completed ? 'text-green-600' : active ? 'text-blue-600' : 'text-gray-400'
+							}`}
+						>
+							{label}
+						</span>
+					</div>
 				);
 			})}
 		</div>
@@ -144,7 +153,7 @@ const FaceRegistrationPage: React.FC = () => {
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const landmarkerRef = useRef<FaceLandmarker | null>(null);
-	const framesRef = useRef<Blob[]>([]);
+	const framesRef = useRef<{ blob: Blob; phaseNum: number }[]>([]);
 	const phaseFrameCountRef = useRef(0);
 	const stableTicksRef = useRef(0);
 	const lastCaptureAtRef = useRef(0);
@@ -159,6 +168,7 @@ const FaceRegistrationPage: React.FC = () => {
 	const [totalFrameCount, setTotalFrameCount] = useState(0);
 	const [cameraError, setCameraError] = useState<string | null>(null);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+	const [reviewFrames, setReviewFrames] = useState<{ url: string; phaseNum: number }[]>([]);
 
 	useEffect(() => {
 		isMountedRef.current = true;
@@ -233,7 +243,7 @@ const FaceRegistrationPage: React.FC = () => {
 		setPhase(prev => {
 			if (prev === 'phase1') return 'phase2';
 			if (prev === 'phase2') return 'phase3';
-			if (prev === 'phase3') return 'submitting';
+			if (prev === 'phase3') return 'review';
 			return prev;
 		});
 	}, []);
@@ -298,7 +308,7 @@ const FaceRegistrationPage: React.FC = () => {
 			canvas.getContext('2d')?.drawImage(video, 0, 0);
 			const blob = await new Promise<Blob | null>(r => canvas.toBlob(r, 'image/jpeg', 0.85));
 			if (blob && isMountedRef.current) {
-				framesRef.current.push(blob);
+				framesRef.current.push({ blob, phaseNum: getPhaseNumber(currentPhase) ?? 0 });
 				phaseFrameCountRef.current += 1;
 				setTotalFrameCount(c => c + 1);
 				if (phaseFrameCountRef.current >= consts.FRAMES_PER_PHASE) {
@@ -322,13 +332,21 @@ const FaceRegistrationPage: React.FC = () => {
 		return () => clearInterval(interval);
 	}, [phase, detectAndCapture]);
 
-	// Submit batch once all phases complete
+	// Build preview URLs for the review popup, revoke them when leaving it
+	useEffect(() => {
+		if (phase !== 'review') return;
+		const frames = framesRef.current.map(f => ({ url: URL.createObjectURL(f.blob), phaseNum: f.phaseNum }));
+		setReviewFrames(frames);
+		return () => frames.forEach(f => URL.revokeObjectURL(f.url));
+	}, [phase]);
+
+	// Submit batch once the user accepts the review
 	useEffect(() => {
 		if (phase !== 'submitting') return;
 		const submit = async () => {
 			if (!user) return;
 			try {
-				await faceRecognitionService.registerBatch(user.id, framesRef.current);
+				await faceRecognitionService.registerBatch(user.id, framesRef.current.map(f => f.blob));
 				const updatedUser = await usersService.update(user.id, { faceIdentity: user.id });
 				updateUser(updatedUser);
 				if (isMountedRef.current) setPhase('success');
@@ -348,7 +366,12 @@ const FaceRegistrationPage: React.FC = () => {
 		setTotalFrameCount(0);
 		setFaceStatus('none');
 		setErrorMessage(null);
+		setReviewFrames([]);
 		setPhase('phase1');
+	}, []);
+
+	const handleAccept = useCallback(() => {
+		setPhase('submitting');
 	}, []);
 
 	const handleSkip = useCallback(() => {
@@ -380,6 +403,7 @@ const FaceRegistrationPage: React.FC = () => {
 			case 'phase1':     return strings.phase1Instruction;
 			case 'phase2':     return strings.phase2Instruction;
 			case 'phase3':     return strings.phase3Instruction;
+			case 'review':     return strings.reviewInstruction;
 			case 'submitting': return strings.submittingInstruction;
 			case 'success':    return strings.successSubtitle;
 			case 'error':      return errorMessage ?? strings.defaultError;
@@ -393,7 +417,7 @@ const FaceRegistrationPage: React.FC = () => {
 		return strings.frameCounter(totalFrameCount, consts.TOTAL_FRAMES);
 	})();
 
-	const showSkip = isFirstTime && phase !== 'success' && phase !== 'submitting';
+	const showSkip = isFirstTime && phase !== 'success' && phase !== 'submitting' && phase !== 'review';
 
 	return (
 		<div className="flex flex-col gap-4 bg-gray-100 p-6" style={{ height: '100dvh' }}>
@@ -431,6 +455,11 @@ const FaceRegistrationPage: React.FC = () => {
 				<RegistrationOverlay phase={phase} faceStatus={faceStatus} progress={progress} />
 				<canvas ref={canvasRef} className="hidden" />
 
+				{/* Shutter flash — remounts on every captured frame to replay the animation */}
+				{totalFrameCount > 0 && isCapturingPhase(phase) && (
+					<div key={totalFrameCount} className="pointer-events-none absolute inset-0 animate-shutter-flash bg-white" />
+				)}
+
 				{/* Loading overlay */}
 				{phase === 'loading' && (
 					<div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-950">
@@ -457,6 +486,46 @@ const FaceRegistrationPage: React.FC = () => {
 					</div>
 				)}
 
+				{/* Review popup — accept or retake the captured frames */}
+				{phase === 'review' && (
+					<div className="absolute inset-0 z-10 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+						<div className="flex w-full max-w-md flex-col gap-4 rounded-2xl bg-white p-5 shadow-2xl">
+							<div>
+								<h2 className="text-lg font-bold text-gray-800">{strings.reviewTitle}</h2>
+								<p className="text-sm text-gray-500">{strings.reviewInstruction}</p>
+							</div>
+							{strings.phaseDotLabels.map((label, i) => (
+								<div key={label} className="flex items-center gap-3">
+									<span className="w-10 shrink-0 text-xs font-semibold text-gray-500">{label}</span>
+									<div className="flex flex-1 gap-2 overflow-x-auto">
+										{reviewFrames
+											.filter(f => f.phaseNum === i + 1)
+											.map(f => (
+												<img
+													key={f.url}
+													src={f.url}
+													alt={label}
+													className="h-14 w-14 shrink-0 rounded-lg object-cover"
+													style={{ transform: 'scaleX(-1)' }}
+												/>
+											))}
+									</div>
+								</div>
+							))}
+							<div className="flex gap-3">
+								<Button variant="secondary" size="md" className="flex-1" onClick={handleRetry}>
+									<FaRedo />
+									{strings.reviewRetakeButton}
+								</Button>
+								<Button variant="primary" size="md" className="flex-1" onClick={handleAccept}>
+									<FaCheck />
+									{strings.reviewAcceptButton}
+								</Button>
+							</div>
+						</div>
+					</div>
+				)}
+
 				{/* Live status badge */}
 				{isCapturingPhase(phase) && (
 					<div className="absolute left-3 top-3 flex items-center gap-2 rounded-full bg-black/50 px-3 py-1.5 backdrop-blur-sm">
@@ -479,12 +548,14 @@ const FaceRegistrationPage: React.FC = () => {
 				<PhaseDots phase={phase} />
 
 				<div className="text-center">
-					<p className={`text-base font-medium ${
+					<p className={`flex items-center justify-center gap-2 text-base font-medium ${
 						phase === 'success' ? 'text-green-700' :
 						phase === 'error'   ? 'text-red-600'   :
 						'text-gray-700'
 					}`}>
+						{phase === 'phase2' && <FaArrowLeft className="animate-pulse text-blue-500" />}
 						{instructionText}
+						{phase === 'phase3' && <FaArrowRight className="animate-pulse text-blue-500" />}
 					</p>
 					{hintText && (
 						<p className={`mt-1 text-sm ${

@@ -3,6 +3,7 @@ export type RegistrationPhase =
 	| 'phase1'
 	| 'phase2'
 	| 'phase3'
+	| 'review'
 	| 'submitting'
 	| 'success'
 	| 'error';
