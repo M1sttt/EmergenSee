@@ -15,6 +15,13 @@ export const retryButton = 'Try Again';
 export const skipButton = 'Skip for Now';
 export const cameraErrorMessage = 'Could not access camera. Please allow camera permissions and reload.';
 
+export const phaseDotLabels = ['Front', 'Left', 'Right'];
+
+export const reviewTitle = 'Review Your Captures';
+export const reviewInstruction = 'Check that your face is clear in every frame.';
+export const reviewAcceptButton = 'Looks Good';
+export const reviewRetakeButton = 'Retake';
+
 export const noFaceHint = 'No face detected — move into the light';
 export const wrongPoseHint = 'Adjust your position…';
 export const frameCounter = (n: number, total: number) => `${n} / ${total} frames`;

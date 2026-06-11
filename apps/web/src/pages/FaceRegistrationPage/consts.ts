@@ -3,6 +3,7 @@ export type RegistrationPhase =
 	| 'phase1'
 	| 'phase2'
 	| 'phase3'
+	| 'review'
 	| 'submitting'
 	| 'success'
 	| 'error';
@@ -18,6 +19,12 @@ export const MIN_FACE_CONFIDENCE = 0.65;
 export const POSE_STRAIGHT_MAX = 0.12;
 export const POSE_TURN_MIN = 0.18;
 export const PHASE_COMPLETE_DELAY_MS = 350;
+// Pose must stay valid for this many consecutive detection ticks before the
+// first capture, so transitional (mid-turn) frames are never recorded.
+export const POSE_STABLE_TICKS = 3;
+// Minimum spacing between captured frames within a phase, so the frames are
+// distinct rather than near-duplicates grabbed back-to-back.
+export const MIN_CAPTURE_GAP_MS = 400;
 
 export const MEDIAPIPE_WASM_URL =
 	'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm';

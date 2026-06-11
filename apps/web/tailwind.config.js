@@ -17,6 +17,15 @@ export default {
           900: '#1e3a8a',
         },
       },
+      keyframes: {
+        'shutter-flash': {
+          '0%': { opacity: '0.85' },
+          '100%': { opacity: '0' },
+        },
+      },
+      animation: {
+        'shutter-flash': 'shutter-flash 0.35s ease-out forwards',
+      },
     },
   },
   plugins: [],
