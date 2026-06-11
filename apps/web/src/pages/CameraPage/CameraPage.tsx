@@ -12,7 +12,7 @@ import {
 import { MdFaceUnlock } from 'react-icons/md';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCameraEventsQuery, useCameraStatusMutation, useCameraStatusQuery, useCameraUsersQuery, CAMERA_QUERY_KEYS } from 'hooks/data/useCameraPageData';
-import { faceRecognitionService } from 'services/faceRecognitionService';
+import { recognizeWithCache } from 'services/faceRecognitionCache';
 import { getEntityId } from '@/types/entities';
 import * as consts from './consts';
 import * as strings from './strings';
@@ -210,10 +210,8 @@ const CameraPage: React.FC = () => {
 			canvas.width = video.videoWidth;
 			canvas.height = video.videoHeight;
 			canvas.getContext('2d')?.drawImage(video, 0, 0);
-			const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.85));
-			if (!blob) return;
-
-			const result = await faceRecognitionService.recognize(blob);
+			const result = await recognizeWithCache(canvas);
+			if (!result) return;
 			setSuggestions(prev => {
 				const next = [...prev];
 				for (const r of result.results) {

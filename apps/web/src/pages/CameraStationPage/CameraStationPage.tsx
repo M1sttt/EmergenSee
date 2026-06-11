@@ -4,7 +4,7 @@ import { FaCheck, FaShieldAlt, FaTimes, FaUserCircle, FaCamera } from 'react-ico
 import { MdFaceUnlock } from 'react-icons/md';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from 'store/authStore';
-import { faceRecognitionService } from 'services/faceRecognitionService';
+import { recognizeWithCache } from 'services/faceRecognitionCache';
 import { websocketService } from 'services/websocketService';
 import { getEntityId } from '@/types/entities';
 import {
@@ -186,10 +186,8 @@ const CameraStationPage: React.FC = () => {
 			canvas.width = video.videoWidth;
 			canvas.height = video.videoHeight;
 			canvas.getContext('2d')?.drawImage(video, 0, 0);
-			const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.85));
-			if (!blob) return;
-
-			const result = await faceRecognitionService.recognize(blob);
+			const result = await recognizeWithCache(canvas);
+			if (!result) return;
 
 			if (currentUser) {
 				websocketService.emit('camera:recognize', { cameraUserId: currentUser.id, results: result.results });
