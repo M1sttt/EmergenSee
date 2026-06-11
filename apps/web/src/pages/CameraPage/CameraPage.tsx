@@ -26,10 +26,6 @@ interface SuggestionCard {
 
 type Tab = 'pending' | 'confirmed';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Utility sub-components
-// ─────────────────────────────────────────────────────────────────────────────
-
 function UserAvatar({ user }: { user: User }) {
 	const initials = `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase();
 	return (
@@ -51,10 +47,6 @@ function ConfidenceBadge({ value }: { value: number }) {
 		</span>
 	);
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Face ID overlay
-// ─────────────────────────────────────────────────────────────────────────────
 
 function FaceIdOverlay({ scanning }: { scanning: boolean }) {
 	return (
@@ -79,19 +71,15 @@ function FaceIdOverlay({ scanning }: { scanning: boolean }) {
 				</linearGradient>
 			</defs>
 
-			{/* Dark vignette with oval hole */}
 			<rect width="160" height="90" fill="rgba(0,0,0,0.52)" mask="url(#faceIdMask)" />
 
-			{/* Oval border */}
 			<ellipse cx="80" cy="45" rx="28" ry="37" fill="none" stroke="rgba(255,255,255,0.65)" strokeWidth="0.6" />
 
-			{/* Cardinal tick marks */}
 			<line x1="80" y1="5"   x2="80" y2="9"   stroke="white" strokeWidth="1.4" strokeLinecap="round" />
 			<line x1="80" y1="81"  x2="80" y2="85"  stroke="white" strokeWidth="1.4" strokeLinecap="round" />
 			<line x1="49" y1="45"  x2="53" y2="45"  stroke="white" strokeWidth="1.4" strokeLinecap="round" />
 			<line x1="107" y1="45" x2="111" y2="45" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
 
-			{/* Scan line — only while capturing */}
 			{scanning && (
 				<rect x="52" y="0" width="56" height="7" fill="url(#scanGrad)" clipPath="url(#ovalClip)">
 					<animate attributeName="y" from="8" to="75" dur="1.6s" repeatCount="indefinite" />
@@ -101,11 +89,6 @@ function FaceIdOverlay({ scanning }: { scanning: boolean }) {
 		</svg>
 	);
 }
-
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Camera controls bar — shown in top-right corner of the camera feed
-// ─────────────────────────────────────────────────────────────────────────────
 
 interface CameraControlsProps {
 	isFullscreen: boolean;
@@ -117,7 +100,6 @@ interface CameraControlsProps {
 function CameraControls({ isFullscreen, showOverlay, onToggleFullscreen, onToggleOverlay }: CameraControlsProps) {
 	return (
 		<div className="absolute right-3 top-3 flex items-center gap-2">
-			{/* Face ID overlay toggle */}
 			<button
 				onClick={onToggleOverlay}
 				className={`flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-sm transition-colors ${
@@ -130,7 +112,6 @@ function CameraControls({ isFullscreen, showOverlay, onToggleFullscreen, onToggl
 				<MdFaceUnlock className="text-base" />
 			</button>
 
-			{/* Fullscreen toggle */}
 			<button
 				onClick={onToggleFullscreen}
 				className="flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-colors hover:bg-black/70"
@@ -141,10 +122,6 @@ function CameraControls({ isFullscreen, showOverlay, onToggleFullscreen, onToggl
 		</div>
 	);
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Main page
-// ─────────────────────────────────────────────────────────────────────────────
 
 const CameraPage: React.FC = () => {
 	const videoRef = useRef<HTMLVideoElement>(null);
@@ -180,12 +157,10 @@ const CameraPage: React.FC = () => {
 
 	const statusMutation = useCameraStatusMutation();
 
-	// Keep dismissed set in sync with server-confirmed users so they don't re-appear as suggestions
 	useEffect(() => {
 		confirmed.forEach(u => dismissedRef.current.add(getEntityId(u)));
 	}, [confirmed]);
 
-	// Start camera stream once — kept alive for the component lifetime
 	useEffect(() => {
 		let stream: MediaStream | null = null;
 		navigator.mediaDevices
@@ -269,10 +244,8 @@ const CameraPage: React.FC = () => {
 		);
 	}
 
-	// ── Tab panel content (shared between normal / fullscreen) ──────────────────
 	const tabPanel = (
 		<>
-			{/* Tab switcher */}
 			<div className="mb-3 flex rounded-xl bg-gray-100 p-1">
 				{(['pending', 'confirmed'] as Tab[]).map(tab => {
 					const count = tab === 'pending' ? suggestions.length : confirmed.length;
@@ -298,7 +271,6 @@ const CameraPage: React.FC = () => {
 				})}
 			</div>
 
-			{/* Tab body */}
 			<div className="flex-1 overflow-y-auto">
 				{activeTab === 'pending' && (
 					suggestions.length === 0 ? (
@@ -374,7 +346,6 @@ const CameraPage: React.FC = () => {
 	 */
 	return (
 		<div className="flex h-full flex-col gap-3 p-6">
-			{/* Page header — covered (not removed) by the fullscreen overlay */}
 			<div className="flex shrink-0 items-center justify-between">
 				<h1 className="flex items-center gap-2 text-2xl font-bold text-gray-800">
 					<FaCamera className="text-blue-600" /> {strings.title}
@@ -392,13 +363,11 @@ const CameraPage: React.FC = () => {
 				</div>
 			)}
 
-			{/* ── Content: single tree, class-switching only ── */}
 			<div className={
 				isFullscreen
 					? 'fixed inset-0 z-50 flex gap-4 bg-gray-950 p-4'
 					: 'flex min-h-0 flex-1 gap-4'
 			}>
-				{/* ── Camera ── */}
 				<div className="relative min-h-0 flex-1 overflow-hidden rounded-2xl bg-black shadow-xl">
 					<video
 						ref={videoRef}
@@ -407,13 +376,10 @@ const CameraPage: React.FC = () => {
 						style={{ transform: 'scaleX(-1)' }}
 					/>
 
-					{/* Face ID overlay — conditionally shown */}
 					{showOverlay && <FaceIdOverlay scanning={isScanning} />}
 
-					{/* Hidden capture canvas */}
 					<canvas ref={canvasRef} className="hidden" />
 
-					{/* Scanning badge */}
 					<div className="absolute left-3 top-3 flex items-center gap-2 rounded-full bg-black/50 px-3 py-1.5 backdrop-blur-sm">
 						<span className={`h-2 w-2 rounded-full ${isScanning ? 'animate-pulse bg-blue-400' : 'bg-gray-400'}`} />
 						<span className="text-xs font-medium text-white">
@@ -421,7 +387,6 @@ const CameraPage: React.FC = () => {
 						</span>
 					</div>
 
-					{/* Control buttons */}
 					<CameraControls
 						isFullscreen={isFullscreen}
 						showOverlay={showOverlay}
@@ -430,13 +395,11 @@ const CameraPage: React.FC = () => {
 					/>
 				</div>
 
-				{/* ── Side panel ── */}
 				<div className={
 					isFullscreen
 						? 'flex w-80 shrink-0 flex-col overflow-y-auto rounded-2xl bg-white p-4'
 						: 'flex w-80 shrink-0 flex-col overflow-hidden'
 				}>
-					{/* Compact header inside fullscreen panel */}
 					{isFullscreen && (
 						<div className="mb-3 flex shrink-0 items-center justify-between border-b border-gray-100 pb-3">
 							<span className="flex items-center gap-1.5 text-sm font-bold text-gray-800">

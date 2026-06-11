@@ -128,12 +128,10 @@ const CameraStationPage: React.FC = () => {
 
 	const statusMutation = useCameraStatusMutation();
 
-	// Pre-populate dismissed set from already-confirmed users
 	useEffect(() => {
 		confirmed.forEach(u => dismissedRef.current.add(getEntityId(u)));
 	}, [confirmed]);
 
-	// Start camera stream
 	useEffect(() => {
 		let stream: MediaStream | null = null;
 		navigator.mediaDevices
@@ -146,7 +144,6 @@ const CameraStationPage: React.FC = () => {
 		return () => stream?.getTracks().forEach(t => t.stop());
 	}, []);
 
-	// Announce camera presence via WebSocket
 	useEffect(() => {
 		if (!currentUser) return;
 		websocketService.connect();
@@ -156,7 +153,6 @@ const CameraStationPage: React.FC = () => {
 		};
 	}, [currentUser]);
 
-	// Stream frames to admin via WebSocket
 	useEffect(() => {
 		if (!currentUser) return;
 		frameIntervalRef.current = setInterval(() => {
@@ -348,7 +344,6 @@ const CameraStationPage: React.FC = () => {
 
 	return (
 		<div className="flex h-screen flex-col bg-gray-950">
-			{/* Top bar */}
 			<div className="flex shrink-0 items-center justify-between border-b border-gray-800 px-5 py-3">
 				<div className="flex items-center gap-2">
 					<FaCamera className="text-blue-400" />
@@ -372,9 +367,7 @@ const CameraStationPage: React.FC = () => {
 				</div>
 			)}
 
-			{/* Content row */}
 			<div className="flex min-h-0 flex-1 gap-4 p-4">
-				{/* Camera feed */}
 				<div className="relative min-h-0 flex-1 overflow-hidden rounded-2xl bg-black shadow-xl">
 					<video
 						ref={videoRef}
@@ -403,7 +396,6 @@ const CameraStationPage: React.FC = () => {
 					</button>
 				</div>
 
-				{/* Side panel */}
 				<div className="flex w-72 shrink-0 flex-col overflow-hidden rounded-2xl bg-white p-4 shadow-xl">
 					{tabPanel}
 				</div>
