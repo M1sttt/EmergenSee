@@ -114,14 +114,11 @@ const CameraStationPage: React.FC = () => {
 	const confirmed = useMemo<User[]>(() => {
 		if (!eventId || !currentUser) return [];
 		return allStatuses
-			.filter(s => {
-				const sEventId = typeof s.eventId === 'object' ? (s.eventId as { _id?: string })._id : s.eventId;
-				return (
-					(sEventId === eventId || s.eventId === eventId) &&
-					s.status === ResponderStatus.SAFE &&
-					s.sourceCamera === currentUser.id
-				);
-			})
+			.filter(s =>
+				getEntityId(s.eventId) === eventId &&
+				s.status === ResponderStatus.SAFE &&
+				s.sourceCamera === currentUser.id
+			)
 			.map(s => users.find(u => getEntityId(u) === getEntityId(s.userId)))
 			.filter((u): u is User => u !== undefined);
 	}, [allStatuses, eventId, currentUser, users]);
