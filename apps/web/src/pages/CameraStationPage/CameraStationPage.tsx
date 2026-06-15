@@ -122,7 +122,7 @@ const CameraStationPage: React.FC = () => {
 					s.sourceCamera === currentUser.id
 				);
 			})
-			.map(s => users.find(u => getEntityId(u) === s.userId))
+			.map(s => users.find(u => getEntityId(u) === getEntityId(s.userId)))
 			.filter((u): u is User => u !== undefined);
 	}, [allStatuses, eventId, currentUser, users]);
 
