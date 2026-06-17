@@ -284,18 +284,78 @@ const UsersPage = () => {
 				)}
 			</div>
 
-			<GenericTable
-				columns={userColumns}
-				rows={displayedUsers}
-				getRowKey={user => getEntityId(user) || user.email}
-				isLoading={isLoading}
-				loadingContent={
-					<div className="ui-loading-state">
-						<Loader />
-					</div>
-				}
-				emptyContent={strings.noUsersFound}
-			/>
+			{/* Mobile card list */}
+			{isLoading ? (
+				<div className="ui-loading-state md:hidden"><Loader /></div>
+			) : displayedUsers.length === 0 ? (
+				<p className="ui-empty-state md:hidden">{strings.noUsersFound}</p>
+			) : (
+				<div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm md:hidden">
+					{displayedUsers.map((u, i) => {
+						const userId = getEntityId(u) || u.email;
+						const isLast = i === displayedUsers.length - 1;
+						const canEdit =
+							isAdmin ||
+							(u.departments &&
+								u.departments.some(deptId =>
+									myAdminDepartments.some(d => getEntityId(d) === getEntityId(deptId)),
+								));
+						return (
+							<div key={userId} className={`flex items-center gap-3 px-4 py-3 ${!isLast ? 'border-b border-gray-100' : ''}`}>
+								<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-blue-700">
+									{u.role === UserRole.CAMERA
+										? <FaCamera size={12} className="text-blue-400" />
+										: `${u.firstName?.[0] ?? ''}${u.lastName?.[0] ?? ''}`.toUpperCase() || '?'
+									}
+								</div>
+								<div className="min-w-0 flex-1">
+									<p className="truncate text-sm font-medium text-gray-900">
+										{u.role === UserRole.CAMERA ? (u.cameraCode ?? u.firstName) : `${u.firstName} ${u.lastName}`}
+									</p>
+									<div className="mt-0.5 flex items-center gap-1.5">
+										<Badge tone="info">{USER_ROLE_LABELS[u.role]}</Badge>
+										<Badge tone={utils.getStatusTone(u.status)}>{u.status}</Badge>
+										{isAdmin && (
+											u.faceIdentity
+												? <Badge tone="success">{strings.faceRegistered_badge}</Badge>
+												: <span className="text-[10px] text-gray-400">{strings.faceNotRegistered_badge}</span>
+										)}
+									</div>
+								</div>
+								{canEdit && (
+									<div className="flex shrink-0 gap-1">
+										<IconButton onClick={() => handleEdit(u)} className="text-blue-600" tooltipText={strings.actionEdit}>
+											<FiEdit size={15} />
+										</IconButton>
+										{isAdmin && u.role !== UserRole.CAMERA && (
+											<IconButton onClick={() => setUserToRegisterFace(u)} className="text-green-600" tooltipText={strings.actionRegisterFace}>
+												<MdFaceRetouchingNatural size={16} />
+											</IconButton>
+										)}
+										{isAdmin && (
+											<IconButton onClick={() => handleDelete(userId!)} className="text-red-600" tooltipText={strings.actionDelete}>
+												<FiTrash2 size={15} />
+											</IconButton>
+										)}
+									</div>
+								)}
+							</div>
+						);
+					})}
+				</div>
+			)}
+
+			{/* Desktop table */}
+			<div className="hidden md:block">
+				<GenericTable
+					columns={userColumns}
+					rows={displayedUsers}
+					getRowKey={user => getEntityId(user) || user.email}
+					isLoading={isLoading}
+					loadingContent={<div className="ui-loading-state"><Loader /></div>}
+					emptyContent={strings.noUsersFound}
+				/>
+			</div>
 
 			{isFormOpen && <UserForm user={selectedUser} onClose={handleFormClose} />}
 
