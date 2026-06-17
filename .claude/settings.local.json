@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git merge:*)"
+      "Bash(git merge:*)",
+      "Bash(git stash *)",
+      "Bash(git push *)",
+      "Bash(pnpm lint *)"
     ]
   }
 }
