@@ -1,7 +1,9 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
+import * as fs from 'fs';
+import * as path from 'path';
 import { User, UserDocument } from './schemas/user.schema';
 import { UserRole } from '@emergensee/shared';
 import { CreateUserDto, UpdateUserDto } from './users.dto';
@@ -120,5 +122,49 @@ export class UsersService {
     if (!result) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
+  }
+
+  private readonly faceRecognitionUrl = process.env.FACE_RECOGNITION_URL || 'http://localhost:8000';
+
+  private async unregisterFromFaceService(identity: string): Promise<void> {
+    try {
+      const res = await fetch(`${this.faceRecognitionUrl}/api/v1/faces/${encodeURIComponent(identity)}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const text = await res.text();
+        console.warn(`Face recognition unregister failed (${res.status}): ${text}`);
+      }
+    } catch (err: unknown) {
+      console.warn('Face recognition service unreachable:', (err as Error).message);
+    }
+  }
+
+  async addFaceImage(id: string, filename: string): Promise<UserDocument> {
+    const user = await this.userModel
+      .findByIdAndUpdate(id, { $push: { faceImages: filename } }, { new: true })
+      .select('-password')
+      .exec();
+    if (!user) throw new NotFoundException(`User with ID ${id} not found`);
+    return user;
+  }
+
+  async removeFaceImage(id: string, filename: string): Promise<UserDocument> {
+    if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+      throw new BadRequestException('Invalid filename');
+    }
+
+    const user = await this.userModel
+      .findByIdAndUpdate(id, { $pull: { faceImages: filename } }, { new: true })
+      .select('-password')
+      .exec();
+    if (!user) throw new NotFoundException(`User with ID ${id} not found`);
+
+    const filepath = path.join(process.cwd(), 'uploads', 'faces', filename);
+    if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
+
+    if ((user.faceImages ?? []).length === 0 && user.faceIdentity) {
+      await this.unregisterFromFaceService(user.faceIdentity);
+    }
+
+    return user;
   }
 }

@@ -6,6 +6,8 @@ import {
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { Event, StatusUpdate, WebSocketEventType } from '@emergensee/shared';
 import { EventDocument } from '../events/schemas/event.schema';
 import { StatusUpdateDocument } from '../status/schemas/status.schema';
@@ -27,16 +29,36 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
 
   private connectedClients = new Map<string, Socket>();
 
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private jwtService: JwtService,
+    private configService: ConfigService,
+  ) {}
   // userId → { socketId, location } for active camera-role devices
   private activeCameraUsers = new Map<string, { socketId: string; location: string }>();
   // socketId → userId (reverse lookup for disconnect cleanup)
   private cameraSocketIndex = new Map<string, string>();
 
   handleConnection(client: Socket) {
-    console.log(`Client connected: ${client.id}`);
-    this.connectedClients.set(client.id, client);
+    const token =
+      client.handshake.auth?.token ||
+      (client.handshake.headers?.authorization as string | undefined)?.replace('Bearer ', '');
 
+    if (!token) {
+      client.disconnect();
+      return;
+    }
+
+    try {
+      this.jwtService.verify(token, {
+        secret: this.configService.get<string>('JWT_SECRET'),
+      });
+    } catch {
+      client.disconnect();
+      return;
+    }
+
+    this.connectedClients.set(client.id, client);
     client.emit(WebSocketEventType.CONNECTED, {
       type: WebSocketEventType.CONNECTED,
       payload: { message: 'Connected to EmergenSee' },

@@ -23,6 +23,7 @@ export interface User {
   location?: string;
   cameraCode?: string;
   faceIdentity?: string | null;
+  faceImages?: string[];
   createdAt: Date;
   updatedAt: Date;
 }

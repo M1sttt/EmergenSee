@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Department, User } from '@emergensee/shared';
 import { departmentsService } from 'services/departmentsService';
 import { usersService } from 'services/usersService';
+import { faceRecognitionService } from 'services/faceRecognitionService';
 import { toast } from 'sonner';
 import * as strings from './strings';
 
@@ -35,6 +36,28 @@ export function useUsersPageDeleteUserMutation() {
 		},
 		onError: () => {
 			toast.error(strings.userDeleteError);
+		},
+	});
+}
+
+export function useFaceRegistrationMutation(onSuccess: () => void) {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: async ({ user, blob }: { user: User; blob: Blob }) => {
+			const result = await faceRecognitionService.register(
+				user.id,
+				blob,
+			);
+			await usersService.update(user.id, { faceIdentity: result.registered_as });
+			return result;
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: USERS_PAGE_QUERY_KEYS.users });
+			onSuccess();
+		},
+		onError: () => {
+			toast.error(strings.userUpdateError);
 		},
 	});
 }

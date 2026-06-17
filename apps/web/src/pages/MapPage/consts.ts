@@ -1,7 +1,7 @@
 import { IconOptions } from 'leaflet';
 
-export const defaultCenter = [40.7128, -74.006] as [number, number];
-export const defaultZoom = 13;
+export const defaultCenter = [31.7683, 35.2137] as [number, number]; // Israel
+export const defaultZoom = 8;
 export const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
 export const markerIconUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png';

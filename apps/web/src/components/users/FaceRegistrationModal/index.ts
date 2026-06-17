@@ -1,0 +1,1 @@
+export { FaceRegistrationModal } from './FaceRegistrationModal';
