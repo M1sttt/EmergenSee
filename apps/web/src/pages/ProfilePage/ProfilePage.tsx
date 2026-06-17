@@ -1,43 +1,14 @@
 import { useNavigate } from 'react-router-dom';
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuthStore } from 'store/authStore';
 import { usersService } from 'services/usersService';
-import { api } from 'services/api';
 import { Button, FieldError, Input, Label } from '@/components/ui';
-import { FiUpload, FiTrash2, FiUser } from 'react-icons/fi';
+import { FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import { MdFaceUnlock } from 'react-icons/md';
 import * as strings from './strings';
 import * as consts from './consts';
 import * as utils from './utils';
-
-function FaceImageThumb({ userId, filename, onDelete }: { userId: string; filename: string; onDelete: () => void }) {
-	const [src, setSrc] = useState<string | null>(null);
-
-	useEffect(() => {
-		let objectUrl: string | null = null;
-		api.get(`/users/${userId}/face-images/${encodeURIComponent(filename)}`, { responseType: 'blob' })
-			.then(res => { objectUrl = URL.createObjectURL(res.data as Blob); setSrc(objectUrl); })
-			.catch(() => setSrc(null));
-		return () => { if (objectUrl) URL.revokeObjectURL(objectUrl); };
-	}, [userId, filename]);
-
-	return (
-		<div className="group relative aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
-			{src
-				? <img src={src} alt="Face" className="h-full w-full object-cover" />
-				: <div className="h-full w-full flex items-center justify-center"><FiUser size={24} className="text-gray-300" /></div>
-			}
-			<button
-				onClick={onDelete}
-				className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity"
-				title="Remove photo"
-			>
-				<FiTrash2 className="text-white" size={20} />
-			</button>
-		</div>
-	);
-}
 
 type ProfileFormData = {
 	firstName: string;
@@ -53,10 +24,7 @@ const ProfilePage = () => {
 	const [success, setSuccess] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 
-	const [faceImages, setFaceImages] = useState<string[]>(user?.faceImages ?? []);
-	const [uploadingImage, setUploadingImage] = useState(false);
-	const [imageError, setImageError] = useState('');
-	const fileInputRef = useRef<HTMLInputElement>(null);
+	const hasFace = !!user?.faceIdentity;
 
 	const {
 		register,
@@ -102,47 +70,6 @@ const ProfilePage = () => {
 		[user, updateUser, reset],
 	);
 
-	const handleFileChange = useCallback(
-		async (e: React.ChangeEvent<HTMLInputElement>) => {
-			const file = e.target.files?.[0];
-			if (!file || !user?.id) return;
-
-			if (faceImages.length >= 5) {
-				setImageError('You can upload a maximum of 5 face images.');
-				return;
-			}
-
-			setImageError('');
-			setUploadingImage(true);
-			try {
-				const updatedUser = await usersService.uploadFaceImage(user.id, file);
-				setFaceImages(updatedUser.faceImages ?? []);
-				updateUser(updatedUser);
-			} catch {
-				setImageError('Failed to upload image. Please try again.');
-			} finally {
-				setUploadingImage(false);
-				if (fileInputRef.current) fileInputRef.current.value = '';
-			}
-		},
-		[user, faceImages.length, updateUser],
-	);
-
-	const handleDeleteImage = useCallback(
-		async (filename: string) => {
-			if (!user?.id) return;
-			setImageError('');
-			try {
-				const updatedUser = await usersService.deleteFaceImage(user.id, filename);
-				setFaceImages(updatedUser.faceImages ?? []);
-				updateUser(updatedUser);
-			} catch {
-				setImageError('Failed to delete image. Please try again.');
-			}
-		},
-		[user, updateUser],
-	);
-
 	const handleFormSubmit = handleSubmit(onSubmit);
 
 	return (
@@ -152,33 +79,41 @@ const ProfilePage = () => {
 				<p className="mt-1 text-sm text-gray-500">{strings.profileDescription}</p>
 			</div>
 
-			{/* Face Recognition card */}
-			<div className="ui-card overflow-hidden">
+			{/* Face Recognition status card */}
+			<div className={`ui-card overflow-hidden mb-6 border-l-4 ${hasFace ? 'border-l-green-500' : 'border-l-amber-400'}`}>
 				<div className="ui-card-body">
 					<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 						<div className="flex items-start gap-3">
-							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
-								<MdFaceUnlock className="text-xl" />
+							<div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${hasFace ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-500'}`}>
+								{hasFace ? <FiCheckCircle className="text-xl" /> : <FiAlertCircle className="text-xl" />}
 							</div>
 							<div>
 								<h2 className="font-semibold text-gray-900">{strings.faceIdSectionTitle}</h2>
-								<p className="mt-0.5 text-sm text-gray-500">{strings.faceIdSectionDescription}</p>
+								{hasFace ? (
+									<p className="mt-0.5 text-sm text-green-600">
+										Your face is registered. Cameras can identify you automatically in an emergency.
+									</p>
+								) : (
+									<p className="mt-0.5 text-sm text-amber-600">
+										You haven't registered your face yet. Without it, cameras won't be able to confirm you're safe automatically.
+									</p>
+								)}
 							</div>
 						</div>
 						<Button
-							variant="secondary"
+							variant={hasFace ? 'secondary' : 'primary'}
 							size="sm"
 							className="shrink-0"
 							onClick={() => navigate('/register-face')}
 						>
 							<MdFaceUnlock />
-							{strings.registerFaceButton}
+							{hasFace ? 'Re-register face' : 'Register now'}
 						</Button>
 					</div>
 				</div>
 			</div>
 
-			<div className="mt-6 ui-card overflow-hidden">
+			<div className="ui-card overflow-hidden">
 				<form onSubmit={handleFormSubmit} className="ui-card-body space-y-6">
 					{error && <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">{error}</div>}
 					{success && <div className="rounded-md bg-green-50 p-4 text-sm text-green-700">{success}</div>}
@@ -215,64 +150,6 @@ const ProfilePage = () => {
 						</Button>
 					</div>
 				</form>
-			</div>
-
-			{/* Face Recognition Photos */}
-			<div className="ui-card overflow-hidden">
-				<div className="ui-card-body space-y-4">
-					<div>
-						<h2 className="text-base font-semibold text-gray-900">Face Recognition Photos</h2>
-						<p className="mt-1 text-sm text-gray-500">
-							Upload clear, front-facing photos of yourself for the AI face recognition service. Up to 5 images.
-						</p>
-					</div>
-
-					{imageError && <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">{imageError}</div>}
-
-					<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
-						{faceImages.map(filename => (
-							<FaceImageThumb
-								key={filename}
-								userId={user!.id}
-								filename={filename}
-								onDelete={() => handleDeleteImage(filename)}
-							/>
-						))}
-
-						{faceImages.length < 5 && (
-							<button
-								onClick={() => fileInputRef.current?.click()}
-								disabled={uploadingImage}
-								className="aspect-square rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-primary-500 hover:text-primary-500 transition-colors disabled:opacity-50"
-							>
-								{uploadingImage ? (
-									<span className="text-xs">Uploading…</span>
-								) : (
-									<>
-										{faceImages.length === 0 ? (
-											<FiUser size={24} />
-										) : (
-											<FiUpload size={24} />
-										)}
-										<span className="text-xs font-medium">Add photo</span>
-									</>
-								)}
-							</button>
-						)}
-					</div>
-
-					<input
-						ref={fileInputRef}
-						type="file"
-						accept="image/jpeg,image/png,image/webp"
-						className="hidden"
-						onChange={handleFileChange}
-					/>
-
-					<p className="text-xs text-gray-400">
-						Accepted formats: JPEG, PNG, WebP · Max size: 5 MB per photo
-					</p>
-				</div>
 			</div>
 		</div>
 	);
