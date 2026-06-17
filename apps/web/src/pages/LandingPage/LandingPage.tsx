@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { FiShield, FiCamera } from 'react-icons/fi';
-import { MdWavingHand } from 'react-icons/md';
+import { MdWavingHand, MdFaceUnlock } from 'react-icons/md';
 import { useAuthStore } from 'store/authStore';
 import { Button } from '@/components/ui';
 
@@ -8,6 +8,7 @@ export default function LandingPage() {
 	const navigate = useNavigate();
 	const user = useAuthStore(state => state.user);
 	const firstName = user?.firstName ?? 'there';
+	const hasFace = !!user?.faceIdentity;
 
 	return (
 		<div className="flex min-h-full flex-col items-center justify-center px-6 py-12 text-center">
@@ -22,7 +23,29 @@ export default function LandingPage() {
 				Welcome to EmergenSee. In an emergency, find the nearest shelter near you, or stand in front of a camera to scan your face and confirm you're safe.
 			</p>
 
-			<div className="mt-8 flex w-full max-w-xs flex-col gap-3">
+			{!hasFace && (
+				<div className="mt-6 w-full max-w-xs rounded-2xl border border-amber-200 bg-amber-50 p-4 text-left">
+					<div className="flex items-start gap-3">
+						<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+							<MdFaceUnlock className="text-xl" />
+						</div>
+						<div>
+							<p className="text-sm font-semibold text-amber-800">Register your face</p>
+							<p className="mt-0.5 text-xs text-amber-600">
+								Without face registration, cameras won't be able to automatically confirm you're safe during an emergency.
+							</p>
+						</div>
+					</div>
+					<button
+						onClick={() => navigate('/register-face')}
+						className="mt-3 w-full rounded-xl bg-amber-500 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-600 active:scale-95"
+					>
+						Register now
+					</button>
+				</div>
+			)}
+
+			<div className="mt-6 flex w-full max-w-xs flex-col gap-3">
 				<Button
 					variant="primary"
 					size="lg"
