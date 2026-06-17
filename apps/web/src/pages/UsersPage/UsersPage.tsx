@@ -262,8 +262,8 @@ const UsersPage = () => {
 
 	return (
 		<div className="ui-page">
-			<div className="flex justify-between items-center mb-6">
-				<div className="flex items-center gap-6">
+			<div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+				<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
 					<h1 className="ui-page-title">{strings.title}</h1>
 					<SelectDropdown
 						value={selectedDeptId}
@@ -273,12 +273,12 @@ const UsersPage = () => {
 						isSearchable
 						isClearable={false}
 						noOptionsMessage={() => strings.noDepartments}
-						containerClassName="w-64"
+						containerClassName="w-full sm:w-64"
 					/>
 				</div>
 
 				{canCreateUser && (
-					<Button onClick={() => setIsFormOpen(true)} variant="primary" size="md" className="rounded-lg">
+					<Button onClick={() => setIsFormOpen(true)} variant="primary" size="md" className="w-full rounded-lg sm:w-auto">
 						{strings.createUser}
 					</Button>
 				)}

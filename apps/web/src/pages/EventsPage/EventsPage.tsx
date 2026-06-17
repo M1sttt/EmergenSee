@@ -143,9 +143,9 @@ export default function EventsPage() {
 
 	return (
 		<div className="ui-page">
-			<div className="flex justify-between items-center mb-6">
+			<div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 				<h1 className="ui-page-title">{strings.title}</h1>
-				<Button onClick={() => setIsFormOpen(true)} variant="primary" size="md" className="rounded-lg">
+				<Button onClick={() => setIsFormOpen(true)} variant="primary" size="md" className="w-full rounded-lg sm:w-auto">
 					{strings.createBtn}
 				</Button>
 			</div>

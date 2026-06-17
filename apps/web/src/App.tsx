@@ -97,7 +97,7 @@ function App() {
 					<Route path="departments" element={<DepartmentsPage />} />
 					<Route path="status" element={<StatusPage />} />
 					<Route path="emergency-report" element={<EmergencyReportPage />} />
-					<Route path="camera" element={<AdminRoute><CameraPage /></AdminRoute>} />
+					<Route path="camera" element={<CameraPage />} />
 					<Route path="admin/cameras" element={<AdminRoute><AdminCameraPage /></AdminRoute>} />
 					<Route path="profile" element={<ProfilePage />} />
 				</Route>

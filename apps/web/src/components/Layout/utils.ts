@@ -46,20 +46,23 @@ export const getNavigationLinks = (
 	hasReportedForEvent: boolean,
 	userRole?: UserRole,
 ): NavigationLink[] => {
-	const baseNavigation: NavigationLink[] = [
-		{ name: strings.dashboard, href: consts.dashboardRoute, Icon: consts.dashboardIcon },
-		{ name: strings.events, href: consts.eventsRoute, Icon: consts.eventsIcon },
-		{ name: strings.shelters, href: consts.sheltersRoute, Icon: consts.sheltersIcon },
-		{ name: strings.users, href: consts.usersRoute, Icon: consts.usersIcon },
-		{ name: strings.departments, href: consts.departmentsRoute, Icon: consts.departmentsIcon },
-		{ name: strings.status, href: consts.statusRoute, Icon: consts.statusIcon },
-		...(userRole === UserRole.ADMIN
-			? [
-					{ name: strings.camera, href: consts.cameraRoute, Icon: consts.cameraIcon },
-					{ name: strings.cameraStations, href: consts.adminCamerasRoute, Icon: consts.adminCamerasIcon },
-				]
-			: []),
-	];
+	const isAdmin = userRole === UserRole.ADMIN;
+
+	const baseNavigation: NavigationLink[] = isAdmin
+		? [
+				{ name: strings.dashboard, href: consts.dashboardRoute, Icon: consts.dashboardIcon },
+				{ name: strings.events, href: consts.eventsRoute, Icon: consts.eventsIcon },
+				{ name: strings.shelters, href: consts.sheltersRoute, Icon: consts.sheltersIcon },
+				{ name: strings.users, href: consts.usersRoute, Icon: consts.usersIcon },
+				{ name: strings.departments, href: consts.departmentsRoute, Icon: consts.departmentsIcon },
+				{ name: strings.status, href: consts.statusRoute, Icon: consts.statusIcon },
+				{ name: strings.camera, href: consts.cameraRoute, Icon: consts.cameraIcon },
+				{ name: strings.cameraStations, href: consts.adminCamerasRoute, Icon: consts.adminCamerasIcon },
+			]
+		: [
+				{ name: strings.camera, href: consts.cameraRoute, Icon: consts.cameraIcon },
+				{ name: strings.shelters, href: consts.sheltersRoute, Icon: consts.sheltersIcon },
+			];
 
 	if (hasRelevantOngoingEvent) {
 		return [
