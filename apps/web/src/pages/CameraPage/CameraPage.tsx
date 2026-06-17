@@ -342,9 +342,9 @@ const CameraPage: React.FC = () => {
 	 * Fullscreen mode: fixed inset-0 overlay — same video node, just different wrapper.
 	 */
 	return (
-		<div className="flex h-full flex-col gap-3 p-6">
+		<div className="flex flex-col gap-3 p-3 md:h-full md:p-6">
 			<div className="flex shrink-0 items-center justify-between">
-				<h1 className="flex items-center gap-2 text-2xl font-bold text-gray-800">
+				<h1 className="flex items-center gap-2 text-xl font-bold text-gray-800 md:text-2xl">
 					<FaCamera className="text-blue-600" /> {strings.title}
 				</h1>
 				{ongoingEvent ? (
@@ -363,9 +363,10 @@ const CameraPage: React.FC = () => {
 			<div className={
 				isFullscreen
 					? 'fixed inset-0 z-50 flex gap-4 bg-gray-950 p-4'
-					: 'flex min-h-0 flex-1 gap-4'
+					: 'flex flex-col gap-4 md:min-h-0 md:flex-1 md:flex-row'
 			}>
-				<div className="relative min-h-0 flex-1 overflow-hidden rounded-2xl bg-black shadow-xl">
+				{/* Camera feed */}
+				<div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-black shadow-xl md:aspect-auto md:min-h-0 md:flex-1">
 					<video
 						ref={videoRef}
 						autoPlay playsInline muted
@@ -392,10 +393,11 @@ const CameraPage: React.FC = () => {
 					/>
 				</div>
 
+				{/* Tab panel — full width below camera on mobile, fixed sidebar on desktop */}
 				<div className={
 					isFullscreen
 						? 'flex w-80 shrink-0 flex-col overflow-y-auto rounded-2xl bg-white p-4'
-						: 'flex w-80 shrink-0 flex-col overflow-hidden'
+						: 'flex flex-col md:w-80 md:shrink-0 md:overflow-hidden'
 				}>
 					{isFullscreen && (
 						<div className="mb-3 flex shrink-0 items-center justify-between border-b border-gray-100 pb-3">
@@ -412,7 +414,6 @@ const CameraPage: React.FC = () => {
 					{tabPanel}
 				</div>
 			</div>
-
 		</div>
 	);
 };

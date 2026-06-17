@@ -473,7 +473,7 @@ const SheltersPage = () => {
 			)}
 
 			{/* ── Map ─────────────────────────────────────────────────────── */}
-			<div className="relative flex-1">
+			<div className="relative flex-1 isolate">
 
 				{/* My Location button */}
 				<button

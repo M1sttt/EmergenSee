@@ -150,18 +150,63 @@ export default function EventsPage() {
 				</Button>
 			</div>
 
-			<GenericTable
-				columns={eventColumns}
-				rows={events}
-				getRowKey={event => getEntityId(event)}
-				isLoading={isLoading}
-				loadingContent={
-					<div className="ui-loading-state">
-						<Loader />
-					</div>
-				}
-				emptyContent={strings.noEventsFound}
-			/>
+			{/* Mobile card list */}
+			{isLoading ? (
+				<div className="ui-loading-state md:hidden"><Loader /></div>
+			) : events.length === 0 ? (
+				<p className="ui-empty-state md:hidden">{strings.noEventsFound}</p>
+			) : (
+				<div className="flex flex-col gap-3 md:hidden">
+					{events.map(event => {
+						const eventId = getEntityId(event);
+						const isResolved = event.status === EventStatus.RESOLVED;
+						return (
+							<div
+								key={eventId}
+								className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
+							>
+								<div className="flex items-start justify-between gap-2">
+									<p className="flex-1 text-sm font-semibold text-gray-900 leading-snug">{event.title}</p>
+									<Badge tone={utils.getStatusTone(event.status)}>{EVENT_STATUS_LABELS[event.status]}</Badge>
+								</div>
+								<div className="mt-2 flex flex-wrap items-center gap-2">
+									<span className="text-xs text-gray-500">{EVENT_TYPE_LABELS[event.type]}</span>
+									<span className="text-gray-300">·</span>
+									<Badge tone={utils.getPriorityTone(event.priority)}>{EVENT_PRIORITY_LABELS[event.priority]}</Badge>
+								</div>
+								{!isResolved && (
+									<div className="mt-3 flex gap-2 border-t border-gray-100 pt-3">
+										<button
+											onClick={() => handleEdit(event)}
+											className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-2 text-xs font-medium text-blue-600 transition-colors hover:bg-blue-50"
+										>
+											<FiEdit size={13} /> {strings.tooltipEdit}
+										</button>
+										<button
+											onClick={() => handleCloseEvent(eventId)}
+											className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-2 text-xs font-medium text-green-600 transition-colors hover:bg-green-50"
+										>
+											<FiCheckCircle size={13} /> {strings.tooltipCloseEvent}
+										</button>
+									</div>
+								)}
+							</div>
+						);
+					})}
+				</div>
+			)}
+
+			{/* Desktop table */}
+			<div className="hidden md:block">
+				<GenericTable
+					columns={eventColumns}
+					rows={events}
+					getRowKey={event => getEntityId(event)}
+					isLoading={isLoading}
+					loadingContent={<div className="ui-loading-state"><Loader /></div>}
+					emptyContent={strings.noEventsFound}
+				/>
+			</div>
 
 			{isFormOpen && <EventForm event={selectedEvent} onClose={handleFormClose} />}
 
