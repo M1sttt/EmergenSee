@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EmergenSee — School Emergency User Flows</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0f1117;
+    color: #e8eaf0;
+    padding: 32px 24px;
+    font-size: 13px;
+    max-width: 960px;
+    margin: 0 auto;
+    transition: direction 0.15s;
+  }
+
+  .top-bar {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 24px; gap: 16px; flex-wrap: wrap;
+  }
+  .top-bar-left { flex: 1; min-width: 0; }
+  h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; color: #e8eaf0; }
+  .subtitle { color: #9095a3; font-size: 13px; }
+
+  .lang-toggle {
+    display: flex; align-items: center; gap: 0;
+    background: #1c1f2b; border: 1px solid #2a2d38;
+    border-radius: 8px; overflow: hidden; flex-shrink: 0;
+  }
+  .lang-btn {
+    padding: 7px 14px; border: none; background: transparent;
+    color: #9095a3; cursor: pointer; font-size: 13px; font-weight: 600;
+    transition: all 0.15s; letter-spacing: 0.02em;
+  }
+  .lang-btn:hover { color: #e8eaf0; background: #252836; }
+  .lang-btn.active { background: #5b7cf0; color: #fff; }
+  .lang-divider { width: 1px; background: #2a2d38; height: 32px; }
+
+  .tab-bar {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px;
+  }
+  .tab {
+    padding: 7px 14px; border-radius: 6px; border: 1px solid #2a2d38;
+    background: transparent; color: #9095a3;
+    cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.15s;
+  }
+  .tab:hover { background: #1c1f2b; color: #e8eaf0; }
+  .tab.active { background: #5b7cf0; border-color: #5b7cf0; color: #fff; }
+
+  .flow-container { display: none; }
+  .flow-container.visible { display: block; }
+
+  .scenario-header {
+    display: flex; align-items: flex-start; gap: 14px;
+    background: #1c1f2b; border-radius: 10px;
+    border: 1px solid #2a2d38;
+    padding: 16px 18px; margin-bottom: 16px;
+  }
+  .scenario-icon { font-size: 30px; flex-shrink: 0; margin-top: 2px; }
+  .scenario-title { font-size: 16px; font-weight: 700; color: #e8eaf0; margin-bottom: 4px; }
+  .scenario-desc { font-size: 12px; color: #9095a3; line-height: 1.6; }
+
+  .actors { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+  .actor-badge {
+    display: flex; align-items: center; gap: 6px;
+    background: #1c1f2b; border: 1px solid #2a2d38;
+    border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 600;
+  }
+  .actor-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-admin { background: #f06060; }
+  .dot-teacher { background: #f0a440; }
+  .dot-student { background: #5b7cf0; }
+
+  .lanes {
+    border: 1px solid #2a2d38;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .lane-header {
+    display: grid;
+    border-bottom: 1px solid #2a2d38;
+  }
+  .lane-head-cell {
+    padding: 10px 14px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: #1c1f2b;
+    border-right: 1px solid #2a2d38;
+    display: flex; align-items: center; gap: 6px;
+  }
+  html[dir="rtl"] .lane-head-cell { border-right: none; border-left: 1px solid #2a2d38; }
+  .lane-head-cell:last-child { border-right: none; }
+  html[dir="rtl"] .lane-head-cell:last-child { border-left: none; }
+
+  .steps-grid { display: grid; }
+  .step-row {
+    display: grid;
+    border-bottom: 1px solid #1e2130;
+  }
+  .step-row:last-child { border-bottom: none; }
+  .step-cell {
+    padding: 12px 14px;
+    border-right: 1px solid #1e2130;
+    min-height: 64px;
+  }
+  html[dir="rtl"] .step-cell { border-right: none; border-left: 1px solid #1e2130; }
+  .step-cell:last-child { border-right: none; }
+  html[dir="rtl"] .step-cell:last-child { border-left: none; }
+  .step-cell.empty { background: transparent; }
+
+  .step-num {
+    font-size: 10px; font-weight: 700; color: #5c6070;
+    margin-bottom: 5px; letter-spacing: 0.06em;
+  }
+  .step-card {
+    background: #1c1f2b;
+    border-radius: 6px;
+    padding: 8px 10px;
+    border-left: 3px solid transparent;
+    font-size: 11px; line-height: 1.5;
+    color: #e8eaf0;
+  }
+  html[dir="rtl"] .step-card { border-left: none; border-right: 3px solid transparent; }
+  html[dir="rtl"] .card-admin { border-right-color: #f06060; border-left: none; }
+  html[dir="rtl"] .card-teacher { border-right-color: #f0a440; border-left: none; }
+  html[dir="rtl"] .card-student { border-right-color: #5b7cf0; border-left: none; }
+  .step-card .action { font-weight: 600; margin-bottom: 3px; }
+  .step-card .detail { color: #9095a3; font-size: 10.5px; }
+  .card-admin { border-left-color: #f06060; }
+  .card-teacher { border-left-color: #f0a440; }
+  .card-student { border-left-color: #5b7cf0; }
+
+  .outcome-bar {
+    margin-top: 16px;
+    background: #1c1f2b;
+    border: 1px solid #2a2d38;
+    border-radius: 8px; padding: 12px 16px;
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .outcome-icon { font-size: 20px; flex-shrink: 0; }
+  .outcome-label { font-size: 11px; font-weight: 700; color: #48c78e; margin-bottom: 3px; }
+  .outcome-text { font-size: 11px; color: #9095a3; line-height: 1.5; }
+
+  html[dir="rtl"] body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Arial Hebrew', 'David', sans-serif; }
+  html[dir="rtl"] .step-num { letter-spacing: 0; }
+  html[dir="rtl"] .lane-head-cell { letter-spacing: 0; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="top-bar-left">
+    <h1 id="main-title">EmergenSee — School Emergency User Flows</h1>
+    <p class="subtitle" id="main-subtitle">5 scenarios · Teachers, Students & Admin · Real-time coordination</p>
+  </div>
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="btn-en" onclick="setLang('en')">EN</button>
+    <div class="lang-divider"></div>
+    <button class="lang-btn" id="btn-he" onclick="setLang('he')">עב</button>
+  </div>
+</div>
+
+<div class="tab-bar" id="tab-bar">
+  <button class="tab active" onclick="show(0)">🔥 <span class="t" data-key="tab0"></span></button>
+  <button class="tab" onclick="show(1)">🔒 <span class="t" data-key="tab1"></span></button>
+  <button class="tab" onclick="show(2)">🤕 <span class="t" data-key="tab2"></span></button>
+  <button class="tab" onclick="show(3)">🌪️ <span class="t" data-key="tab3"></span></button>
+  <button class="tab" onclick="show(4)">⚠️ <span class="t" data-key="tab4"></span></button>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     FLOW 1: FIRE
+════════════════════════════════════════════════ -->
+<div class="flow-container visible" id="flow-0">
+  <div class="scenario-header">
+    <div class="scenario-icon">🔥</div>
+    <div>
+      <div class="scenario-title"><span class="t" data-key="f0_title"></span></div>
+      <div class="scenario-desc"><span class="t" data-key="f0_desc"></span></div>
+    </div>
+  </div>
+  <div class="actors">
+    <div class="actor-badge"><div class="actor-dot dot-admin"></div><span class="t" data-key="f0_a1"></span></div>
+    <div class="actor-badge"><div class="actor-dot dot-teacher"></div><span class="t" data-key="role_teacher"></span></div>
+    <div class="actor-badge"><div class="actor-dot dot-student"></div><span class="t" data-key="role_student"></span></div>
+  </div>
+  <div class="lanes">
+    <div class="lane-header" style="grid-template-columns: 1fr 1fr 1fr;">
+      <div class="lane-head-cell"><span style="color:#f06060">●</span> <span class="t" data-key="f0_a1"></span></div>
+      <div class="lane-head-cell"><span style="color:#f0a440">●</span> <span class="t" data-key="role_teacher"></span></div>
+      <div class="lane-head-cell"><span style="color:#5b7cf0">●</span> <span class="t" data-key="role_student"></span></div>
+    </div>
+    <div class="steps-grid">
+      <div class="step-row" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 1</div>
+          <div class="step-card card-admin">
+            <div class="action"><span class="t" data-key="f0_s1_action"></span></div>
+            <div class="detail"><span class="t" data-key="f0_s1_detail"></span></div>
+          </div>
+        </div>
+        <div class="step-cell empty"></div>
+        <div class="step-cell empty"></div>
+      </div>
+      <div class="step-row" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="step-cell empty"></div>
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 2</div>
+          <div class="step-card card-teacher">
+            <div class="action"><span class="t" data-key="f0_s2t_action"></span></div>
+            <div class="detail"><span class="t" data-key="f0_s2t_detail"></span></div>
+          </div>
+        </div>
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 2</div>
+          <div class="step-card card-student">
+            <div class="action"><span class="t" data-key="f0_s2s_action"></span></div>
+            <div class="detail"><span class="t" data-key="f0_s2s_detail"></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="step-row" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="step-cell empty"></div>
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 3</div>
+          <div class="step-card card-teacher">
+            <div class="action"><span class="t" data-key="f0_s3t_action"></span></div>
+            <div class="detail"><span class="t" data-key="f0_s3t_detail"></span></div>
+          </div>
+        </div>
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 3</div>
+          <div class="step-card card-student">
+            <div class="action"><span class="t" data-key="f0_s3s_action"></span></div>
+            <div class="detail"><span class="t" data-key="f0_s3s_detail"></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="step-row" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 4</div>
+          <div class="step-card card-admin">
+            <div class="action"><span class="t" data-key="f0_s4_action"></span></div>
+            <div class="detail"><span class="t" data-key="f0_s4_detail"></span></div>
+          </div>
+        </div>
+        <div class="step-cell empty"></div>
+        <div class="step-cell empty"></div>
+      </div>
+      <div class="step-row" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 5</div>
+          <div class="step-card card-admin">
+            <div class="action"><span class="t" data-key="f0_s5_action"></span></div>
+            <div class="detail"><span class="t" data-key="f0_s5_detail"></span></div>
+          </div>
+        </div>
+        <div class="step-cell empty"></div>
+        <div class="step-cell empty"></div>
+      </div>
+    </div>
+  </div>
+  <div class="outcome-bar">
+    <div class="outcome-icon">✅</div>
+    <div>
+      <div class="outcome-label"><span class="t" data-key="outcome"></span></div>
+      <div class="outcome-text"><span class="t" data-key="f0_outcome"></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     FLOW 2: LOCKDOWN
+════════════════════════════════════════════════ -->
+<div class="flow-container" id="flow-1">
+  <div class="scenario-header">
+    <div class="scenario-icon">🔒</div>
+    <div>
+      <div class="scenario-title"><span class="t" data-key="f1_title"></span></div>
+      <div class="scenario-desc"><span class="t" data-key="f1_desc"></span></div>
+    </div>
+  </div>
+  <div class="actors">
+    <div class="actor-badge"><div class="actor-dot dot-admin"></div><span class="t" data-key="f1_a1"></span></div>
+    <div class="actor-badge"><div class="actor-dot dot-teacher"></div><span class="t" data-key="role_teacher"></span></div>
+    <div class="actor-badge"><div class="actor-dot dot-student"></div><span class="t" data-key="role_student"></span></div>
+  </div>
+  <div class="lanes">
+    <div class="lane-header" style="grid-template-columns: 1fr 1fr 1fr;">
+      <div class="lane-head-cell"><span style="color:#f06060">●</span> <span class="t" data-key="f1_a1"></span></div>
+      <div class="lane-head-cell"><span style="color:#f0a440">●</span> <span class="t" data-key="role_teacher"></span></div>
+      <div class="lane-head-cell"><span style="color:#5b7cf0">●</span> <span class="t" data-key="role_student"></span></div>
+    </div>
+    <div class="steps-grid">
+      <div class="step-row" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 1</div>
+          <div class="step-card card-admin">
+            <div class="action"><span class="t" data-key="f1_s1_action"></span></div>
+            <div class="detail"><span class="t" data-key="f1_s1_detail"></span></div>
+          </div>
+        </div>
+        <div class="step-cell empty"></div>
+        <div class="step-cell empty"></div>
+      </div>
+      <div class="step-row" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="step-cell empty"></div>
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 2</div>
+          <div class="step-card card-teacher">
+            <div class="action"><span class="t" data-key="f1_s2t_action"></span></div>
+            <div class="detail"><span class="t" data-key="f1_s2t_detail"></span></div>
+          </div>
+        </div>
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 2</div>
+          <div class="step-card card-student">
+            <div class="action"><span class="t" data-key="f1_s2s_action"></span></div>
+            <div class="detail"><span class="t" data-key="f1_s2s_detail"></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="step-row" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 3</div>
+          <div class="step-card card-admin">
+            <div class="action"><span class="t" data-key="f1_s3_action"></span></div>
+            <div class="detail"><span class="t" data-key="f1_s3_detail"></span></div>
+          </div>
+        </div>
+        <div class="step-cell empty"></div>
+        <div class="step-cell empty"></div>
+      </div>
+      <div class="step-row" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="step-cell empty"></div>
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 4</div>
+          <div class="step-card card-teacher">
+            <div class="action"><span class="t" data-key="f1_s4t_action"></span></div>
+            <div class="detail"><span class="t" data-key="f1_s4t_detail"></span></div>
+          </div>
+        </div>
+        <div class="step-cell empty"></div>
+      </div>
+      <div class="step-row" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 5</div>
+          <div class="step-card card-admin">
+            <div class="action"><span class="t" data-key="f1_s5_action"></span></div>
+            <div class="detail"><span class="t" data-key="f1_s5_detail"></span></div>
+          </div>
+        </div>
+        <div class="step-cell empty"></div>
+        <div class="step-cell empty"></div>
+      </div>
+    </div>
+  </div>
+  <div class="outcome-bar">
+    <div class="outcome-icon">✅</div>
+    <div>
+      <div class="outcome-label"><span class="t" data-key="outcome"></span></div>
+      <div class="outcome-text"><span class="t" data-key="f1_outcome"></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     FLOW 3: MEDICAL
+════════════════════════════════════════════════ -->
+<div class="flow-container" id="flow-2">
+  <div class="scenario-header">
+    <div class="scenario-icon">🤕</div>
+    <div>
+      <div class="scenario-title"><span class="t" data-key="f2_title"></span></div>
+      <div class="scenario-desc"><span class="t" data-key="f2_desc"></span></div>
+    </div>
+  </div>
+  <div class="actors">
+    <div class="actor-badge"><div class="actor-dot dot-admin"></div><span class="t" data-key="f2_a1"></span></div>
+    <div class="actor-badge"><div class="actor-dot dot-teacher"></div><span class="t" data-key="f2_a2"></span></div>
+    <div class="actor-badge"><div class="actor-dot dot-student"></div><span class="t" data-key="f2_a3"></span></div>
+  </div>
+  <div class="lanes">
+    <div class="lane-header" style="grid-template-columns: 1fr 1fr 1fr;">
+      <div class="lane-head-cell"><span style="color:#f06060">●</span> <span class="t" data-key="f2_a1"></span></div>
+      <div class="lane-head-cell"><span style="color:#f0a440">●</span> <span class="t" data-key="f2_a2"></span></div>
+      <div class="lane-head-cell"><span style="color:#5b7cf0">●</span> <span class="t" data-key="f2_a3"></span></div>
+    </div>
+    <div class="steps-grid">
+      <div class="step-row" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="step-cell empty"></div>
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 1</div>
+          <div class="step-card card-teacher">
+            <div class="action"><span class="t" data-key="f2_s1t_action"></span></div>
+            <div class="detail"><span class="t" data-key="f2_s1t_detail"></span></div>
+          </div>
+        </div>
+        <div class="step-cell empty"></div>
+      </div>
+      <div class="step-row" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 2</div>
+          <div class="step-card card-admin">
+            <div class="action"><span class="t" data-key="f2_s2a_action"></span></div>
+            <div class="detail"><span class="t" data-key="f2_s2a_detail"></span></div>
+          </div>
+        </div>
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 2</div>
+          <div class="step-card card-teacher">
+            <div class="action"><span class="t" data-key="f2_s2t_action"></span></div>
+            <div class="detail"><span class="t" data-key="f2_s2t_detail"></span></div>
+          </div>
+        </div>
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 2</div>
+          <div class="step-card card-student">
+            <div class="action"><span class="t" data-key="f2_s2s_action"></span></div>
+            <div class="detail"><span class="t" data-key="f2_s2s_detail"></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="step-row" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 3</div>
+          <div class="step-card card-admin">
+            <div class="action"><span class="t" data-key="f2_s3a_action"></span></div>
+            <div class="detail"><span class="t" data-key="f2_s3a_detail"></span></div>
+          </div>
+        </div>
+        <div class="step-cell empty"></div>
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 3</div>
+          <div class="step-card card-student">
+            <div class="action"><span class="t" data-key="f2_s3s_action"></span></div>
+            <div class="detail"><span class="t" data-key="f2_s3s_detail"></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="step-row" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 4</div>
+          <div class="step-card card-admin">
+            <div class="action"><span class="t" data-key="f2_s4_action"></span></div>
+            <div class="detail"><span class="t" data-key="f2_s4_detail"></span></div>
+          </div>
+        </div>
+        <div class="step-cell empty"></div>
+        <div class="step-cell empty"></div>
+      </div>
+    </div>
+  </div>
+  <div class="outcome-bar">
+    <div class="outcome-icon">✅</div>
+    <div>
+      <div class="outcome-label"><span class="t" data-key="outcome"></span></div>
+      <div class="outcome-text"><span class="t" data-key="f2_outcome"></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     FLOW 4: SEVERE WEATHER
+════════════════════════════════════════════════ -->
+<div class="flow-container" id="flow-3">
+  <div class="scenario-header">
+    <div class="scenario-icon">🌪️</div>
+    <div>
+      <div class="scenario-title"><span class="t" data-key="f3_title"></span></div>
+      <div class="scenario-desc"><span class="t" data-key="f3_desc"></span></div>
+    </div>
+  </div>
+  <div class="actors">
+    <div class="actor-badge"><div class="actor-dot dot-admin"></div><span class="t" data-key="role_admin"></span></div>
+    <div class="actor-badge"><div class="actor-dot dot-teacher"></div><span class="t" data-key="role_teacher"></span></div>
+    <div class="actor-badge"><div class="actor-dot dot-student"></div><span class="t" data-key="role_student"></span></div>
+  </div>
+  <div class="lanes">
+    <div class="lane-header" style="grid-template-columns: 1fr 1fr 1fr;">
+      <div class="lane-head-cell"><span style="color:#f06060">●</span> <span class="t" data-key="role_admin"></span></div>
+      <div class="lane-head-cell"><span style="color:#f0a440">●</span> <span class="t" data-key="role_teacher"></span></div>
+      <div class="lane-head-cell"><span style="color:#5b7cf0">●</span> <span class="t" data-key="role_student"></span></div>
+    </div>
+    <div class="steps-grid">
+      <div class="step-row" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 1</div>
+          <div class="step-card card-admin">
+            <div class="action"><span class="t" data-key="f3_s1_action"></span></div>
+            <div class="detail"><span class="t" data-key="f3_s1_detail"></span></div>
+          </div>
+        </div>
+        <div class="step-cell empty"></div>
+        <div class="step-cell empty"></div>
+      </div>
+      <div class="step-row" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="step-cell empty"></div>
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 2</div>
+          <div class="step-card card-teacher">
+            <div class="action"><span class="t" data-key="f3_s2t_action"></span></div>
+            <div class="detail"><span class="t" data-key="f3_s2t_detail"></span></div>
+          </div>
+        </div>
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 2</div>
+          <div class="step-card card-student">
+            <div class="action"><span class="t" data-key="f3_s2s_action"></span></div>
+            <div class="detail"><span class="t" data-key="f3_s2s_detail"></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="step-row" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="step-cell empty"></div>
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 3</div>
+          <div class="step-card card-teacher">
+            <div class="action"><span class="t" data-key="f3_s3t_action"></span></div>
+            <div class="detail"><span class="t" data-key="f3_s3t_detail"></span></div>
+          </div>
+        </div>
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 3</div>
+          <div class="step-card card-student">
+            <div class="action"><span class="t" data-key="f3_s3s_action"></span></div>
+            <div class="detail"><span class="t" data-key="f3_s3s_detail"></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="step-row" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 4</div>
+          <div class="step-card card-admin">
+            <div class="action"><span class="t" data-key="f3_s4_action"></span></div>
+            <div class="detail"><span class="t" data-key="f3_s4_detail"></span></div>
+          </div>
+        </div>
+        <div class="step-cell empty"></div>
+        <div class="step-cell empty"></div>
+      </div>
+      <div class="step-row" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 5</div>
+          <div class="step-card card-admin">
+            <div class="action"><span class="t" data-key="f3_s5_action"></span></div>
+            <div class="detail"><span class="t" data-key="f3_s5_detail"></span></div>
+          </div>
+        </div>
+        <div class="step-cell empty"></div>
+        <div class="step-cell empty"></div>
+      </div>
+    </div>
+  </div>
+  <div class="outcome-bar">
+    <div class="outcome-icon">✅</div>
+    <div>
+      <div class="outcome-label"><span class="t" data-key="outcome"></span></div>
+      <div class="outcome-text"><span class="t" data-key="f3_outcome"></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     FLOW 5: MISSING STUDENT
+════════════════════════════════════════════════ -->
+<div class="flow-container" id="flow-4">
+  <div class="scenario-header">
+    <div class="scenario-icon">⚠️</div>
+    <div>
+      <div class="scenario-title"><span class="t" data-key="f4_title"></span></div>
+      <div class="scenario-desc"><span class="t" data-key="f4_desc"></span></div>
+    </div>
+  </div>
+  <div class="actors">
+    <div class="actor-badge"><div class="actor-dot dot-admin"></div><span class="t" data-key="role_admin"></span></div>
+    <div class="actor-badge"><div class="actor-dot dot-teacher"></div><span class="t" data-key="f4_a2"></span></div>
+    <div class="actor-badge"><div class="actor-dot dot-student"></div><span class="t" data-key="f4_a3"></span></div>
+  </div>
+  <div class="lanes">
+    <div class="lane-header" style="grid-template-columns: 1fr 1fr 1fr;">
+      <div class="lane-head-cell"><span style="color:#f06060">●</span> <span class="t" data-key="role_admin"></span></div>
+      <div class="lane-head-cell"><span style="color:#f0a440">●</span> <span class="t" data-key="f4_a2"></span></div>
+      <div class="lane-head-cell"><span style="color:#5b7cf0">●</span> <span class="t" data-key="f4_a3"></span></div>
+    </div>
+    <div class="steps-grid">
+      <div class="step-row" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="step-cell empty"></div>
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 1</div>
+          <div class="step-card card-teacher">
+            <div class="action"><span class="t" data-key="f4_s1t_action"></span></div>
+            <div class="detail"><span class="t" data-key="f4_s1t_detail"></span></div>
+          </div>
+        </div>
+        <div class="step-cell empty"></div>
+      </div>
+      <div class="step-row" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 2</div>
+          <div class="step-card card-admin">
+            <div class="action"><span class="t" data-key="f4_s2a_action"></span></div>
+            <div class="detail"><span class="t" data-key="f4_s2a_detail"></span></div>
+          </div>
+        </div>
+        <div class="step-cell empty"></div>
+        <div class="step-cell empty"></div>
+      </div>
+      <div class="step-row" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="step-cell empty"></div>
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 3</div>
+          <div class="step-card card-teacher">
+            <div class="action"><span class="t" data-key="f4_s3t_action"></span></div>
+            <div class="detail"><span class="t" data-key="f4_s3t_detail"></span></div>
+          </div>
+        </div>
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 3</div>
+          <div class="step-card card-student">
+            <div class="action"><span class="t" data-key="f4_s3s_action"></span></div>
+            <div class="detail"><span class="t" data-key="f4_s3s_detail"></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="step-row" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 4</div>
+          <div class="step-card card-admin">
+            <div class="action"><span class="t" data-key="f4_s4_action"></span></div>
+            <div class="detail"><span class="t" data-key="f4_s4_detail"></span></div>
+          </div>
+        </div>
+        <div class="step-cell empty"></div>
+        <div class="step-cell empty"></div>
+      </div>
+      <div class="step-row" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="step-cell">
+          <div class="step-num"><span class="t" data-key="step"></span> 5</div>
+          <div class="step-card card-admin">
+            <div class="action"><span class="t" data-key="f4_s5_action"></span></div>
+            <div class="detail"><span class="t" data-key="f4_s5_detail"></span></div>
+          </div>
+        </div>
+        <div class="step-cell empty"></div>
+        <div class="step-cell empty"></div>
+      </div>
+    </div>
+  </div>
+  <div class="outcome-bar">
+    <div class="outcome-icon">✅</div>
+    <div>
+      <div class="outcome-label"><span class="t" data-key="outcome"></span></div>
+      <div class="outcome-text"><span class="t" data-key="f4_outcome"></span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const translations = {
+  en: {
+    // Page
+    main_title: "EmergenSee — School Emergency User Flows",
+    main_subtitle: "5 scenarios · Teachers, Students & Admin · Real-time coordination",
+    // Common
+    step: "STEP",
+    outcome: "Outcome",
+    role_admin: "Admin",
+    role_teacher: "Teacher",
+    role_student: "Student",
+    // Tabs
+    tab0: "Fire",
+    tab1: "Lockdown",
+    tab2: "Medical",
+    tab3: "Severe Weather",
+    tab4: "Missing Student",
+    // Flow 0 - Fire
+    f0_title: "Fire / Building Evacuation",
+    f0_desc: "Alarm triggers in the main building. Admin creates an incident. Teachers lead classes out and report headcounts. Students mark themselves safe once outside.",
+    f0_a1: "Admin / Principal",
+    f0_s1_action: "Create Fire Incident",
+    f0_s1_detail: "Opens EmergenSee → New Event → Type: Fire, Priority: Critical, Location: Main Building, selects all departments",
+    f0_s2t_action: "Receive Push Alert",
+    f0_s2t_detail: "Teacher sees real-time notification on phone — taps to open Emergency Report page",
+    f0_s2s_action: "Receive Alert",
+    f0_s2s_detail: "Student's device buzzes with EmergenSee alert — sees active fire event",
+    f0_s3t_action: "Lead Evacuation",
+    f0_s3t_detail: "Takes class to assembly point, does physical headcount, reports own status: SAFE",
+    f0_s3s_action: "Mark Myself Safe",
+    f0_s3s_detail: "Once outside, taps big green SAFE button on emergency fast-action page",
+    f0_s4_action: "Monitor Status Board",
+    f0_s4_detail: "Watches real-time dashboard — sees who is SAFE, UNKNOWN, or NEED_HELP. Identifies unaccounted students",
+    f0_s5_action: "Close Incident",
+    f0_s5_detail: "Once fire department clears building, marks event as Resolved in EmergenSee",
+    f0_outcome: "All students & staff accounted for within minutes. Admin can immediately see who hasn't reported in and dispatch help before fire services need a list.",
+    // Flow 1 - Lockdown
+    f1_title: "Security Lockdown (Intruder Alert)",
+    f1_desc: "Suspicious person reported on campus. Admin triggers lockdown. Teachers shelter in place with students. Students silently confirm status.",
+    f1_a1: "Admin / Security",
+    f1_s1_action: "Create Lockdown Event",
+    f1_s1_detail: "Type: Security Threat, Priority: Critical — pushes instant alert to all users on campus",
+    f1_s2t_action: "Shelter in Place",
+    f1_s2t_detail: "Locks classroom door, turns off lights — opens EmergenSee, confirms room location and reports SAFE",
+    f1_s2s_action: "Silent Status Tap",
+    f1_s2s_detail: "Without making noise, taps SAFE on phone. If separated from class, taps NEED_HELP",
+    f1_s3_action: "Track Unaccounted",
+    f1_s3_detail: "Filters by department — finds 3 students showing UNKNOWN in hallway zone, radios security",
+    f1_s4t_action: "Update Student Who Arrived",
+    f1_s4t_detail: "A student from the hall slips into room — teacher marks them SAFE manually from the status page",
+    f1_s5_action: "All Clear → Resolve",
+    f1_s5_detail: "Police confirm all clear — admin resolves event, sends all-clear notification",
+    f1_outcome: "No phone calls needed during lockdown. Status is reported silently. Admin can pinpoint missing individuals and share a live list with law enforcement.",
+    // Flow 2 - Medical
+    f2_title: "Medical Emergency (Student Collapse)",
+    f2_desc: "A student collapses in the gym. Teacher creates a targeted medical incident. Nurse and admin are notified. Student bystanders are told to stay clear.",
+    f2_a1: "Admin / Nurse",
+    f2_a2: "Gym Teacher",
+    f2_a3: "Student Bystander",
+    f2_s1t_action: "Create Medical Event",
+    f2_s1t_detail: "Opens app → New Event → Type: Medical, Location: Gymnasium, departments: PE + Nurse + Admin",
+    f2_s2a_action: "Nurse Alerted",
+    f2_s2a_detail: "Nurse receives push notification with exact location (Gymnasium) — grabs AED and heads over",
+    f2_s2t_action: "Administer First Aid",
+    f2_s2t_detail: "Stays with student — reports own status as AWAY (actively responding) to signal engagement",
+    f2_s2s_action: "See Event Alert",
+    f2_s2s_detail: "Students in gym see active incident on their app — prompted to give space, move to bleachers",
+    f2_s3a_action: "Call 911 + Monitor",
+    f2_s3a_detail: "Admin calls emergency services, tracks responder status on dashboard — ensures nurse arrived",
+    f2_s3s_action: "Report Own Status",
+    f2_s3s_detail: "Students mark SAFE from bleachers — admin knows bystanders are out of the way",
+    f2_s4_action: "Resolve After EMS",
+    f2_s4_detail: "Once ambulance departs, admin resolves event and logs outcome in description field",
+    f2_outcome: "Nurse arrives in under 2 minutes with the right equipment. Admin has a live picture of who is responding. Student bystanders are calm and out of the way.",
+    // Flow 3 - Weather
+    f3_title: "Severe Weather / Tornado Warning",
+    f3_desc: "County issues tornado warning. Admin moves all students to interior shelter zones. Teachers verify counts. Students report safe from shelter rooms.",
+    f3_s1_action: "Create Weather Event",
+    f3_s1_detail: 'Type: Severe Weather, Priority: High — includes description: "Move to interior hallways, away from windows"',
+    f3_s2t_action: "Read Alert + Act",
+    f3_s2t_detail: "Reads event description — directs class to interior hallway, away from windows, phones away",
+    f3_s2s_action: "Follow Teacher",
+    f3_s2s_detail: "Moves to assigned shelter spot — opens app to see event details and instructions",
+    f3_s3t_action: "Confirm Headcount",
+    f3_s3t_detail: "All 28 students in hallway — teacher marks own status SAFE and updates any absent students",
+    f3_s3s_action: "Tap SAFE",
+    f3_s3s_detail: "Confirms their own status from shelter location — takes 2 seconds",
+    f3_s4_action: "Monitor + Update",
+    f3_s4_detail: "Watches status board — follows local weather authority, updates event description with new instructions if needed",
+    f3_s5_action: "All Clear",
+    f3_s5_detail: "Warning lifted — resolves event, everyone returns to class",
+    f3_outcome: "Every student and teacher is accounted for and sheltered. Admin can update instructions in real time without needing to shout over an intercom or run between hallways.",
+    // Flow 4 - Missing
+    f4_title: "Missing / Unaccounted Student",
+    f4_desc: "A student doesn't arrive to class after lunch and isn't responding. Teacher flags it. Admin opens an incident and uses EmergenSee to coordinate a campus search.",
+    f4_a2: "Teacher (Reporting)",
+    f4_a3: "Other Students",
+    f4_s1t_action: "Report Missing Student",
+    f4_s1t_detail: "Notices absence after 10 min, calls office, then reports status of that student as UNKNOWN via EmergenSee",
+    f4_s2a_action: "Open Search Incident",
+    f4_s2a_detail: "Creates event — Type: Missing Person, includes student name in description, selects departments: Security + All Teachers",
+    f4_s3t_action: "Check Own Area",
+    f4_s3t_detail: "All teachers on alert scan their classrooms and hallways — report SAFE if they haven't seen the student",
+    f4_s3s_action: "Alert Goes Out",
+    f4_s3s_detail: "Students in the affected departments see the alert — a student recalls seeing them in the library",
+    f4_s4_action: "Receive Tip + Dispatch",
+    f4_s4_detail: "Admin sees a teacher updated the event notes — sends security guard to library. Student found safe.",
+    f4_s5_action: "Resolve + Notify",
+    f4_s5_detail: "Marks event resolved — all participating staff see resolution notification immediately",
+    f4_outcome: "The whole staff is mobilized in seconds without a chaotic PA announcement. Admin coordinates a structured search and gets a resolution before anyone panics.",
+  },
+  he: {
+    // Page
+    main_title: "EmergenSee — תרחישי חירום בבית ספר",
+    main_subtitle: "5 תרחישים · מורים, תלמידים ומנהלה · תיאום בזמן אמת",
+    // Common
+    step: "שלב",
+    outcome: "תוצאה",
+    role_admin: "מנהל",
+    role_teacher: "מורה",
+    role_student: "תלמיד",
+    // Tabs
+    tab0: "שריפה",
+    tab1: "נעילה",
+    tab2: "רפואי",
+    tab3: "מזג אוויר קיצוני",
+    tab4: "תלמיד נעדר",
+    // Flow 0 - Fire
+    f0_title: "שריפה / פינוי הבניין",
+    f0_desc: "אזעקה מופעלת בבניין הראשי. המנהל פותח אירוע. המורים מובילים את הכיתות החוצה ומדווחים על ספירת ראשים. התלמידים מסמנים את עצמם כבטוחים מחוץ לבניין.",
+    f0_a1: "מנהל / מנהלת",
+    f0_s1_action: "פתיחת אירוע שריפה",
+    f0_s1_detail: "פותח את EmergenSee ← אירוע חדש ← סוג: שריפה, עדיפות: קריטית, מיקום: בניין ראשי, בחירת כל המחלקות",
+    f0_s2t_action: "קבלת התראה בדחיפה",
+    f0_s2t_detail: "המורה רואה התראה בזמן אמת בטלפון — לוחץ/ת לפתיחת דף דיווח חירום",
+    f0_s2s_action: "קבלת התראה",
+    f0_s2s_detail: "מכשיר התלמיד מרטט עם התראת EmergenSee — רואה את אירוע השריפה הפעיל",
+    f0_s3t_action: "הובלת הפינוי",
+    f0_s3t_detail: "לוקח/ת את הכיתה לנקודת ריכוז, עורך/ת ספירת ראשים, מדווח/ת על סטטוס עצמי: בטוח/ה",
+    f0_s3s_action: "סימון עצמי כבטוח",
+    f0_s3s_detail: "בחוץ, לוחץ/ת על כפתור SAFE הירוק הגדול בדף הפעולה המהירה",
+    f0_s4_action: "מעקב אחר לוח הסטטוסים",
+    f0_s4_detail: "צופה בלוח מחוונים בזמן אמת — רואה מי SAFE, UNKNOWN, או NEED_HELP. מזהה תלמידים לא מאותרים",
+    f0_s5_action: "סגירת האירוע",
+    f0_s5_detail: "לאחר שכבאות מאשרת ניקוי הבניין, מסמן/ת את האירוע כ'נסגר' ב-EmergenSee",
+    f0_outcome: "כל התלמידים והצוות מאותרים תוך דקות. המנהל רואה מיידית מי לא דיווח ויכול לשגר עזרה לפני שכבאות מבקשת רשימה.",
+    // Flow 1 - Lockdown
+    f1_title: "נעילת ביטחון (התראת חדירן)",
+    f1_desc: "דווח על אדם חשוד בשטח. המנהל מפעיל נעילה. המורים נשארים עם התלמידים בכיתה. התלמידים מדווחים על סטטוסם בשקט.",
+    f1_a1: "מנהל / אבטחה",
+    f1_s1_action: "פתיחת אירוע נעילה",
+    f1_s1_detail: "סוג: איום ביטחוני, עדיפות: קריטית — שולח התראה מיידית לכל המשתמשים בשטח",
+    f1_s2t_action: "הסתגרות במקום",
+    f1_s2t_detail: "נועל/ת את דלת הכיתה, מכבה אורות — פותח/ת EmergenSee, מאשר/ת מיקום חדר ומדווח/ת SAFE",
+    f1_s2s_action: "לחיצת סטטוס שקטה",
+    f1_s2s_detail: "בלי להשמיע רעש, לוחץ/ת SAFE בטלפון. אם מנותק/ת מהכיתה, לוחץ/ת NEED_HELP",
+    f1_s3_action: "מעקב אחר לא מאותרים",
+    f1_s3_detail: "מסנן לפי מחלקה — מוצא 3 תלמידים עם UNKNOWN באזור המסדרון, מדווח לאבטחה",
+    f1_s4t_action: "עדכון תלמיד שהגיע",
+    f1_s4t_detail: "תלמיד מהמסדרון נכנס לכיתה — המורה מסמן/ת אותו SAFE ידנית מדף הסטטוסים",
+    f1_s5_action: "הכל בסדר → סגירה",
+    f1_s5_detail: "המשטרה מאשרת — המנהל סוגר את האירוע ושולח הודעת 'הכל בסדר'",
+    f1_outcome: "אין צורך בשיחות טלפון במהלך הנעילה. הסטטוס מדווח בשקט. המנהל יכול לאתר חסרים ולשתף רשימה חיה עם כוחות הביטחון.",
+    // Flow 2 - Medical
+    f2_title: "מקרה רפואי (תלמיד קרס)",
+    f2_desc: "תלמיד קורס בחדר הכושר. המורה פותח אירוע רפואי ממוקד. האחות והמנהל מקבלים התראה. תלמידים עוברי אורח מתבקשים לפנות את השטח.",
+    f2_a1: "מנהל / אחות",
+    f2_a2: "מורה לחינוך גופני",
+    f2_a3: "תלמיד עד ראייה",
+    f2_s1t_action: "פתיחת אירוע רפואי",
+    f2_s1t_detail: "פותח אפליקציה ← אירוע חדש ← סוג: רפואי, מיקום: חדר כושר, מחלקות: חינ\"ג + אחות + מנהל",
+    f2_s2a_action: "התראה לאחות",
+    f2_s2a_detail: "האחות מקבלת התראה עם מיקום מדויק (חדר כושר) — לוקחת דפיברילטור ויוצאת לשם",
+    f2_s2t_action: "מתן עזרה ראשונה",
+    f2_s2t_detail: "נשאר/ת עם התלמיד — מדווח/ת על סטטוס עצמי כ-AWAY (בטיפול פעיל)",
+    f2_s2s_action: "קבלת התראת אירוע",
+    f2_s2s_detail: "תלמידים בחדר כושר רואים אירוע פעיל באפליקציה — מתבקשים לפנות מקום ולזוז לדרגשים",
+    f2_s3a_action: "חיוג 101 + מעקב",
+    f2_s3a_detail: "המנהל מזמין שירותי חירום, עוקב אחר סטטוס המגיבים בלוח — מוודא שהאחות הגיעה",
+    f2_s3s_action: "דיווח סטטוס עצמי",
+    f2_s3s_detail: "תלמידים מסמנים SAFE מהדרגשים — המנהל יודע שעדי הראייה ממוקמים בטח",
+    f2_s4_action: "סגירה לאחר מד״א",
+    f2_s4_detail: "לאחר שהאמבולנס עוזב, המנהל סוגר את האירוע ומתעד את התוצאה",
+    f2_outcome: "האחות מגיעה תוך פחות מ-2 דקות עם הציוד הנכון. למנהל יש תמונה חיה של מי מטפל. תלמידי העד שקטים ומחוץ לאזור.",
+    // Flow 3 - Weather
+    f3_title: "מזג אוויר קיצוני / אזהרת טורנדו",
+    f3_desc: "הרשות המקומית מוציאה אזהרת טורנדו. המנהל מעביר את כולם לאזורי מחסה. המורים מאשרים ספירות. התלמידים מדווחים מחדרי המחסה.",
+    f3_s1_action: "פתיחת אירוע מזג אוויר",
+    f3_s1_detail: 'סוג: מזג אוויר קיצוני, עדיפות: גבוהה — כולל הוראה: "עברו למסדרונות פנימיים, הרחק מחלונות"',
+    f3_s2t_action: "קריאת ההתראה + פעולה",
+    f3_s2t_detail: "קורא/ת את תיאור האירוע — מוביל/ה את הכיתה למסדרון הפנימי, הרחק מחלונות",
+    f3_s2s_action: "מעקב אחרי המורה",
+    f3_s2s_detail: "עובר/ת למקום המחסה — פותח/ת אפליקציה לצפייה בפרטי האירוע וההוראות",
+    f3_s3t_action: "אישור ספירת ראשים",
+    f3_s3t_detail: "כל 28 תלמידים במסדרון — המורה מסמן/ת עצמו/ה SAFE ומעדכן/ת תלמידים חסרים",
+    f3_s3s_action: "לחיצה על SAFE",
+    f3_s3s_detail: "מאשר/ת סטטוס עצמי ממקום המחסה — לוקח 2 שניות",
+    f3_s4_action: "מעקב + עדכון",
+    f3_s4_detail: "עוקב אחר לוח הסטטוסים ורשות מזג האוויר — מעדכן הוראות באירוע בהתאם לצורך",
+    f3_s5_action: "הכל בסדר",
+    f3_s5_detail: "האזהרה הוסרה — סוגר את האירוע, כולם חוזרים לכיתות",
+    f3_outcome: "כל תלמיד ומורה מאותר ומוגן. המנהל יכול לעדכן הוראות בזמן אמת מבלי לרוץ בין מסדרונות.",
+    // Flow 4 - Missing
+    f4_title: "תלמיד נעדר / לא מאותר",
+    f4_desc: "תלמיד לא מגיע לשיעור אחרי הפסקת הצהריים. המורה מדווח/ת. המנהל פותח אירוע ומשתמש ב-EmergenSee לתיאום חיפוש בשטח.",
+    f4_a2: "מורה (מדווח/ת)",
+    f4_a3: "תלמידים אחרים",
+    f4_s1t_action: "דיווח על תלמיד נעדר",
+    f4_s1t_detail: "מבחין/ת בהיעדרות אחרי 10 דקות, מתקשר/ת למשרד, ואז מדווח/ת על סטטוס התלמיד כ-UNKNOWN ב-EmergenSee",
+    f4_s2a_action: "פתיחת אירוע חיפוש",
+    f4_s2a_detail: "יוצר אירוע — סוג: נעדר, שם התלמיד בתיאור, מחלקות: אבטחה + כל המורים",
+    f4_s3t_action: "בדיקת האזור שלי",
+    f4_s3t_detail: "כל המורים בכוננות סורקים כיתות ומסדרונות — מדווחים SAFE אם לא ראו את התלמיד",
+    f4_s3s_action: "ההתראה יוצאת",
+    f4_s3s_detail: "תלמידים במחלקות הרלוונטיות רואים את ההתראה — תלמיד מזכיר שראה אותו בספרייה",
+    f4_s4_action: "קבלת רמז + שיגור",
+    f4_s4_detail: "המנהל רואה שמורה עדכן הערות באירוע — שולח שומר לספרייה. התלמיד נמצא בשלום.",
+    f4_s5_action: "סגירה + הודעה",
+    f4_s5_detail: "מסמן את האירוע כנסגר — כל הצוות שהשתתף מקבל הודעת סגירה מיידית",
+    f4_outcome: "כל הצוות מגויס תוך שניות בלי הכרזה כאוטית ברמקול. המנהל מתאם חיפוש מסודר ומגיע לפתרון לפני שמישהו נבהל.",
+  }
+};
+
+let currentLang = 'en';
+let currentFlow = 0;
+
+function setLang(lang) {
+  currentLang = lang;
+  const html = document.documentElement;
+  html.lang = lang;
+  html.dir = lang === 'he' ? 'rtl' : 'ltr';
+
+  document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+  document.getElementById('btn-he').classList.toggle('active', lang === 'he');
+
+  const t = translations[lang];
+  document.getElementById('main-title').textContent = t.main_title;
+  document.getElementById('main-subtitle').textContent = t.main_subtitle;
+
+  document.querySelectorAll('.t[data-key]').forEach(el => {
+    const key = el.dataset.key;
+    if (t[key] !== undefined) el.textContent = t[key];
+  });
+}
+
+function show(index) {
+  currentFlow = index;
+  document.querySelectorAll('.flow-container').forEach((el, i) => {
+    el.classList.toggle('visible', i === index);
+  });
+  document.querySelectorAll('#tab-bar .tab').forEach((el, i) => {
+    el.classList.toggle('active', i === index);
+  });
+}
+
+// Init
+setLang('en');
+</script>
+</body>
+</html>
