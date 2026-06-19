@@ -150,7 +150,7 @@ const UsersPage = () => {
 			{
 				id: 'role',
 				header: strings.columnRole,
-				renderCell: user => <Badge tone="info">{USER_ROLE_LABELS[user.role]}</Badge>,
+				renderCell: user => <Badge tone={utils.getRoleTone(user.role)}>{USER_ROLE_LABELS[user.role]}</Badge>,
 			},
 			{
 				id: 'status',
@@ -286,11 +286,11 @@ const UsersPage = () => {
 
 			{/* Mobile card list */}
 			{isLoading ? (
-				<div className="ui-loading-state md:hidden"><Loader /></div>
+				<div className="ui-loading-state lg:hidden"><Loader /></div>
 			) : displayedUsers.length === 0 ? (
-				<p className="ui-empty-state md:hidden">{strings.noUsersFound}</p>
+				<p className="ui-empty-state lg:hidden">{strings.noUsersFound}</p>
 			) : (
-				<div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm md:hidden">
+				<div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm lg:hidden">
 					{displayedUsers.map((u, i) => {
 						const userId = getEntityId(u) || u.email;
 						const isLast = i === displayedUsers.length - 1;
@@ -346,7 +346,7 @@ const UsersPage = () => {
 			)}
 
 			{/* Desktop table */}
-			<div className="hidden md:block">
+			<div className="hidden lg:block">
 				<GenericTable
 					columns={userColumns}
 					rows={displayedUsers}

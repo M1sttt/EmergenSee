@@ -2,7 +2,7 @@ import React, { useMemo, useCallback } from 'react';
 import { useWebSocket } from 'hooks/useWebSocket';
 import { WebSocketEventType, EventPriority } from '@emergensee/shared';
 import { getEventPriorityTone } from '@/consts/ui';
-import { MdEvent, MdWarning, MdError, MdNotificationImportant, MdPeople } from 'react-icons/md';
+import { MdEvent, MdPeople } from 'react-icons/md';
 import * as strings from './strings';
 import * as consts from './consts';
 import * as utils from './utils';
@@ -63,37 +63,28 @@ const DashboardPage: React.FC = () => {
 		<div className="ui-page">
 			<h1 className="ui-page-title mb-6">{strings.title}</h1>
 
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-				<div className="bg-white rounded-lg shadow p-6">
-					<div className="flex items-center gap-2 text-sm font-medium text-gray-600">
-						<MdEvent className="text-xl" />
-						{strings.totalEvents}
-					</div>
-					<div className="text-3xl font-bold text-gray-900 mt-2">{events.length}</div>
+			<div className="bg-white rounded-lg shadow p-6 mb-8">
+				<div className="flex items-center gap-2 text-sm font-medium text-gray-600 mb-4">
+					<MdEvent className="text-xl" />
+					<span className="text-base font-semibold text-gray-900">{strings.eventOverview}</span>
 				</div>
-
-				<div className="bg-white rounded-lg shadow p-6">
-					<div className="flex items-center gap-2 text-sm font-medium text-gray-600">
-						<MdWarning className="text-xl text-blue-600" />
-						{strings.activeEvents}
+				<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+					<div className="flex flex-col items-center rounded-lg bg-gray-50 px-4 py-3">
+						<span className="text-2xl font-bold text-gray-700">{events.length}</span>
+						<span className="mt-1 text-xs font-medium text-gray-500">{strings.totalEvents}</span>
 					</div>
-					<div className="text-3xl font-bold text-blue-600 mt-2">{activeEventsCount}</div>
-				</div>
-
-				<div className="bg-white rounded-lg shadow p-6">
-					<div className="flex items-center gap-2 text-sm font-medium text-gray-600">
-						<MdError className="text-xl text-red-600" />
-						{strings.criticalEvents}
+					<div className="flex flex-col items-center rounded-lg bg-blue-50 px-4 py-3">
+						<span className="text-2xl font-bold text-blue-700">{activeEventsCount}</span>
+						<span className="mt-1 text-xs font-medium text-blue-600">{strings.activeEvents}</span>
 					</div>
-					<div className="text-3xl font-bold text-red-600 mt-2">{criticalEventsCount}</div>
-				</div>
-
-				<div className="bg-white rounded-lg shadow p-6">
-					<div className="flex items-center gap-2 text-sm font-medium text-gray-600">
-						<MdNotificationImportant className="text-xl text-orange-600" />
-						{strings.highPriority}
+					<div className="flex flex-col items-center rounded-lg bg-red-50 px-4 py-3">
+						<span className="text-2xl font-bold text-red-700">{criticalEventsCount}</span>
+						<span className="mt-1 text-xs font-medium text-red-600">{strings.criticalEvents}</span>
 					</div>
-					<div className="text-3xl font-bold text-orange-600 mt-2">{highPriorityEventsCount}</div>
+					<div className="flex flex-col items-center rounded-lg bg-orange-50 px-4 py-3">
+						<span className="text-2xl font-bold text-orange-700">{highPriorityEventsCount}</span>
+						<span className="mt-1 text-xs font-medium text-orange-600">{strings.highPriority}</span>
+					</div>
 				</div>
 			</div>
 

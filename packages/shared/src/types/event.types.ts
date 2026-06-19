@@ -5,6 +5,7 @@ export enum EventType {
   CRIME = 'crime',
   NATURAL_DISASTER = 'natural_disaster',
   HAZMAT = 'hazmat',
+  MISSILE_ATTACK = 'missile_attack',
   OTHER = 'other',
 }
 

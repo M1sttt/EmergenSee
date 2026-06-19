@@ -82,8 +82,8 @@ function GenericTableInner<RowType>({
 
 	return (
 		<div className={mergedContainerClassName}>
-			<div className={cn('max-h-[34rem] overflow-x-auto overflow-y-auto lg:overflow-x-visible')}>
-				<table className={cn(mergedTableClassName, 'min-w-[640px] lg:min-w-full')}>
+			<div className={cn('max-h-[34rem] overflow-x-auto overflow-y-auto')}>
+				<table className={cn(mergedTableClassName, 'min-w-[640px]')}>
 					<thead className={mergedHeadClassName}>
 						<tr>
 							{columns.map(column => (

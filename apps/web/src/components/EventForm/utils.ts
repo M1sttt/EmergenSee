@@ -1,4 +1,4 @@
-import { CreateEventDto, Event } from '@emergensee/shared';
+import { CreateEventDto, Event, EventType, EventPriority } from '@emergensee/shared';
 import * as consts from './consts';
 
 export const prepareEventFormData = (data: CreateEventDto) => {
@@ -11,8 +11,13 @@ export const prepareEventFormData = (data: CreateEventDto) => {
 	};
 };
 
-export const getDefaultValues = (event?: Event | null): Partial<CreateEventDto> | undefined => {
-	if (!event) return undefined;
+export const getDefaultValues = (event?: Event | null): Partial<CreateEventDto> => {
+	if (!event) {
+		return {
+			type: EventType.FIRE,
+			priority: EventPriority.LOW,
+		};
+	}
 
 	return {
 		type: event.type,

@@ -1,7 +1,7 @@
 import SelectDropdown from '@/components/SelectDropdown';
 import React, { memo, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Event, CreateEventDto, EventType, EventPriority } from '@emergensee/shared';
+import { Event, CreateEventDto, EventType, EventPriority, EVENT_TYPE_LABELS, EVENT_PRIORITY_LABELS } from '@emergensee/shared';
 import { FiSave, FiX, FiAlertCircle } from 'react-icons/fi';
 import {
 	useEventFormCreateMutation,
@@ -12,6 +12,16 @@ import { Button, FieldError, Input, Label, Textarea } from '@/components/ui';
 import { cn } from '@/utils/cn';
 import * as strings from './strings';
 import * as utils from './utils';
+
+const PRIORITY_COLORS: Record<EventPriority, { bg: string; text: string }> = {
+	[EventPriority.LOW]:      { bg: '#dcfce7', text: '#166534' },
+	[EventPriority.MEDIUM]:   { bg: '#fef9c3', text: '#854d0e' },
+	[EventPriority.HIGH]:     { bg: '#ffedd5', text: '#9a3412' },
+	[EventPriority.CRITICAL]: { bg: '#fee2e2', text: '#991b1b' },
+};
+
+const priorityOptions = Object.values(EventPriority).map(p => ({ value: p, label: EVENT_PRIORITY_LABELS[p] }));
+const typeOptions = Object.values(EventType).map(t => ({ value: t, label: EVENT_TYPE_LABELS[t as keyof typeof EVENT_TYPE_LABELS] ?? t }));
 
 interface EventFormProps {
 	event?: Event | null;
@@ -81,7 +91,7 @@ const EventForm: React.FC<EventFormProps> = ({ event, onClose }) => {
 					) : (
 						<form onSubmit={handleSubmit(onSubmit)} className="ui-form-spacing">
 							<div>
-								<Label className="mb-1 mt-4">{strings.labelTitle}</Label>
+								<Label className="mb-1 mt-4">{strings.labelTitle} <span className="text-red-500">*</span></Label>
 								<Input
 									{...register('title', { required: strings.errTitleRequired })}
 									type="text"
@@ -90,47 +100,62 @@ const EventForm: React.FC<EventFormProps> = ({ event, onClose }) => {
 								<FieldError>{errors.title?.message}</FieldError>
 							</div>
 
-							<div>
-								<Label className="mb-1 mt-4">{strings.labelType}</Label>
-								<Controller
-									name="type"
-									control={control}
-									rules={{ required: strings.errTypeRequired }}
-									render={({ field }) => (
-										<SelectDropdown
-											{...field}
-											options={Object.values(EventType).map(type => ({ value: type, label: type }))}
-											placeholder={strings.placeholderSelectType}
-											error={errors.type?.message}
-										/>
-									)}
-								/>
-								<FieldError>{errors.type?.message}</FieldError>
+							<div className="flex gap-4">
+								<div className="flex-1">
+									<Label className="mb-1 mt-4">{strings.labelType} <span className="text-red-500">*</span></Label>
+									<Controller
+										name="type"
+										control={control}
+										rules={{ required: strings.errTypeRequired }}
+										render={({ field }) => (
+											<SelectDropdown
+												{...field}
+												options={typeOptions}
+												isSearchable={false}
+												error={errors.type?.message}
+											/>
+										)}
+									/>
+								</div>
+
+								<div className="flex-1">
+									<Label className="mb-1 mt-4">{strings.labelPriority} <span className="text-red-500">*</span></Label>
+									<Controller
+										name="priority"
+										control={control}
+										rules={{ required: strings.errPriorityRequired }}
+										render={({ field }) => (
+											<SelectDropdown
+												{...field}
+												options={priorityOptions}
+												isSearchable={false}
+												error={errors.priority?.message}
+												formatOptionLabel={(opt: { value: string; label: string }) => {
+													const colors = PRIORITY_COLORS[opt.value as EventPriority];
+													return (
+														<span
+															style={{
+																background: colors?.bg,
+																color: colors?.text,
+																borderRadius: '9999px',
+																padding: '2px 10px',
+																fontSize: '12px',
+																fontWeight: 600,
+																display: 'inline-block',
+															}}
+														>
+															{opt.label}
+														</span>
+													);
+												}}
+											/>
+										)}
+									/>
+								</div>
 							</div>
 
 							<div>
-								<Label className="mb-1 mt-4">{strings.labelPriority}</Label>
-								<Controller
-									name="priority"
-									control={control}
-									rules={{ required: strings.errPriorityRequired }}
-									render={({ field }) => (
-										<SelectDropdown
-											{...field}
-											options={Object.values(EventPriority).map(priority => ({
-												value: priority,
-												label: priority,
-											}))}
-											placeholder={strings.placeholderSelectPriority}
-											error={errors.priority?.message}
-										/>
-									)}
-								/>
-								<FieldError>{errors.priority?.message}</FieldError>
-							</div>
-
-							<div>
-								<Label className="mb-1 mt-4">{strings.labelDepartments}</Label>
+								<Label className="mb-1 mt-4">{strings.labelDepartments} <span className="text-red-500">*</span></Label>
 								<Controller
 									name="departments"
 									control={control}
@@ -148,11 +173,10 @@ const EventForm: React.FC<EventFormProps> = ({ event, onClose }) => {
 										/>
 									)}
 								/>
-								<FieldError>{errors.departments?.message}</FieldError>
 							</div>
 
 							<div>
-								<Label className="mb-1 mt-4">{strings.labelDescription}</Label>
+								<Label className="mb-1 mt-4">{strings.labelDescription} <span className="text-red-500">*</span></Label>
 								<Textarea
 									{...register('description', {
 										required: strings.errDescriptionRequired,

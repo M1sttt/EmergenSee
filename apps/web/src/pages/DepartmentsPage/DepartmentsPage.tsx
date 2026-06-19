@@ -1,17 +1,15 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { FiEdit, FiTrash2, FiUsers } from 'react-icons/fi';
-import { Department } from '@emergensee/shared';
+import { Department, UserRole } from '@emergensee/shared';
 import DepartmentForm from '@/components/DepartmentForm';
 import DepartmentMembersModal from '@/components/DepartmentMembersModal';
-import GenericTable, { type GenericTableColumn } from '@/components/common/GenericTable';
 import { Loader } from '@/components/common/Loader';
 import { useAuthStore } from 'store/authStore';
-import { Button, IconButton, Input } from '@/components/ui';
+import { Button, Input } from '@/components/ui';
 
 import * as strings from './strings';
 import * as utils from './utils';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
-import { UserRole } from '@emergensee/shared';
 import {
 	useDepartmentsPageDepartmentsQuery,
 	useDepartmentsPageDeleteMutation,
@@ -77,79 +75,6 @@ const DepartmentsPage: React.FC = () => {
 		setSearchQuery(e.target.value);
 	}, []);
 
-	const departmentColumns = useMemo<GenericTableColumn<Department>[]>(
-		() => [
-			{
-				id: 'name',
-				header: strings.columnName,
-				renderCell: department => (
-					<div className="max-w-[150px] truncate text-sm font-medium text-gray-900" title={department.name}>
-						{department.name}
-					</div>
-				),
-			},
-			{
-				id: 'description',
-				header: strings.columnDescription,
-				renderCell: department => (
-					<div className="max-w-[200px] truncate text-sm text-gray-500" title={department.description}>
-						{department.description}
-					</div>
-				),
-			},
-			{
-				id: 'admins',
-				header: strings.columnAdmins,
-				renderCell: department => {
-					const adminsDisplay = utils.formatAdmins(department.admins, users);
-					return (
-						<div className="max-w-[250px] truncate text-sm text-gray-500" title={adminsDisplay}>
-							{adminsDisplay}
-						</div>
-					);
-				},
-			},
-			{
-				id: 'actions',
-				header: strings.columnActions,
-				headerClassName: 'px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500',
-				cellClassName: 'px-6 py-4 whitespace-nowrap text-left text-sm font-medium',
-				renderCell: department => {
-					const canManageDepartment = utils.checkIsAdmin(department, currentUser);
-
-					if (!canManageDepartment) return null;
-
-					return (
-						<div className="flex justify-start gap-2">
-							<IconButton
-								onClick={() => handleManageMembers(department)}
-								className="text-blue-600"
-								tooltipText={strings.tooltipManageMembers}
-							>
-								<FiUsers size={16} />
-							</IconButton>
-							<IconButton
-								onClick={() => handleEdit(department)}
-								className="text-blue-600"
-								tooltipText={strings.tooltipEdit}
-							>
-								<FiEdit size={16} />
-							</IconButton>
-							<IconButton
-								onClick={() => handleDelete(department.id)}
-								className="text-red-600"
-								tooltipText={strings.tooltipDelete}
-							>
-								<FiTrash2 size={16} />
-							</IconButton>
-						</div>
-					);
-				},
-			},
-		],
-		[currentUser, handleDelete, handleEdit, handleManageMembers, users],
-	);
-
 	if (isError) {
 		return <div className="ui-page py-4 text-center text-red-500">{strings.error}</div>;
 	}
@@ -179,18 +104,79 @@ const DepartmentsPage: React.FC = () => {
 				</div>
 			</div>
 
-			<GenericTable
-				columns={departmentColumns}
-				rows={filteredDepartments}
-				getRowKey={department => department.id}
-				isLoading={isLoading}
-				loadingContent={
-					<div className="ui-loading-state">
-						<Loader />
-					</div>
-				}
-				emptyContent={strings.noDepartments}
-			/>
+			{isLoading ? (
+				<div className="ui-loading-state">
+					<Loader />
+				</div>
+			) : filteredDepartments.length === 0 ? (
+				<p className="py-8 text-center text-sm text-gray-500">{strings.noDepartments}</p>
+			) : (
+				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+					{filteredDepartments.map(department => {
+						const canManage = utils.checkIsAdmin(department, currentUser);
+						const adminsDisplay = utils.formatAdmins(department.admins, users);
+						const subDeptNames = (department.subDepartments ?? [])
+							.map(id => departments.find(d => d.id === id)?.name)
+							.filter(Boolean) as string[];
+						return (
+							<div
+								key={department.id}
+								className="flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+							>
+								<div>
+									<p className="text-base font-semibold text-gray-900 leading-tight">{department.name}</p>
+									{department.description && (
+										<p className="mt-0.5 text-xs text-gray-400 leading-snug">{department.description}</p>
+									)}
+								</div>
+
+								<div className="text-xs text-gray-500">
+									<span className="font-medium text-gray-600">{strings.columnAdmins}: </span>
+									{adminsDisplay}
+								</div>
+
+								{subDeptNames.length > 0 && (
+									<div className="flex flex-wrap gap-1">
+										{subDeptNames.map(name => (
+											<span
+												key={name}
+												className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700"
+											>
+												{name}
+											</span>
+										))}
+									</div>
+								)}
+
+								{canManage && (
+									<div className="flex flex-col gap-2 border-t border-gray-100 pt-2">
+										<button
+											onClick={() => handleManageMembers(department)}
+											className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-2 text-xs font-medium text-blue-600 transition-colors hover:bg-blue-50"
+										>
+											<FiUsers size={13} /> {strings.tooltipManageMembers}
+										</button>
+										<div className="flex gap-2">
+											<button
+												onClick={() => handleEdit(department)}
+												className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-2 text-xs font-medium text-blue-600 transition-colors hover:bg-blue-50"
+											>
+												<FiEdit size={13} /> {strings.tooltipEdit}
+											</button>
+											<button
+												onClick={() => handleDelete(department.id)}
+												className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-2 text-xs font-medium text-red-600 transition-colors hover:bg-red-50"
+											>
+												<FiTrash2 size={13} /> {strings.tooltipDelete}
+											</button>
+										</div>
+									</div>
+								)}
+							</div>
+						);
+					})}
+				</div>
+			)}
 
 			{isFormOpen && <DepartmentForm department={selectedDepartment} onClose={handleCloseModals} />}
 
