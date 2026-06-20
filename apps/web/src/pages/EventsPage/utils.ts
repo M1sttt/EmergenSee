@@ -14,7 +14,7 @@ export function getEventId(event: Event | (Event & { _id?: string })): string {
 	return event.id || doc._id || '';
 }
 
-export type SortField = 'type' | 'priority' | 'status' | 'title';
+export type SortField = 'type' | 'priority' | 'status' | 'title' | 'updatedAt';
 export type SortDir = 'asc' | 'desc';
 
 const PRIORITY_ORDER: Record<EventPriority, number> = {
@@ -63,6 +63,8 @@ export function sortEvents(events: Event[], field: SortField | null, dir: SortDi
 				cmp = a.type.localeCompare(b.type);
 			} else if (field === 'title') {
 				cmp = a.title.localeCompare(b.title);
+			} else if (field === 'updatedAt') {
+				cmp = new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
 			}
 			if (cmp !== 0) return dir === 'asc' ? cmp : -cmp;
 		}

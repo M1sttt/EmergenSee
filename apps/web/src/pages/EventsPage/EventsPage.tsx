@@ -188,7 +188,11 @@ export default function EventsPage() {
 		},
 		{
 			id: 'updatedAt',
-			header: strings.columnUpdatedAt,
+			header: (
+				<button onClick={() => toggleSort('updatedAt')} className="flex items-center font-medium hover:text-blue-600 transition-colors">
+					{strings.columnUpdatedAt}<SortIcon field="updatedAt" />
+				</button>
+			),
 			renderCell: event => (
 				<div className="text-sm text-gray-500 whitespace-nowrap">
 					{new Date(event.updatedAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
