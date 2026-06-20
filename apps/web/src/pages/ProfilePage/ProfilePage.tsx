@@ -91,7 +91,7 @@ const ProfilePage = () => {
 								<h2 className="font-semibold text-gray-900">{strings.faceIdSectionTitle}</h2>
 								{hasFace ? (
 									<p className="mt-0.5 text-sm text-green-600">
-										Your face is registered. Cameras can identify you automatically in an emergency.
+										Your face is registered. We can identify you automatically in an emergency.
 									</p>
 								) : (
 									<p className="mt-0.5 text-sm text-amber-600">
