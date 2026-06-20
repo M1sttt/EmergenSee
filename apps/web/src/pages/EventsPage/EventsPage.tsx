@@ -94,7 +94,7 @@ export default function EventsPage() {
 		return utils.sortEvents(filtered, sortField, sortDir);
 	}, [events, search, filterType, filterPriority, filterStatus, sortField, sortDir]);
 
-	const SortIcon = ({ field }: { field: SortField }) => {
+	const sortIcon = (field: SortField) => {
 		if (sortField !== field) return <FiChevronUp className="ml-1 opacity-30" size={12} />;
 		return sortDir === 'asc'
 			? <FiChevronUp className="ml-1 text-blue-600" size={12} />
@@ -146,7 +146,7 @@ export default function EventsPage() {
 			id: 'title',
 			header: (
 				<button onClick={() => toggleSort('title')} className="flex items-center font-medium hover:text-blue-600 transition-colors">
-					{strings.columnTitle}<SortIcon field="title" />
+					{strings.columnTitle}{sortIcon('title')}
 				</button>
 			),
 			renderCell: event => (
@@ -159,7 +159,7 @@ export default function EventsPage() {
 			id: 'type',
 			header: (
 				<button onClick={() => toggleSort('type')} className="flex items-center font-medium hover:text-blue-600 transition-colors">
-					{strings.columnType}<SortIcon field="type" />
+					{strings.columnType}{sortIcon('type')}
 				</button>
 			),
 			renderCell: event => <div className="text-sm text-gray-900">{EVENT_TYPE_LABELS[event.type]}</div>,
@@ -168,7 +168,7 @@ export default function EventsPage() {
 			id: 'priority',
 			header: (
 				<button onClick={() => toggleSort('priority')} className="flex items-center font-medium hover:text-blue-600 transition-colors">
-					{strings.columnPriority}<SortIcon field="priority" />
+					{strings.columnPriority}{sortIcon('priority')}
 				</button>
 			),
 			renderCell: event => (
@@ -179,7 +179,7 @@ export default function EventsPage() {
 			id: 'status',
 			header: (
 				<button onClick={() => toggleSort('status')} className="flex items-center font-medium hover:text-blue-600 transition-colors">
-					{strings.columnStatus}<SortIcon field="status" />
+					{strings.columnStatus}{sortIcon('status')}
 				</button>
 			),
 			renderCell: event => (
@@ -190,7 +190,7 @@ export default function EventsPage() {
 			id: 'updatedAt',
 			header: (
 				<button onClick={() => toggleSort('updatedAt')} className="flex items-center font-medium hover:text-blue-600 transition-colors">
-					{strings.columnUpdatedAt}<SortIcon field="updatedAt" />
+					{strings.columnUpdatedAt}{sortIcon('updatedAt')}
 				</button>
 			),
 			renderCell: event => (

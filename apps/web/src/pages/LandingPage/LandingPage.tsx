@@ -17,10 +17,10 @@ export default function LandingPage() {
 			</div>
 
 			<h1 className="mt-5 text-2xl font-bold text-gray-900 sm:text-3xl">
-				Hey {firstName}, you're all set!
+				Hey {firstName}, you&apos;re all set!
 			</h1>
 			<p className="mt-2 max-w-sm text-sm text-gray-500">
-				Welcome to EmergenSee. In an emergency, find the nearest shelter near you, or stand in front of a camera to scan your face and confirm you're safe.
+				Welcome to EmergenSee. In an emergency, find the nearest shelter near you, or stand in front of a camera to scan your face and confirm you&apos;re safe.
 			</p>
 
 			{!hasFace && (
@@ -32,7 +32,7 @@ export default function LandingPage() {
 						<div>
 							<p className="text-sm font-semibold text-amber-800">Register your face</p>
 							<p className="mt-0.5 text-xs text-amber-600">
-								Without face registration, cameras won't be able to automatically confirm you're safe during an emergency.
+								Without face registration, cameras won&apos;t be able to automatically confirm you&apos;re safe during an emergency.
 							</p>
 						</div>
 					</div>

@@ -95,7 +95,7 @@ const ProfilePage = () => {
 									</p>
 								) : (
 									<p className="mt-0.5 text-sm text-amber-600">
-										You haven't registered your face yet. Without it, cameras won't be able to confirm you're safe automatically.
+										You haven&apos;t registered your face yet. Without it, cameras won&apos;t be able to confirm you&apos;re safe automatically.
 									</p>
 								)}
 							</div>
