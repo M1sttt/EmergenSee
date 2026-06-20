@@ -345,42 +345,43 @@ const SheltersPage = () => {
 		<div className="flex h-full flex-col">
 
 			{/* ── Header ─────────────────────────────────────────────────── */}
-			<div className="relative overflow-hidden bg-gradient-to-br from-emerald-800 via-emerald-700 to-green-600 px-6 py-5 shadow-lg">
+			<div className="relative overflow-hidden bg-gradient-to-br from-emerald-800 via-emerald-700 to-green-600 px-4 py-4 shadow-lg sm:px-6 sm:py-5">
 				<div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/5" />
 				<div className="pointer-events-none absolute -bottom-10 right-20 h-32 w-32 rounded-full bg-white/5" />
-				<div className="relative flex items-center justify-between gap-4">
-					<div className="flex items-center gap-4">
-						<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm">
-							<FiShield className="text-2xl text-white" />
+				<div className="relative flex flex-wrap items-center justify-between gap-3">
+					<div className="flex items-center gap-3">
+						<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm sm:h-12 sm:w-12">
+							<FiShield className="text-xl text-white sm:text-2xl" />
 						</div>
 						<div>
-							<div className="flex items-center gap-2">
-								<h1 className="text-xl font-bold text-white">{strings.pageTitle}</h1>
+							<div className="flex flex-wrap items-center gap-2">
+								<h1 className="text-lg font-bold text-white sm:text-xl">{strings.pageTitle}</h1>
 								{!isLoading && !isError && allShelters.length > 0 && (
 									<span className="rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-semibold text-white backdrop-blur-sm">
 										{shelters.length.toLocaleString()} / {allShelters.length.toLocaleString()}
 									</span>
 								)}
 							</div>
-							<p className="mt-0.5 text-sm text-emerald-100">{strings.pageSubtitle}</p>
+							<p className="mt-0.5 text-xs text-emerald-100 sm:text-sm">{strings.pageSubtitle}</p>
 						</div>
 					</div>
 					<button
 						onClick={handleFindNearest}
 						disabled={isLocating || isLoading}
-						className="flex shrink-0 items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-emerald-700 shadow-md transition-all hover:bg-emerald-50 hover:shadow-lg active:scale-95 disabled:opacity-60"
+						className="flex shrink-0 items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-emerald-700 shadow-md transition-all hover:bg-emerald-50 hover:shadow-lg active:scale-95 disabled:opacity-60 sm:px-5"
 					>
 						{isLocating
 							? <span className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
 							: <FiNavigation className="text-base" />
 						}
-						{isLocating ? strings.locating : strings.findNearest}
+						<span className="hidden sm:inline">{isLocating ? strings.locating : strings.findNearest}</span>
+						<span className="sm:hidden">{isLocating ? 'Locating…' : 'Find Nearest'}</span>
 					</button>
 				</div>
 			</div>
 
 			{/* ── Category filter chips ───────────────────────────────────── */}
-			<div className="flex items-center gap-2 overflow-x-auto border-b bg-white px-6 py-3 shadow-sm">
+			<div className="flex items-center gap-2 overflow-x-auto border-b bg-white px-4 py-3 shadow-sm sm:px-6">
 				<span className="shrink-0 text-xs font-semibold uppercase tracking-wider text-gray-400">
 					Filter:
 				</span>
@@ -419,55 +420,61 @@ const SheltersPage = () => {
 
 			{/* ── Nearest shelter card ────────────────────────────────────── */}
 			{nearest && nearestDistance && (
-				<div className="border-b bg-white px-6 py-4 shadow-sm">
+				<div className="border-b bg-white px-4 py-3 shadow-sm sm:px-6 sm:py-4">
 					<div
-						className="flex items-center gap-4 rounded-2xl border p-4"
+						className="rounded-2xl border p-3 sm:p-4"
 						style={{
 							background: CATEGORY_CONFIG[nearest.category].color + '10',
 							borderColor: CATEGORY_CONFIG[nearest.category].color + '40',
 						}}
 					>
-						<div
-							className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-white shadow-md text-xl"
-							style={{ background: CATEGORY_CONFIG[nearest.category].color }}
-						>
-							{CATEGORY_CONFIG[nearest.category].emoji}
+						{/* Top row: icon + text + distance + directions */}
+						<div className="flex items-center gap-3">
+							<div
+								className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white shadow-md text-lg sm:h-12 sm:w-12 sm:text-xl"
+								style={{ background: CATEGORY_CONFIG[nearest.category].color }}
+							>
+								{CATEGORY_CONFIG[nearest.category].emoji}
+							</div>
+							<div className="min-w-0 flex-1">
+								<p className="text-xs font-semibold uppercase tracking-wider"
+									style={{ color: CATEGORY_CONFIG[nearest.category].color }}>
+									{strings.nearestShelterLabel} · {CATEGORY_CONFIG[nearest.category].label}
+								</p>
+								<p className="mt-0.5 truncate text-sm font-bold text-gray-900 sm:text-base">
+									{nearest.name || CATEGORY_CONFIG[nearest.category].label}
+								</p>
+							</div>
+							<div className="shrink-0 text-right">
+								<span className="block text-xl font-bold sm:text-2xl" style={{ color: CATEGORY_CONFIG[nearest.category].color }}>
+									{nearestDistance.split(' ')[0]}
+								</span>
+								<span className="text-xs font-medium text-gray-400">
+									{nearestDistance.split(' ')[1] ?? ''}
+								</span>
+							</div>
 						</div>
-						<div className="min-w-0 flex-1">
-							<p className="text-xs font-semibold uppercase tracking-wider"
-								style={{ color: CATEGORY_CONFIG[nearest.category].color }}>
-								{strings.nearestShelterLabel} · {CATEGORY_CONFIG[nearest.category].label}
-							</p>
-							<p className="mt-0.5 truncate text-base font-bold text-gray-900">
-								{nearest.name || CATEGORY_CONFIG[nearest.category].label}
-							</p>
-							<div className="mt-0.5 flex items-center gap-1 text-sm text-gray-500">
-								<FiMapPin className="shrink-0 text-gray-400" size={12} />
+						{/* Bottom row: address + directions button */}
+						<div className="mt-2 flex items-center gap-2">
+							<FiMapPin className="shrink-0 text-gray-400" size={12} />
+							<div className="min-w-0 flex-1 text-sm text-gray-500">
 								{isGeocodingNearest
 									? <span className="italic text-gray-400">{strings.fetchingAddress}</span>
 									: nearestAddress
-										? <span className="truncate">{nearestAddress}</span>
+										? <span className="truncate block">{nearestAddress}</span>
 										: <span className="italic text-gray-400">{strings.addressUnavailable}</span>
 								}
 							</div>
+							<a
+								href={getGoogleMapsDirectionsUrl(nearest.latlng, userLocation ?? undefined)}
+								target="_blank" rel="noopener noreferrer"
+								className="flex shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow-md active:scale-95 sm:px-4 sm:py-3"
+							>
+								<FiExternalLink size={14} />
+								<span className="hidden sm:inline">{strings.getDirections}</span>
+								<span className="sm:hidden">Go</span>
+							</a>
 						</div>
-						<div className="shrink-0 text-right">
-							<span className="block text-2xl font-bold" style={{ color: CATEGORY_CONFIG[nearest.category].color }}>
-								{nearestDistance.split(' ')[0]}
-							</span>
-							<span className="text-xs font-medium text-gray-400">
-								{nearestDistance.split(' ')[1] ?? ''}
-							</span>
-						</div>
-						<a
-							href={getGoogleMapsDirectionsUrl(nearest.latlng, userLocation ?? undefined)}
-							target="_blank" rel="noopener noreferrer"
-							className="flex shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow-md active:scale-95"
-						>
-							<FiExternalLink size={15} />
-							<span className="hidden sm:inline">{strings.getDirections}</span>
-							<span className="sm:hidden">Go</span>
-						</a>
 					</div>
 				</div>
 			)}
