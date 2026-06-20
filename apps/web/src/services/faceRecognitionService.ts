@@ -69,13 +69,24 @@ export const faceRecognitionService = {
 		await faceApi.delete(`/api/v1/faces/${encodeURIComponent(identity)}`);
 	},
 
-	registerBatch: async (identity: string, frames: Blob[]): Promise<BatchRegisterResponse> => {
-		const formData = new FormData();
-		formData.append('name', identity);
-		frames.forEach((blob, i) => formData.append('images', blob, `frame_${i}.jpg`));
-		const response = await faceApi.post<BatchRegisterResponse>('/api/v1/faces/register/batch', formData, {
-			headers: { 'Content-Type': 'multipart/form-data' },
-		});
-		return response.data;
+	registerBatch: async (identity: string, frames: Blob[], chunkSize = 4): Promise<BatchRegisterResponse> => {
+		let totalAccepted = 0;
+		let totalRejected = 0;
+		let lastRegisteredAs = identity;
+
+		for (let i = 0; i < frames.length; i += chunkSize) {
+			const chunk = frames.slice(i, i + chunkSize);
+			const formData = new FormData();
+			formData.append('name', identity);
+			chunk.forEach((blob, j) => formData.append('images', blob, `frame_${i + j}.jpg`));
+			const response = await faceApi.post<BatchRegisterResponse>('/api/v1/faces/register/batch', formData, {
+				headers: { 'Content-Type': 'multipart/form-data' },
+			});
+			totalAccepted += response.data.frames_accepted;
+			totalRejected += response.data.frames_rejected;
+			lastRegisteredAs = response.data.registered_as;
+		}
+
+		return { registered_as: lastRegisteredAs, frames_accepted: totalAccepted, frames_rejected: totalRejected };
 	},
 };

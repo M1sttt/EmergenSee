@@ -15,19 +15,20 @@ export function getPhaseNumber(phase: RegistrationPhase): number | null {
 
 /**
  * Returns a signed turn score from MediaPipe face landmarks (image coordinates).
- * Positive  → user turned their head physically LEFT  (nose closer to image-left jaw).
- * Negative  → user turned their head physically RIGHT (nose closer to image-right jaw).
+ * Positive  → user turned their head physically LEFT  (nose closer to image-right jaw,
+ *             since the camera image is not mirrored: the user's left side is image-right).
+ * Negative  → user turned their head physically RIGHT.
  *
- * Landmark 234 = left jaw outline, 454 = right jaw outline, 4 = nose tip.
+ * Landmark 234 = image-left jaw outline, 454 = image-right jaw outline, 4 = nose tip.
  * These are symmetric face-oval points that reliably span the full face width.
  */
 export function estimateHeadTurn(landmarks: NormalizedLandmark[]): number {
 	const nose = landmarks[4];
-	const leftJaw = landmarks[234];
-	const rightJaw = landmarks[454];
-	const leftDist = Math.hypot(nose.x - leftJaw.x, nose.y - leftJaw.y);
-	const rightDist = Math.hypot(nose.x - rightJaw.x, nose.y - rightJaw.y);
-	return (rightDist - leftDist) / (rightDist + leftDist);
+	const imageLeftJaw = landmarks[234];
+	const imageRightJaw = landmarks[454];
+	const distToImageLeft = Math.hypot(nose.x - imageLeftJaw.x, nose.y - imageLeftJaw.y);
+	const distToImageRight = Math.hypot(nose.x - imageRightJaw.x, nose.y - imageRightJaw.y);
+	return (distToImageLeft - distToImageRight) / (distToImageLeft + distToImageRight);
 }
 
 export function isPoseValidForPhase(turn: number, phase: RegistrationPhase): boolean {
