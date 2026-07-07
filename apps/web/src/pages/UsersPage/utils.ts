@@ -1,5 +1,5 @@
 import { UserRole, UserStatus, Department } from '@emergensee/shared';
-import { getUserStatusTone } from '@/consts/ui';
+import { getUserStatusTone, UiTone } from '@/consts/ui';
 import { UserWithOptionalObjectId, getEntityId } from '@/types/entities';
 import * as consts from './consts';
 
@@ -28,3 +28,12 @@ export const filterUsers = (
 };
 
 export const getStatusTone = (status: UserStatus) => getUserStatusTone(status);
+
+export const getRoleTone = (role: UserRole): UiTone => {
+	switch (role) {
+		case UserRole.ADMIN:
+			return 'danger';
+		default:
+			return 'info';
+	}
+};

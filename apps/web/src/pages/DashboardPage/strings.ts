@@ -1,4 +1,5 @@
 export const title = 'Dashboard';
+export const eventOverview = 'Event Overview';
 export const totalEvents = 'Total Events';
 export const activeEvents = 'Active Events';
 export const criticalEvents = 'Critical Events';

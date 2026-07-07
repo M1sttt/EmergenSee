@@ -43,3 +43,5 @@ prisma/migrations/**/migration.sql
 
 # OS
 Thumbs.db
+# TypeScript incremental build cache
+*.tsbuildinfo

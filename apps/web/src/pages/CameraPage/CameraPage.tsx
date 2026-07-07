@@ -348,7 +348,7 @@ const CameraPage: React.FC = () => {
 		<div className="flex h-full flex-col gap-2 p-3 sm:gap-3 sm:p-6">
 			{/* Page header — covered (not removed) by the fullscreen overlay */}
 			<div className="flex shrink-0 items-center justify-between gap-2">
-				<h1 className="flex min-w-0 items-center gap-2 text-xl font-bold text-gray-800 sm:text-2xl">
+				<h1 className="flex min-w-0 items-center gap-2 text-xl font-bold text-gray-800 md:text-2xl">
 					<FaCamera className="shrink-0 text-blue-600" /> <span className="truncate">{strings.title}</span>
 				</h1>
 				{ongoingEvent ? (
@@ -397,6 +397,7 @@ const CameraPage: React.FC = () => {
 					/>
 				</div>
 
+				{/* Tab panel — full width below camera on mobile, fixed sidebar on desktop */}
 				<div className={
 					isFullscreen
 						? 'flex w-80 shrink-0 flex-col overflow-y-auto rounded-2xl bg-white p-4'
@@ -417,7 +418,6 @@ const CameraPage: React.FC = () => {
 					{tabPanel}
 				</div>
 			</div>
-
 		</div>
 	);
 };

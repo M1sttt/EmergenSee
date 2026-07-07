@@ -261,7 +261,7 @@ export default function StatusPage() {
 				<h1 className="ui-page-title">{strings.title}</h1>
 
 				<div className="flex flex-col md:flex-row gap-4">
-					<div className="flex items-center gap-2">
+					<div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
 						<Label>{strings.activeEventLabel}</Label>
 						<SelectDropdown
 							value={effectiveSelectedEventId}
@@ -271,12 +271,12 @@ export default function StatusPage() {
 							isSearchable={false}
 							isClearable={false}
 							isDisabled={eventOptions.length === 0}
-							containerClassName="min-w-[220px]"
+							containerClassName="w-full sm:min-w-[220px]"
 						/>
 					</div>
 
 					{(isGlobalAdmin || isDeptAdmin) && (
-						<div className="flex items-center gap-2">
+						<div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
 							<Label>{strings.departmentLabel}</Label>
 							<SelectDropdown
 								value={effectiveSelectedDeptId}
@@ -287,7 +287,7 @@ export default function StatusPage() {
 								isSearchable={false}
 								isClearable={false}
 								isDisabled={!effectiveSelectedEventId || departmentOptions.length === 0}
-								containerClassName="min-w-[220px]"
+								containerClassName="w-full sm:min-w-[220px]"
 							/>
 						</div>
 					)}

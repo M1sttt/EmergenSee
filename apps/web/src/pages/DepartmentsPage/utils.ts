@@ -16,7 +16,11 @@ export const formatAdmins = (adminsIds: string[] | undefined, users: UserWithOpt
 	return adminsIds
 		.map(id => {
 			const user = users.find(u => getEntityId(u) === id);
-			return user ? `${user.firstName}(${id})` : `${strings.unknownAdmin}(${id})`;
+			if (user) {
+				const fullName = `${user.firstName} ${user.lastName}`.trim();
+				return fullName || user.firstName || strings.unknownAdmin;
+			}
+			return strings.unknownAdmin;
 		})
 		.join(', ');
 };

@@ -3,7 +3,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from 'store/authStore';
 import { authService } from 'services/authService';
-import { DepartmentAlertPayload, WebSocketEventType } from '@emergensee/shared';
+import { DepartmentAlertPayload, WebSocketEventType, UserRole } from '@emergensee/shared';
 import { useWebSocket } from 'hooks/useWebSocket';
 import { useOfflineStatusQueue } from 'hooks/useOfflineStatusQueue';
 import { websocketService } from 'services/websocketService';
@@ -124,10 +124,13 @@ export default function Layout() {
 					<div
 						className={cn('border-b border-gray-200 py-4', isSidebarExpanded ? 'px-6' : 'px-3 text-center')}
 					>
-						<div className="flex items-center gap-2">
+						<button
+							onClick={() => navigate(user?.role === UserRole.ADMIN ? '/dashboard' : '/landing')}
+							className="flex items-center gap-2 text-left hover:opacity-80 transition-opacity"
+						>
 							<img src={logo} alt={strings.appName} className="h-12" />
 							<h1 className="text-2xl font-bold text-blue-600">{isSidebarExpanded && strings.appName}</h1>
-						</div>
+						</button>
 						{isSidebarExpanded && (
 							<p className="mt-1 justify-self-center text-xs text-gray-600">{strings.appSubtitle}</p>
 						)}

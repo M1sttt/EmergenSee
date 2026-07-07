@@ -437,7 +437,7 @@ const AdminCameraPage: React.FC = () => {
 	return (
 		<div className="flex h-full flex-col bg-gray-50">
 			{/* Top bar */}
-			<div className="flex shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-6 py-3">
+			<div className="flex shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-4 py-3 md:px-6">
 				<MdVideocam className="text-xl text-blue-600" />
 				<span className="text-lg font-bold text-gray-900">{strings.title}</span>
 				{ongoingEvent ? (
@@ -452,7 +452,7 @@ const AdminCameraPage: React.FC = () => {
 			</div>
 
 			{/* Camera card grid */}
-			<div className="flex-1 overflow-y-auto p-6">
+			<div className="flex-1 overflow-y-auto p-4 md:p-6">
 				{cameraUsers.length === 0 ? (
 					<div className="flex flex-col items-center gap-3 py-20 text-center">
 						<MdVideocam className="text-5xl text-gray-200" />

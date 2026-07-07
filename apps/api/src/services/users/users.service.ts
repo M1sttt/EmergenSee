@@ -1,10 +1,12 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import * as fs from 'fs';
 import * as path from 'path';
 import { User, UserDocument } from './schemas/user.schema';
+import { Event, EventDocument } from '../events/schemas/event.schema';
+import { Department, DepartmentDocument } from '../departments/schemas/department.schema';
 import { UserRole } from '@emergensee/shared';
 import { CreateUserDto, UpdateUserDto } from './users.dto';
 
@@ -12,6 +14,8 @@ import { CreateUserDto, UpdateUserDto } from './users.dto';
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(Event.name) private eventModel: Model<EventDocument>,
+    @InjectModel(Department.name) private departmentModel: Model<DepartmentDocument>,
   ) { }
 
   async create(createUserDto: CreateUserDto): Promise<UserDocument> {
@@ -118,10 +122,42 @@ export class UsersService {
   }
 
   async remove(id: string): Promise<void> {
-    const result = await this.userModel.findByIdAndDelete(id).exec();
-    if (!result) {
+    const user = await this.userModel.findById(id).exec();
+    if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
+
+    // Delete all face image files from disk
+    for (const filename of user.faceImages ?? []) {
+      const filepath = path.join(process.cwd(), 'uploads', 'faces', filename);
+      if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
+    }
+
+    // Unregister from face recognition service
+    if (user.faceIdentity) {
+      await this.unregisterFromFaceService(user.faceIdentity);
+    }
+
+    const objectId = new Types.ObjectId(id);
+
+    // Remove user from events: pull from assignedTo, unset reportedBy
+    await Promise.all([
+      this.eventModel.updateMany(
+        { assignedTo: objectId },
+        { $pull: { assignedTo: objectId } },
+      ).exec(),
+      this.eventModel.updateMany(
+        { reportedBy: objectId },
+        { $unset: { reportedBy: '' } },
+      ).exec(),
+      // Remove user ID string from department admins arrays
+      this.departmentModel.updateMany(
+        { admins: id },
+        { $pull: { admins: id } },
+      ).exec(),
+    ]);
+
+    await this.userModel.findByIdAndDelete(id).exec();
   }
 
   private readonly faceRecognitionUrl = process.env.FACE_RECOGNITION_URL || 'http://localhost:8000';

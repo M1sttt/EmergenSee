@@ -6,6 +6,7 @@ export interface ConfirmModalProps {
 	message: string;
 	confirmText?: string;
 	cancelText?: string;
+	confirmVariant?: 'primary' | 'secondary' | 'danger' | 'ghost';
 	onConfirm: () => void;
 	onCancel: () => void;
 }
@@ -15,6 +16,7 @@ export const ConfirmModal = ({
 	message,
 	confirmText = 'Confirm',
 	cancelText = 'Cancel',
+	confirmVariant = 'danger',
 	onConfirm,
 	onCancel,
 }: ConfirmModalProps) => {
@@ -44,7 +46,7 @@ export const ConfirmModal = ({
 						</div>
 					</div>
 					<div className="ui-modal-footer">
-						<Button type="button" variant="danger" className="w-full sm:ml-3 sm:w-auto" onClick={onConfirm}>
+						<Button type="button" variant={confirmVariant} className="w-full sm:ml-3 sm:w-auto" onClick={onConfirm}>
 							{confirmText}
 						</Button>
 						<Button

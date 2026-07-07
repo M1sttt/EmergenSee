@@ -150,7 +150,7 @@ const UsersPage = () => {
 			{
 				id: 'role',
 				header: strings.columnRole,
-				renderCell: user => <Badge tone="info">{USER_ROLE_LABELS[user.role]}</Badge>,
+				renderCell: user => <Badge tone={utils.getRoleTone(user.role)}>{USER_ROLE_LABELS[user.role]}</Badge>,
 			},
 			{
 				id: 'status',
@@ -262,8 +262,8 @@ const UsersPage = () => {
 
 	return (
 		<div className="ui-page">
-			<div className="flex justify-between items-center mb-6">
-				<div className="flex items-center gap-6">
+			<div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+				<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
 					<h1 className="ui-page-title">{strings.title}</h1>
 					<SelectDropdown
 						value={selectedDeptId}
@@ -273,29 +273,89 @@ const UsersPage = () => {
 						isSearchable
 						isClearable={false}
 						noOptionsMessage={() => strings.noDepartments}
-						containerClassName="w-64"
+						containerClassName="w-full sm:w-64"
 					/>
 				</div>
 
 				{canCreateUser && (
-					<Button onClick={() => setIsFormOpen(true)} variant="primary" size="md" className="rounded-lg">
+					<Button onClick={() => setIsFormOpen(true)} variant="primary" size="md" className="w-full rounded-lg sm:w-auto">
 						{strings.createUser}
 					</Button>
 				)}
 			</div>
 
-			<GenericTable
-				columns={userColumns}
-				rows={displayedUsers}
-				getRowKey={user => getEntityId(user) || user.email}
-				isLoading={isLoading}
-				loadingContent={
-					<div className="ui-loading-state">
-						<Loader />
-					</div>
-				}
-				emptyContent={strings.noUsersFound}
-			/>
+			{/* Mobile card list */}
+			{isLoading ? (
+				<div className="ui-loading-state lg:hidden"><Loader /></div>
+			) : displayedUsers.length === 0 ? (
+				<p className="ui-empty-state lg:hidden">{strings.noUsersFound}</p>
+			) : (
+				<div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm lg:hidden">
+					{displayedUsers.map((u, i) => {
+						const userId = getEntityId(u) || u.email;
+						const isLast = i === displayedUsers.length - 1;
+						const canEdit =
+							isAdmin ||
+							(u.departments &&
+								u.departments.some(deptId =>
+									myAdminDepartments.some(d => getEntityId(d) === getEntityId(deptId)),
+								));
+						return (
+							<div key={userId} className={`flex items-center gap-3 px-4 py-3 ${!isLast ? 'border-b border-gray-100' : ''}`}>
+								<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-blue-700">
+									{u.role === UserRole.CAMERA
+										? <FaCamera size={12} className="text-blue-400" />
+										: `${u.firstName?.[0] ?? ''}${u.lastName?.[0] ?? ''}`.toUpperCase() || '?'
+									}
+								</div>
+								<div className="min-w-0 flex-1">
+									<p className="truncate text-sm font-medium text-gray-900">
+										{u.role === UserRole.CAMERA ? (u.cameraCode ?? u.firstName) : `${u.firstName} ${u.lastName}`}
+									</p>
+									<div className="mt-0.5 flex items-center gap-1.5">
+										<Badge tone="info">{USER_ROLE_LABELS[u.role]}</Badge>
+										<Badge tone={utils.getStatusTone(u.status)}>{u.status}</Badge>
+										{isAdmin && (
+											u.faceIdentity
+												? <Badge tone="success">{strings.faceRegistered_badge}</Badge>
+												: <span className="text-[10px] text-gray-400">{strings.faceNotRegistered_badge}</span>
+										)}
+									</div>
+								</div>
+								{canEdit && (
+									<div className="flex shrink-0 gap-1">
+										<IconButton onClick={() => handleEdit(u)} className="text-blue-600" tooltipText={strings.actionEdit}>
+											<FiEdit size={15} />
+										</IconButton>
+										{isAdmin && u.role !== UserRole.CAMERA && (
+											<IconButton onClick={() => setUserToRegisterFace(u)} className="text-green-600" tooltipText={strings.actionRegisterFace}>
+												<MdFaceRetouchingNatural size={16} />
+											</IconButton>
+										)}
+										{isAdmin && (
+											<IconButton onClick={() => handleDelete(userId!)} className="text-red-600" tooltipText={strings.actionDelete}>
+												<FiTrash2 size={15} />
+											</IconButton>
+										)}
+									</div>
+								)}
+							</div>
+						);
+					})}
+				</div>
+			)}
+
+			{/* Desktop table */}
+			<div className="hidden lg:block">
+				<GenericTable
+					columns={userColumns}
+					rows={displayedUsers}
+					getRowKey={user => getEntityId(user) || user.email}
+					isLoading={isLoading}
+					loadingContent={<div className="ui-loading-state"><Loader /></div>}
+					emptyContent={strings.noUsersFound}
+				/>
+			</div>
 
 			{isFormOpen && <UserForm user={selectedUser} onClose={handleFormClose} />}
 

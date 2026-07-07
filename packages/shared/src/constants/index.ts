@@ -24,6 +24,7 @@ export const EVENT_TYPE_LABELS = {
   crime: 'Crime',
   natural_disaster: 'Natural Disaster',
   hazmat: 'Hazmat',
+  missile_attack: 'Missile Attack',
   other: 'Other',
 } as const;
 

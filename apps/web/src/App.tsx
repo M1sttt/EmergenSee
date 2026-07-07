@@ -14,6 +14,7 @@ import CameraStationPage from 'pages/CameraStationPage';
 import AdminCameraPage from 'pages/AdminCameraPage';
 import FaceRegistrationPage from 'pages/FaceRegistrationPage';
 import SheltersPage from 'pages/SheltersPage';
+import LandingPage from 'pages/LandingPage';
 import Layout from 'components/Layout';
 import { Toaster } from 'sonner';
 
@@ -27,7 +28,14 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function AdminRoute({ children }: { children: React.ReactNode }) {
 	const user = useAuthStore(state => state.user);
 
-	return user?.role === UserRole.ADMIN ? <>{children}</> : <Navigate to="/dashboard" replace />;
+	return user?.role === UserRole.ADMIN ? <>{children}</> : <Navigate to="/" replace />;
+}
+
+function HomeRedirect() {
+	const user = useAuthStore(state => state.user);
+	return user?.role === UserRole.ADMIN
+		? <Navigate to="/dashboard" replace />
+		: <Navigate to="/landing" replace />;
 }
 
 function CameraRoleGuard({ children }: { children: React.ReactNode }) {
@@ -89,15 +97,16 @@ function App() {
 						</ProtectedRoute>
 					}
 				>
-					<Route index element={<Navigate to="/dashboard" />} />
-					<Route path="dashboard" element={<DashboardPage />} />
-					<Route path="events" element={<EventsPage />} />
+					<Route index element={<HomeRedirect />} />
+					<Route path="landing" element={<LandingPage />} />
+					<Route path="dashboard" element={<AdminRoute><DashboardPage /></AdminRoute>} />
+					<Route path="events" element={<AdminRoute><EventsPage /></AdminRoute>} />
 					<Route path="shelters" element={<SheltersPage />} />
-					<Route path="users" element={<UsersPage />} />
-					<Route path="departments" element={<DepartmentsPage />} />
-					<Route path="status" element={<StatusPage />} />
+					<Route path="users" element={<AdminRoute><UsersPage /></AdminRoute>} />
+					<Route path="departments" element={<AdminRoute><DepartmentsPage /></AdminRoute>} />
+					<Route path="status" element={<AdminRoute><StatusPage /></AdminRoute>} />
 					<Route path="emergency-report" element={<EmergencyReportPage />} />
-					<Route path="camera" element={<AdminRoute><CameraPage /></AdminRoute>} />
+					<Route path="camera" element={<CameraPage />} />
 					<Route path="admin/cameras" element={<AdminRoute><AdminCameraPage /></AdminRoute>} />
 					<Route path="profile" element={<ProfilePage />} />
 				</Route>
