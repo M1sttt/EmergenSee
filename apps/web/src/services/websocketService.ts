@@ -54,8 +54,12 @@ class WebSocketService {
 			}
 		});
 
-		this.socket.on('disconnect', () => {
-			console.log('WebSocket disconnected');
+		this.socket.on('disconnect', reason => {
+			console.log('WebSocket disconnected', reason);
+		});
+
+		this.socket.on('connect_error', err => {
+			console.error('WebSocket connect_error', err.message);
 		});
 
 		Object.values(WebSocketEventType).forEach(eventType => {
@@ -101,6 +105,10 @@ class WebSocketService {
 
 	emit<TPayload>(eventType: string, data: TPayload) {
 		this.socket?.emit(eventType, data);
+	}
+
+	isConnected(): boolean {
+		return this.socket?.connected ?? false;
 	}
 
 	onRaw(eventName: string, callback: (data: unknown) => void): void {
