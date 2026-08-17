@@ -13,7 +13,13 @@ import {
 	WebSocketEventType,
 } from '@emergensee/shared';
 
-const WS_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const RAW_API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = new URL(RAW_API_URL);
+// socket.io-client treats a path in its connection URL as a namespace, not an HTTP path
+// prefix, so it would otherwise always request the bare origin's default '/socket.io/'
+// path — bypassing any '/api' prefix a reverse proxy expects. Split them explicitly.
+const WS_URL = API_URL.origin;
+const WS_PATH = `${API_URL.pathname.replace(/\/$/, '')}/socket.io/`;
 
 interface WebSocketPayloadMap {
 	[WebSocketEventType.EVENT_CREATED]: EventCreatedPayload;
@@ -42,6 +48,7 @@ class WebSocketService {
 
 		const token = useAuthStore.getState().accessToken;
 		this.socket = io(WS_URL, {
+			path: WS_PATH,
 			transports: ['websocket'],
 			autoConnect: true,
 			auth: { token },
