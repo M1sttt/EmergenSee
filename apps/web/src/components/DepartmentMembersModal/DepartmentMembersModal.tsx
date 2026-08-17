@@ -13,19 +13,20 @@ import * as utils from './utils';
 
 interface DepartmentMembersModalProps {
 	department: Department;
+	departments: Department[];
 	onClose: () => void;
 }
 
-const DepartmentMembersModal: React.FC<DepartmentMembersModalProps> = ({ department, onClose }) => {
+const DepartmentMembersModal: React.FC<DepartmentMembersModalProps> = ({ department, departments, onClose }) => {
 	const [searchQuery, setSearchQuery] = useState('');
 	const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
 	const [activeTab, setActiveTab] = useState<typeof consts.addTab | typeof consts.removeTab>(consts.addTab);
 
 	const { data: users = [], isLoading, isError } = useDepartmentMembersModalUsersQuery();
 
-	const displayedUsers = useMemo(
-		() => utils.filterUsers(users, department.id, activeTab, searchQuery),
-		[users, department.id, activeTab, searchQuery],
+	const displayedMembers = useMemo(
+		() => utils.getDisplayedMembers(users, department.id, departments, activeTab, searchQuery),
+		[users, department.id, departments, activeTab, searchQuery],
 	);
 
 	const handleToggleUser = useCallback((userId: string) => {
@@ -94,37 +95,46 @@ const DepartmentMembersModal: React.FC<DepartmentMembersModalProps> = ({ departm
 							<div className="text-center py-4 text-gray-500">{strings.loadingUsers}</div>
 						) : isError ? (
 							<div className="text-center py-4 text-red-500">{strings.errorText}</div>
-						) : displayedUsers.length === 0 ? (
+						) : displayedMembers.length === 0 ? (
 							<div className="text-center py-4 text-gray-500">{strings.noUsersFound}</div>
 						) : (
 							<ul className="space-y-2">
-								{displayedUsers.map(user => {
+								{displayedMembers.map(({ user, selectable, viaDepartmentName }) => {
 									const isSelected = selectedUserIds.has(user.id);
 									return (
 										<li
 											key={user.id}
-											onClick={() => handleToggleUser(user.id)}
+											onClick={() => selectable && handleToggleUser(user.id)}
 											className={cn(
-												'flex cursor-pointer items-center justify-between rounded-md border p-3 transition-colors',
+												'flex items-center justify-between rounded-md border p-3 transition-colors',
+												!selectable && 'cursor-default opacity-70',
+												selectable && 'cursor-pointer',
 												isSelected
 													? 'border-blue-200 bg-blue-50'
 													: 'border-gray-200 bg-white hover:bg-gray-50',
 											)}
 										>
 											<div>
-												<p className="text-sm font-medium text-gray-900">
+												<p className="flex items-center gap-1.5 text-sm font-medium text-gray-900">
 													{user.firstName} {user.lastName}
+													{viaDepartmentName && (
+														<span className="rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500">
+															{strings.viaSubDepartment(viaDepartmentName)}
+														</span>
+													)}
 												</p>
 												<p className="text-xs text-gray-500">{user.email}</p>
 											</div>
-											<div
-												className={cn(
-													'flex h-5 w-5 items-center justify-center rounded-sm border',
-													isSelected ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300',
-												)}
-											>
-												{isSelected && <FaCheck className="w-3 h-3" />}
-											</div>
+											{selectable && (
+												<div
+													className={cn(
+														'flex h-5 w-5 items-center justify-center rounded-sm border',
+														isSelected ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300',
+													)}
+												>
+													{isSelected && <FaCheck className="w-3 h-3" />}
+												</div>
+											)}
 										</li>
 									);
 								})}

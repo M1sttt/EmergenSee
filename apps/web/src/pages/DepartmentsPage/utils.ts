@@ -30,3 +30,6 @@ export const checkIsAdmin = (department: Department, currentUser: User | null): 
 	if (currentUser.role === UserRole.ADMIN) return true;
 	return !!department.admins?.includes(currentUser.id);
 };
+
+export const isSubDepartment = (department: Department, allDepartments: Department[]): boolean =>
+	allDepartments.some(d => d.subDepartments?.includes(department.id));

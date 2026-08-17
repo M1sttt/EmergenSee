@@ -14,3 +14,4 @@ export const tooltipEdit = 'Edit';
 export const tooltipDelete = 'Delete';
 export const noAdmins = 'No Admins';
 export const unknownAdmin = 'Unknown';
+export const subDepartmentBadge = 'Sub-department';

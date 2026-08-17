@@ -9,3 +9,4 @@ export const addSelected = 'Add Selected';
 export const removeSelected = 'Remove Selected';
 export const closeText = 'Close';
 export const errorText = 'Error loading users.';
+export const viaSubDepartment = (departmentName: string) => `via ${departmentName}`;

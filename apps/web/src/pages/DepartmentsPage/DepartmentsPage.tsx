@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { FiEdit, FiTrash2, FiUsers } from 'react-icons/fi';
+import { FiEdit, FiTrash2, FiUsers, FiCornerDownRight } from 'react-icons/fi';
 import { Department, UserRole } from '@emergensee/shared';
 import DepartmentForm from '@/components/DepartmentForm';
 import DepartmentMembersModal from '@/components/DepartmentMembersModal';
@@ -115,6 +115,7 @@ const DepartmentsPage: React.FC = () => {
 					{filteredDepartments.map(department => {
 						const canManage = utils.checkIsAdmin(department, currentUser);
 						const adminsDisplay = utils.formatAdmins(department.admins, users);
+						const isSubDept = utils.isSubDepartment(department, departments);
 						const subDeptNames = (department.subDepartments ?? [])
 							.map(id => departments.find(d => d.id === id)?.name)
 							.filter(Boolean) as string[];
@@ -124,7 +125,17 @@ const DepartmentsPage: React.FC = () => {
 								className="flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
 							>
 								<div>
-									<p className="text-base font-semibold text-gray-900 leading-tight">{department.name}</p>
+									<div className="flex items-center gap-1.5">
+										<p className="text-base font-semibold text-gray-900 leading-tight">{department.name}</p>
+										{isSubDept && (
+											<span
+												title={strings.subDepartmentBadge}
+												className="inline-flex items-center gap-0.5 rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500"
+											>
+												<FiCornerDownRight size={10} /> {strings.subDepartmentBadge}
+											</span>
+										)}
+									</div>
 									{department.description && (
 										<p className="mt-0.5 text-xs text-gray-400 leading-snug">{department.description}</p>
 									)}
@@ -181,7 +192,7 @@ const DepartmentsPage: React.FC = () => {
 			{isFormOpen && <DepartmentForm department={selectedDepartment} onClose={handleCloseModals} />}
 
 			{isMembersModalOpen && selectedDepartment && (
-				<DepartmentMembersModal department={selectedDepartment} onClose={handleCloseModals} />
+				<DepartmentMembersModal department={selectedDepartment} departments={departments} onClose={handleCloseModals} />
 			)}
 
 			{departmentToDelete !== null && (
