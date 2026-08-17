@@ -95,6 +95,7 @@ const CameraStationPage: React.FC = () => {
 	const dismissedRef = useRef<Set<string>>(new Set());
 	const isCapturingRef = useRef(false);
 	const frameIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+	const frameSeqRef = useRef(0);
 
 	const [suggestions, setSuggestions] = useState<SuggestionCard[]>([]);
 	const [activeTab, setActiveTab] = useState<Tab>('pending');
@@ -161,6 +162,12 @@ const CameraStationPage: React.FC = () => {
 			fc.getContext('2d')?.drawImage(video, 0, 0, 320, 240);
 			const frame = fc.toDataURL('image/jpeg', 0.6);
 			websocketService.emit('camera:frame', { cameraUserId: currentUser.id, frame });
+			frameSeqRef.current += 1;
+			if (frameSeqRef.current % 20 === 0) {
+				console.log(
+					`[camera:frame] sent #${frameSeqRef.current}, socket connected=${websocketService.isConnected()}, size=${frame.length}b`,
+				);
+			}
 		}, FRAME_INTERVAL_MS);
 		return () => {
 			if (frameIntervalRef.current) clearInterval(frameIntervalRef.current);

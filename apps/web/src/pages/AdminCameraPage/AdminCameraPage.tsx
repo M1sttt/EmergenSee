@@ -256,6 +256,7 @@ const AdminCameraPage: React.FC = () => {
 	// All refs declared up front — closures below can safely reference them
 	const frameImgRef = useRef<HTMLImageElement>(null);
 	const liveViewCameraIdRef = useRef<string | null>(null);
+	const frameRecvSeqRef = useRef(0);
 	const confirmedUserIdsRef = useRef<Set<string>>(new Set());
 	const dismissedByCameraId = useRef<Map<string, Set<string>>>(new Map());
 
@@ -334,6 +335,10 @@ const AdminCameraPage: React.FC = () => {
 				frameImgRef.current.src = payload.frame;
 				setHasFrame(true);
 			}
+			frameRecvSeqRef.current += 1;
+			if (frameRecvSeqRef.current % 20 === 0) {
+				console.log(`[camera:frame] received #${frameRecvSeqRef.current} for camera ${payload.cameraUserId}`);
+			}
 		};
 
 		const handleRecognize = (data: unknown) => {
@@ -386,7 +391,9 @@ const AdminCameraPage: React.FC = () => {
 		liveViewCameraIdRef.current = camId;
 		setLiveViewCameraId(camId);
 		setHasFrame(false);
+		frameRecvSeqRef.current = 0;
 		if (frameImgRef.current) frameImgRef.current.src = '';
+		console.log(`[admin:watch] requesting live feed for camera ${camId}, socket connected=${websocketService.isConnected()}`);
 		websocketService.emit('admin:watch', { cameraUserId: camId });
 	}, []);
 
