@@ -1,16 +1,37 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useState } from 'react';
+import { format } from 'date-fns';
 import { useWebSocket } from 'hooks/useWebSocket';
-import { WebSocketEventType, EventPriority } from '@emergensee/shared';
-import { getEventPriorityTone } from '@/consts/ui';
+import {
+	WebSocketEventType,
+	EventPriority,
+	EVENT_STATUS_LABELS,
+	EVENT_TYPE_LABELS,
+	RESPONDER_STATUS_LABELS,
+} from '@emergensee/shared';
+import { getEventPriorityTone, getResponderStatusTone } from '@/consts/ui';
 import { MdEvent, MdPeople } from 'react-icons/md';
+import { FiChevronRight } from 'react-icons/fi';
 import * as strings from './strings';
 import * as consts from './consts';
 import * as utils from './utils';
 import { Loader } from '@/components/common/Loader';
 import { Badge } from '@/components/ui';
-import { useDashboardPageEventsQuery, useDashboardPageStatusQuery } from 'hooks/data/useDashboardPageData';
+import EventPreviewModal from '@/components/EventPreviewModal';
+import { getEntityId, toDate } from '@/types/entities';
+import {
+	useDashboardPageEventsQuery,
+	useDashboardPageStatusQuery,
+	useDashboardPageUsersQuery,
+} from 'hooks/data/useDashboardPageData';
+
+interface EventPreviewTarget {
+	eventId: string;
+	highlightUserId: string | null;
+}
 
 const DashboardPage: React.FC = () => {
+	const [previewTarget, setPreviewTarget] = useState<EventPreviewTarget | null>(null);
+
 	const {
 		data: events = [],
 		refetch: refetchEvents,
@@ -25,6 +46,8 @@ const DashboardPage: React.FC = () => {
 		isError: isErrorStatus,
 	} = useDashboardPageStatusQuery();
 
+	const { data: users = [] } = useDashboardPageUsersQuery();
+
 	const handleRefetchEvents = useCallback(() => {
 		refetchEvents();
 	}, [refetchEvents]);
@@ -36,6 +59,10 @@ const DashboardPage: React.FC = () => {
 	useWebSocket(WebSocketEventType.EVENT_CREATED, handleRefetchEvents);
 	useWebSocket(WebSocketEventType.EVENT_UPDATED, handleRefetchEvents);
 	useWebSocket(WebSocketEventType.STATUS_UPDATED, handleRefetchStatus);
+
+	const handleClosePreview = useCallback(() => {
+		setPreviewTarget(null);
+	}, []);
 
 	const activeEventsCount = useMemo(() => utils.getActiveEventsCount(events), [events]);
 	const criticalEventsCount = useMemo(
@@ -51,7 +78,10 @@ const DashboardPage: React.FC = () => {
 		[statusUpdates, events],
 	);
 	const recentEvents = useMemo(() => events.slice(0, consts.recentItemsLimit), [events]);
-	const recentStatusUpdates = useMemo(() => statusUpdates.slice(0, consts.recentItemsLimit), [statusUpdates]);
+	const recentStatusUpdates = useMemo(
+		() => utils.buildRecentStatusUpdates(statusUpdates, users, events, consts.recentStatusUpdatesLimit),
+		[statusUpdates, users, events],
+	);
 
 	const isLoading = isLoadingEvents || isLoadingStatus;
 
@@ -136,27 +166,37 @@ const DashboardPage: React.FC = () => {
 
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 				<div className="bg-white rounded-lg shadow">
-					<div className="px-6 py-4 border-b border-gray-200">
+					<div className="flex items-center justify-between gap-2 px-6 py-4 border-b border-gray-200">
 						<h2 className="text-xl font-semibold text-gray-900">{strings.recentEvents}</h2>
+						<span className="hidden text-xs text-gray-400 sm:inline">{strings.recentEventsHint}</span>
 					</div>
-					<div className="p-6">
+					<div className="max-h-[26rem] overflow-y-auto p-3">
 						{isLoading ? (
 							<Loader />
 						) : recentEvents.length === 0 ? (
-							<div className="text-gray-500">No recent events.</div>
+							<div className="px-3 py-4 text-gray-500">{strings.noRecentEvents}</div>
 						) : (
 							recentEvents.map(event => (
-								<div
-									key={event.id}
-									className="mb-4 pb-4 border-b border-gray-200 last:border-0 hover:bg-gray-50 transition-colors"
+								<button
+									key={getEntityId(event)}
+									type="button"
+									onClick={() => setPreviewTarget({ eventId: getEntityId(event), highlightUserId: null })}
+									title={strings.viewEvent}
+									className="group flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-blue-50 active:scale-[0.99]"
 								>
-									<div className="flex justify-between items-start">
-										<div>
-											<h3 className="font-semibold text-gray-900">{event.title}</h3>
-										</div>
-										<Badge tone={getEventPriorityTone(event.priority)}>{event.priority}</Badge>
+									<div className="min-w-0 flex-1">
+										<h3 className="truncate font-semibold text-gray-900 group-hover:text-blue-700">
+											{event.title}
+										</h3>
+										<p className="mt-0.5 truncate text-xs text-gray-500">
+											{EVENT_TYPE_LABELS[event.type] ?? event.type} ·{' '}
+											{EVENT_STATUS_LABELS[event.status] ?? event.status} ·{' '}
+											{format(toDate(event.createdAt), consts.eventTimeFormat)}
+										</p>
 									</div>
-								</div>
+									<Badge tone={getEventPriorityTone(event.priority)}>{event.priority}</Badge>
+									<FiChevronRight className="shrink-0 text-gray-300 transition-colors group-hover:text-blue-500" />
+								</button>
 							))
 						)}
 					</div>
@@ -166,30 +206,52 @@ const DashboardPage: React.FC = () => {
 					<div className="px-6 py-4 border-b border-gray-200">
 						<h2 className="text-xl font-semibold text-gray-900">{strings.recentStatusUpdates}</h2>
 					</div>
-					<div className="p-6">
+					<div className="max-h-[26rem] overflow-y-auto p-3">
 						{isLoading ? (
 							<Loader />
 						) : recentStatusUpdates.length === 0 ? (
-							<div className="text-gray-500">No recent status updates.</div>
+							<div className="px-3 py-4 text-gray-500">{strings.noRecentStatusUpdates}</div>
 						) : (
-							recentStatusUpdates.map(status => (
-								<div
-									key={status.id}
-									className="mb-4 pb-4 border-b border-gray-200 last:border-0 hover:bg-gray-50 transition-colors"
+							recentStatusUpdates.map(statusUpdate => (
+								<button
+									key={statusUpdate.id}
+									type="button"
+									onClick={() =>
+										setPreviewTarget({
+											eventId: statusUpdate.eventId,
+											highlightUserId: statusUpdate.userId,
+										})
+									}
+									title={strings.viewEvent}
+									className="group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-blue-50 active:scale-[0.99]"
 								>
-									<div className="flex justify-between items-start">
-										<div>
-											<h3 className="font-semibold text-gray-900">{strings.statusUpdate}</h3>
-											<p className="text-sm text-gray-600">{status.notes || strings.noNotes}</p>
-										</div>
-										<Badge tone="info">{status.status}</Badge>
+									<div className="min-w-0 flex-1">
+										<h3 className="truncate text-sm font-semibold text-gray-900 group-hover:text-blue-700">
+											{statusUpdate.userName}
+										</h3>
+										<p className="mt-0.5 truncate text-xs text-gray-500">
+											{strings.reportedFor(statusUpdate.eventTitle)} ·{' '}
+											{format(statusUpdate.createdAt, consts.statusUpdateTimeFormat)}
+										</p>
 									</div>
-								</div>
+									<Badge tone={getResponderStatusTone(statusUpdate.status)}>
+										{RESPONDER_STATUS_LABELS[statusUpdate.status] ?? statusUpdate.status}
+									</Badge>
+									<FiChevronRight className="shrink-0 text-gray-300 transition-colors group-hover:text-blue-500" />
+								</button>
 							))
 						)}
 					</div>
 				</div>
 			</div>
+
+			{previewTarget && (
+				<EventPreviewModal
+					eventId={previewTarget.eventId}
+					highlightUserId={previewTarget.highlightUserId}
+					onClose={handleClosePreview}
+				/>
+			)}
 		</div>
 	);
 };
