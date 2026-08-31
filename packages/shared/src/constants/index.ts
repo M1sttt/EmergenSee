@@ -54,3 +54,13 @@ export const RESPONDER_STATUS_LABELS = {
   safe: 'Safe',
   unknown: 'Unknown',
 } as const;
+
+export const SHELTER_CATEGORIES = ['missile', 'nbc', 'assembly', 'flood', 'general'] as const;
+
+export const SHELTER_CATEGORY_LABELS = {
+  missile: 'Missile / Bomb',
+  nbc: 'NBC / Bunker',
+  assembly: 'Assembly Point',
+  flood: 'Flood / Tsunami',
+  general: 'General Shelter',
+} as const;

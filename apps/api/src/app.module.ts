@@ -7,6 +7,7 @@ import { EventsModule } from './services/events/events.module';
 import { StatusModule } from './services/status/status.module';
 import { WebsocketModule } from './services/websocket/websocket.module';
 import { DepartmentsModule } from './services/departments/departments.module';
+import { DepartmentSheltersModule } from './services/department-shelters/department-shelters.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { DepartmentsModule } from './services/departments/departments.module';
     StatusModule,
     WebsocketModule,
     DepartmentsModule,
+    DepartmentSheltersModule,
   ],
 })
 export class AppModule { }

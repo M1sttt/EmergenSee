@@ -1,15 +1,29 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polygon, CircleMarker, useMap, useMapEvents } from 'react-leaflet';
 import { useQuery } from '@tanstack/react-query';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { FiNavigation, FiMapPin, FiExternalLink, FiShield } from 'react-icons/fi';
+import {
+	FiNavigation, FiMapPin, FiExternalLink, FiShield,
+	FiPlus, FiRotateCcw, FiTrash2, FiCheck, FiX,
+} from 'react-icons/fi';
 import { MdMyLocation } from 'react-icons/md';
 import { toast } from 'sonner';
+import { SHELTER_CATEGORY_LABELS } from '@emergensee/shared';
+import type { DepartmentShelter, ShelterPolygon } from '@emergensee/shared';
+import { useAuthStore } from 'store/authStore';
+import { getEntityId } from '@/types/entities';
+import { ConfirmModal } from '@/components/common/ConfirmModal';
+import DepartmentShelterForm from '@/components/DepartmentShelterForm';
+import {
+	useDeleteDepartmentShelterMutation,
+	useDepartmentSheltersDepartmentsQuery,
+	useDepartmentSheltersQuery,
+} from 'hooks/data/useDepartmentSheltersData';
 
 import {
 	israelCenter, israelZoom, tileUrl, sheltersCacheMs,
-	ALL_CATEGORIES, CATEGORY_CONFIG,
+	ALL_CATEGORIES, CATEGORY_CONFIG, minPolygonPoints, departmentShelterColor,
 	type ShelterCategory,
 } from './consts';
 import * as strings from './strings';
@@ -19,6 +33,7 @@ import {
 	haversineDistanceKm,
 	formatDistance,
 	getGoogleMapsDirectionsUrl,
+	getManageableDepartments,
 	reverseGeocode,
 	type ShelterMarker,
 } from './utils';
@@ -72,6 +87,15 @@ const userIcon = L.divIcon({
 	"></div>`,
 	iconSize: [18, 18], iconAnchor: [9, 9], popupAnchor: [0, -12],
 });
+
+// ── Drawing helpers ──────────────────────────────────────────────────────────
+
+function DrawCapture({ onAddPoint }: { onAddPoint: (latlng: [number, number]) => void }) {
+	useMapEvents({
+		click: mapEvent => onAddPoint([mapEvent.latlng.lat, mapEvent.latlng.lng]),
+	});
+	return null;
+}
 
 // ── FlyTo helper ─────────────────────────────────────────────────────────────
 
@@ -227,6 +251,76 @@ function MapLegend({
 	);
 }
 
+// ── Department shelter popup ─────────────────────────────────────────────────
+
+function DepartmentShelterPopup({
+	shelter, departmentName, canManage, onDelete,
+}: {
+	shelter: DepartmentShelter;
+	departmentName: string;
+	canManage: boolean;
+	onDelete: () => void;
+}) {
+	const cfg = CATEGORY_CONFIG[shelter.category];
+
+	return (
+		<div style={{ minWidth: 200, fontFamily: 'inherit' }}>
+			<div style={{
+				display: 'inline-flex', alignItems: 'center', gap: 5,
+				background: departmentShelterColor + '18', border: `1px solid ${departmentShelterColor}55`,
+				borderRadius: 99, padding: '2px 8px', marginBottom: 8,
+			}}>
+				<span style={{ fontSize: 11 }}>🏢</span>
+				<span style={{ fontSize: 11, fontWeight: 700, color: departmentShelterColor }}>
+					{departmentName || strings.departmentShelterBadge}
+				</span>
+			</div>
+
+			<p style={{ fontWeight: 700, fontSize: 14, margin: '0 0 2px', color: '#111827', lineHeight: 1.3 }}>
+				{shelter.name}
+			</p>
+
+			<p style={{ fontSize: 11, color: '#9ca3af', margin: '0 0 8px' }}>
+				{cfg.emoji} {SHELTER_CATEGORY_LABELS[shelter.category]} · {cfg.threats}
+			</p>
+
+			{shelter.capacity !== undefined && (
+				<div style={{
+					display: 'inline-block', marginBottom: 8,
+					background: '#eef2ff', color: '#4338ca',
+					fontWeight: 600, fontSize: 11, padding: '2px 8px',
+					borderRadius: 99, border: '1px solid #c7d2fe',
+				}}>
+					{strings.capacityLabel(shelter.capacity)}
+				</div>
+			)}
+
+			{shelter.description && (
+				<p style={{ fontSize: 12, color: '#4b5563', margin: '0 0 10px', lineHeight: 1.55 }}>
+					{shelter.description}
+				</p>
+			)}
+
+			{canManage && (
+				<>
+					<div style={{ height: 1, background: '#e5e7eb', margin: '0 0 10px' }} />
+					<button
+						onClick={onDelete}
+						style={{
+							display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+							width: '100%', padding: '8px 12px', borderRadius: 8,
+							background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca',
+							fontWeight: 600, fontSize: 12, cursor: 'pointer',
+						}}
+					>
+						<FiTrash2 size={13} />{strings.deleteShelter}
+					</button>
+				</>
+			)}
+		</div>
+	);
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 const SheltersPage = () => {
@@ -246,6 +340,43 @@ const SheltersPage = () => {
 	const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
 	const [isLocating, setIsLocating] = useState(false);
 	const [flyTarget, setFlyTarget] = useState<{ latlng: [number, number]; zoom: number } | null>(null);
+
+	const currentUser = useAuthStore(state => state.user);
+	const { data: departments = [] } = useDepartmentSheltersDepartmentsQuery();
+	const { data: departmentShelters = [] } = useDepartmentSheltersQuery();
+	const deleteShelterMutation = useDeleteDepartmentShelterMutation();
+
+	const [hiddenDepartmentIds, setHiddenDepartmentIds] = useState<Set<string>>(new Set());
+	const [isDrawing, setIsDrawing] = useState(false);
+	const [draftPolygon, setDraftPolygon] = useState<ShelterPolygon>([]);
+	const [isShelterFormOpen, setIsShelterFormOpen] = useState(false);
+	const [shelterToDelete, setShelterToDelete] = useState<DepartmentShelter | null>(null);
+
+	const manageableDepartments = useMemo(
+		() => getManageableDepartments(departments, currentUser),
+		[departments, currentUser],
+	);
+
+	const departmentNameById = useMemo(
+		() => new Map(departments.map(department => [getEntityId(department), department.name])),
+		[departments],
+	);
+
+	const shelterDepartmentIds = useMemo(
+		() => Array.from(new Set(departmentShelters.map(shelter => shelter.departmentId))),
+		[departmentShelters],
+	);
+
+	const visibleDepartmentShelters = useMemo(
+		() => departmentShelters.filter(shelter => !hiddenDepartmentIds.has(shelter.departmentId)),
+		[departmentShelters, hiddenDepartmentIds],
+	);
+
+	const canManageShelter = useCallback(
+		(shelter: DepartmentShelter) =>
+			manageableDepartments.some(department => getEntityId(department) === shelter.departmentId),
+		[manageableDepartments],
+	);
 
 	// Only show shelters whose category is active
 	const shelters = useMemo(
@@ -328,6 +459,53 @@ const SheltersPage = () => {
 		else requestLocation(latlng => setFlyTarget({ latlng, zoom: 16 }));
 	}, [userLocation, requestLocation]);
 
+	const toggleDepartment = useCallback((departmentId: string) => {
+		setHiddenDepartmentIds(previous => {
+			const next = new Set(previous);
+			if (next.has(departmentId)) next.delete(departmentId);
+			else next.add(departmentId);
+			return next;
+		});
+	}, []);
+
+	const handleStartDrawing = useCallback(() => {
+		setDraftPolygon([]);
+		setIsDrawing(true);
+	}, []);
+
+	const handleAddPoint = useCallback((latlng: [number, number]) => {
+		setDraftPolygon(previous => [...previous, latlng]);
+	}, []);
+
+	const handleUndoPoint = useCallback(() => {
+		setDraftPolygon(previous => previous.slice(0, -1));
+	}, []);
+
+	const handleClearPoints = useCallback(() => setDraftPolygon([]), []);
+
+	const handleCancelDrawing = useCallback(() => {
+		setIsDrawing(false);
+		setDraftPolygon([]);
+	}, []);
+
+	const handleOpenShelterForm = useCallback(() => setIsShelterFormOpen(true), []);
+
+	const handleCloseShelterForm = useCallback(() => setIsShelterFormOpen(false), []);
+
+	const handleShelterSaved = useCallback(() => {
+		setIsShelterFormOpen(false);
+		setIsDrawing(false);
+		setDraftPolygon([]);
+	}, []);
+
+	const handleConfirmDeleteShelter = useCallback(() => {
+		if (!shelterToDelete) return;
+		deleteShelterMutation.mutate(getEntityId(shelterToDelete));
+		setShelterToDelete(null);
+	}, [deleteShelterMutation, shelterToDelete]);
+
+	const handleCancelDeleteShelter = useCallback(() => setShelterToDelete(null), []);
+
 	const toggleCategory = useCallback((cat: ShelterCategory) => {
 		setActiveCategories(prev => {
 			const next = new Set(prev);
@@ -365,18 +543,29 @@ const SheltersPage = () => {
 							<p className="mt-0.5 text-xs text-emerald-100 sm:text-sm">{strings.pageSubtitle}</p>
 						</div>
 					</div>
-					<button
-						onClick={handleFindNearest}
-						disabled={isLocating || isLoading}
-						className="flex shrink-0 items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-emerald-700 shadow-md transition-all hover:bg-emerald-50 hover:shadow-lg active:scale-95 disabled:opacity-60 sm:px-5"
-					>
-						{isLocating
-							? <span className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
-							: <FiNavigation className="text-base" />
-						}
-						<span className="hidden sm:inline">{isLocating ? strings.locating : strings.findNearest}</span>
-						<span className="sm:hidden">{isLocating ? 'Locating…' : 'Find Nearest'}</span>
-					</button>
+					<div className="flex shrink-0 items-center gap-2">
+						{manageableDepartments.length > 0 && !isDrawing && (
+							<button
+								onClick={handleStartDrawing}
+								className="flex shrink-0 items-center gap-2 rounded-xl bg-white/15 px-4 py-2.5 text-sm font-semibold text-white ring-1 ring-inset ring-white/40 backdrop-blur-sm transition-all hover:bg-white/25 active:scale-95"
+							>
+								<FiPlus className="text-base" />
+								<span className="hidden sm:inline">{strings.addShelter}</span>
+							</button>
+						)}
+						<button
+							onClick={handleFindNearest}
+							disabled={isLocating || isLoading}
+							className="flex shrink-0 items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-emerald-700 shadow-md transition-all hover:bg-emerald-50 hover:shadow-lg active:scale-95 disabled:opacity-60 sm:px-5"
+						>
+							{isLocating
+								? <span className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
+								: <FiNavigation className="text-base" />
+							}
+							<span className="hidden sm:inline">{isLocating ? strings.locating : strings.findNearest}</span>
+							<span className="sm:hidden">{isLocating ? 'Locating…' : 'Find Nearest'}</span>
+						</button>
+					</div>
 				</div>
 			</div>
 
@@ -416,6 +605,43 @@ const SheltersPage = () => {
 						</button>
 					);
 				})}
+
+				{shelterDepartmentIds.length > 0 && (
+					<>
+						<span className="mx-1 h-5 w-px shrink-0 bg-gray-200" />
+						<span className="shrink-0 text-xs font-semibold uppercase tracking-wider text-gray-400">
+							{strings.departmentFilterLabel}
+						</span>
+						{shelterDepartmentIds.map(departmentId => {
+							const active = !hiddenDepartmentIds.has(departmentId);
+							const count = departmentShelters.filter(
+								shelter => shelter.departmentId === departmentId,
+							).length;
+							return (
+								<button
+									key={departmentId}
+									onClick={() => toggleDepartment(departmentId)}
+									className="flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all hover:shadow-sm active:scale-95"
+									style={{
+										background: active ? departmentShelterColor + '18' : '#f9fafb',
+										borderColor: active ? departmentShelterColor : '#e5e7eb',
+										color: active ? departmentShelterColor : '#6b7280',
+									}}
+								>
+									<span>🏢</span>
+									<span>{departmentNameById.get(departmentId) ?? departmentId}</span>
+									<span style={{
+										background: active ? departmentShelterColor : '#e5e7eb',
+										color: active ? '#fff' : '#6b7280',
+										borderRadius: 99, padding: '0 5px', fontSize: 10,
+									}}>
+										{count}
+									</span>
+								</button>
+							);
+						})}
+					</>
+				)}
 			</div>
 
 			{/* ── Nearest shelter card ────────────────────────────────────── */}
@@ -480,7 +706,62 @@ const SheltersPage = () => {
 			)}
 
 			{/* ── Map ─────────────────────────────────────────────────────── */}
-			<div className="relative flex-1 isolate">
+			<div className={`relative flex-1 isolate${isDrawing ? ' ui-map-drawing' : ''}`}>
+
+				{/* Drawing toolbar */}
+				{isDrawing && (
+					<div
+						style={{ position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 1000 }}
+						className="flex max-w-[95vw] items-center gap-2 rounded-2xl bg-white/96 px-3 py-2.5 shadow-xl ring-1 ring-black/10 backdrop-blur"
+					>
+						<div className="mr-1 hidden min-w-0 sm:block">
+							<p className="text-xs font-bold text-gray-900">{strings.drawingTitle}</p>
+							<p className="truncate text-[11px] text-gray-500">{strings.drawingHint}</p>
+						</div>
+						<span
+							className="shrink-0 rounded-full px-2.5 py-1 text-xs font-bold"
+							style={{
+								background: departmentShelterColor + '18',
+								color: departmentShelterColor,
+							}}
+						>
+							{draftPolygon.length < minPolygonPoints
+								? strings.drawingPoints(draftPolygon.length)
+								: strings.drawingReady(draftPolygon.length)}
+						</span>
+						<button
+							onClick={handleUndoPoint}
+							disabled={draftPolygon.length === 0}
+							title={strings.undoPoint}
+							className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-600 transition-all hover:bg-gray-200 active:scale-95 disabled:opacity-40"
+						>
+							<FiRotateCcw size={15} />
+						</button>
+						<button
+							onClick={handleClearPoints}
+							disabled={draftPolygon.length === 0}
+							title={strings.clearPoints}
+							className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-600 transition-all hover:bg-gray-200 active:scale-95 disabled:opacity-40"
+						>
+							<FiTrash2 size={15} />
+						</button>
+						<button
+							onClick={handleCancelDrawing}
+							title={strings.cancelDrawing}
+							className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600 transition-all hover:bg-red-100 active:scale-95"
+						>
+							<FiX size={16} />
+						</button>
+						<button
+							onClick={handleOpenShelterForm}
+							disabled={draftPolygon.length < minPolygonPoints}
+							className="flex shrink-0 items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 active:scale-95 disabled:opacity-40"
+						>
+							<FiCheck size={15} />
+							<span className="hidden sm:inline">{strings.finishDrawing}</span>
+						</button>
+					</div>
+				)}
 
 				{/* My Location button */}
 				<button
@@ -531,6 +812,50 @@ const SheltersPage = () => {
 				>
 					<TileLayer attribution={strings.attribution} url={tileUrl} />
 					{flyTarget && <FlyTo latlng={flyTarget.latlng} zoom={flyTarget.zoom} />}
+					{isDrawing && <DrawCapture onAddPoint={handleAddPoint} />}
+
+					{visibleDepartmentShelters.map(shelter => {
+						const cfg = CATEGORY_CONFIG[shelter.category];
+						return (
+							<Polygon
+								key={getEntityId(shelter)}
+								positions={shelter.polygon}
+								pathOptions={{ color: cfg.color, weight: 2, fillColor: cfg.color, fillOpacity: 0.25 }}
+							>
+								<Popup maxWidth={240}>
+									<DepartmentShelterPopup
+										shelter={shelter}
+										departmentName={departmentNameById.get(shelter.departmentId) ?? ''}
+										canManage={canManageShelter(shelter)}
+										onDelete={() => setShelterToDelete(shelter)}
+									/>
+								</Popup>
+							</Polygon>
+						);
+					})}
+
+					{draftPolygon.length > 1 && (
+						<Polygon
+							positions={draftPolygon}
+							interactive={false}
+							pathOptions={{
+								color: departmentShelterColor,
+								weight: 2,
+								dashArray: '6 6',
+								fillColor: departmentShelterColor,
+								fillOpacity: 0.15,
+							}}
+						/>
+					)}
+					{draftPolygon.map((point, index) => (
+						<CircleMarker
+							key={`${point[0]}-${point[1]}-${index}`}
+							center={point}
+							radius={5}
+							interactive={false}
+							pathOptions={{ color: '#fff', weight: 2, fillColor: departmentShelterColor, fillOpacity: 1 }}
+						/>
+					))}
 
 					{shelters.map(shelter => {
 						const isNearest = nearest?.id === shelter.id;
@@ -571,6 +896,25 @@ const SheltersPage = () => {
 					/>
 				</MapContainer>
 			</div>
+
+			{isShelterFormOpen && (
+				<DepartmentShelterForm
+					polygon={draftPolygon}
+					departments={manageableDepartments}
+					onSaved={handleShelterSaved}
+					onClose={handleCloseShelterForm}
+				/>
+			)}
+
+			{shelterToDelete && (
+				<ConfirmModal
+					title={strings.deleteShelterConfirm}
+					message={strings.deleteShelterMessage(shelterToDelete.name)}
+					confirmText={strings.deleteShelter}
+					onConfirm={handleConfirmDeleteShelter}
+					onCancel={handleCancelDeleteShelter}
+				/>
+			)}
 		</div>
 	);
 };

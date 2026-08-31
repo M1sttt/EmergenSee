@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { format } from 'date-fns';
+import { Tooltip } from 'react-tooltip';
 import { FiAlertTriangle, FiBell, FiCheckCircle } from 'react-icons/fi';
 import { RiUserUnfollowLine } from 'react-icons/ri';
 import { EventStatus, RESPONDER_STATUS_LABELS, ResponderStatus, UserRole } from '@emergensee/shared';
@@ -9,6 +10,7 @@ import GenericTable, { type GenericTableColumn } from '@/components/common/Gener
 import SelectDropdown from '@/components/SelectDropdown';
 import { Loader } from '@/components/common/Loader';
 import { Badge, IconButton, Label } from '@/components/ui';
+import EventPreviewModal from '@/components/EventPreviewModal';
 import {
 	useAlertDepartmentMutation,
 	useStatusPageCreateStatusMutation,
@@ -26,6 +28,7 @@ export default function StatusPage() {
 
 	const [selectedEventId, setSelectedEventId] = useState<string>('');
 	const [selectedDeptId, setSelectedDeptId] = useState<string>('all');
+	const [previewUserId, setPreviewUserId] = useState<string | null>(null);
 
 	const { data: events = [], isLoading: isLoadingEvents } = useStatusPageEventsQuery();
 	const { data: departments = [], isLoading: isLoadingDepts } = useStatusPageDepartmentsQuery();
@@ -130,6 +133,12 @@ export default function StatusPage() {
 		});
 	}, [activeEventDepartmentIds, effectiveSelectedDeptId, effectiveSelectedEventId, users, statusUpdates]);
 
+	const selectedEventTitle = selectedActiveEvent?.title || '';
+
+	const handleClosePreview = useCallback(() => {
+		setPreviewUserId(null);
+	}, []);
+
 	const isLoading = isLoadingEvents || isLoadingDepts || isLoadingUsers || isLoadingStatus;
 
 	const statusColumns = useMemo<GenericTableColumn<(typeof displayUsers)[number]>[]>(
@@ -169,11 +178,20 @@ export default function StatusPage() {
 			{
 				id: 'lastUpdated',
 				header: strings.columnLastUpdated,
-				renderCell: ({ status }) => (
-					<div className="text-sm text-gray-500">
-						{status ? format(toDate(status.createdAt), consts.dateFormat) : '-'}
-					</div>
-				),
+				renderCell: ({ user, status }) =>
+					status ? (
+						<button
+							type="button"
+							onClick={() => setPreviewUserId(user.id)}
+							data-tooltip-id={consts.lastUpdatedTooltipId}
+							data-tooltip-content={strings.lastUpdatedTooltip(selectedEventTitle)}
+							className="rounded text-sm text-gray-500 underline decoration-dotted underline-offset-4 transition-colors hover:text-blue-600"
+						>
+							{format(toDate(status.createdAt), consts.dateFormat)}
+						</button>
+					) : (
+						<span className="text-sm text-gray-400">{strings.emptyPhone}</span>
+					),
 			},
 			{
 				id: 'actions',
@@ -252,7 +270,15 @@ export default function StatusPage() {
 				},
 			},
 		],
-		[alertMutation, effectiveSelectedEventId, isDeptAdmin, isGlobalAdmin, reportMutation, userAdminDepts],
+		[
+			alertMutation,
+			effectiveSelectedEventId,
+			isDeptAdmin,
+			isGlobalAdmin,
+			reportMutation,
+			selectedEventTitle,
+			userAdminDepts,
+		],
 	);
 
 	return (
@@ -308,6 +334,16 @@ export default function StatusPage() {
 						</div>
 					}
 					emptyContent={strings.noUsersFound}
+				/>
+			)}
+
+			<Tooltip id={consts.lastUpdatedTooltipId} style={{ fontSize: '12px', padding: '4px 8px' }} />
+
+			{previewUserId && effectiveSelectedEventId && (
+				<EventPreviewModal
+					eventId={effectiveSelectedEventId}
+					highlightUserId={previewUserId}
+					onClose={handleClosePreview}
 				/>
 			)}
 		</div>

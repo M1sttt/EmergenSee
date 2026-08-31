@@ -1,4 +1,6 @@
-import { EventStatus, EventPriority, Event, StatusUpdate, ResponderStatus } from '@emergensee/shared';
+import { EventStatus, EventPriority, Event, StatusUpdate, ResponderStatus, User } from '@emergensee/shared';
+import { getEntityId, getReferenceName, toDate } from '@/types/entities';
+import * as strings from './strings';
 
 export const getActiveEventsCount = (events: Event[]): number =>
 	events.filter(e => e.status !== EventStatus.RESOLVED && e.status !== EventStatus.CANCELLED).length;
@@ -15,13 +17,6 @@ export interface StatusBreakdown {
 	activeEventCount: number;
 }
 
-const extractId = (ref: unknown): string => {
-	if (!ref) return '';
-	if (typeof ref === 'string') return ref;
-	const r = ref as Record<string, unknown>;
-	return (r['id'] as string) || (r['_id'] as string) || '';
-};
-
 export const getStatusBreakdown = (statusUpdates: StatusUpdate[], events: Event[]): StatusBreakdown => {
 	const activeEventIds = new Set(
 		events
@@ -33,15 +28,13 @@ export const getStatusBreakdown = (statusUpdates: StatusUpdate[], events: Event[
 		return { safe: 0, needHelp: 0, away: 0, unknown: 0, total: 0, activeEventCount: 0 };
 	}
 
-	// Keep only updates that belong to an active event
 	const activeUpdates = statusUpdates.filter(su =>
-		activeEventIds.has(extractId(su.eventId)),
+		activeEventIds.has(getEntityId(su.eventId)),
 	);
 
-	// Per user: keep the most recent update only
 	const latestByUser = new Map<string, StatusUpdate>();
 	for (const su of activeUpdates) {
-		const uid = extractId(su.userId);
+		const uid = getEntityId(su.userId);
 		if (!uid) continue;
 		const existing = latestByUser.get(uid);
 		if (!existing || new Date(su.createdAt) > new Date(existing.createdAt)) {
@@ -60,4 +53,41 @@ export const getStatusBreakdown = (statusUpdates: StatusUpdate[], events: Event[
 	}
 
 	return { safe, needHelp, away, unknown, total: latestByUser.size, activeEventCount: activeEventIds.size };
+};
+
+export interface RecentStatusUpdateItem {
+	id: string;
+	userId: string;
+	userName: string;
+	eventId: string;
+	eventTitle: string;
+	status: ResponderStatus;
+	createdAt: Date;
+}
+
+export const buildRecentStatusUpdates = (
+	statusUpdates: StatusUpdate[],
+	users: User[],
+	events: Event[],
+	limit: number,
+): RecentStatusUpdateItem[] => {
+	const userNameById = new Map(users.map(user => [getEntityId(user), `${user.firstName} ${user.lastName}`.trim()]));
+	const eventTitleById = new Map(events.map(event => [getEntityId(event), event.title]));
+
+	return [...statusUpdates]
+		.sort((a, b) => toDate(b.createdAt).getTime() - toDate(a.createdAt).getTime())
+		.slice(0, limit)
+		.map(statusUpdate => {
+			const userId = getEntityId(statusUpdate.userId);
+			const eventId = getEntityId(statusUpdate.eventId);
+			return {
+				id: getEntityId(statusUpdate) || `${userId}-${toDate(statusUpdate.createdAt).getTime()}`,
+				userId,
+				userName: userNameById.get(userId) || getReferenceName(statusUpdate.userId) || strings.unknownUser,
+				eventId,
+				eventTitle: eventTitleById.get(eventId) || getReferenceName(statusUpdate.eventId) || strings.unknownEvent,
+				status: statusUpdate.status,
+				createdAt: toDate(statusUpdate.createdAt),
+			};
+		});
 };

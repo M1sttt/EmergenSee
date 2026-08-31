@@ -16,3 +16,18 @@ export const noSheltersLoaded = 'Shelters are still loading — try again in a m
 export const getDirections = 'Open Route in Google Maps';
 export const fetchingAddress = 'Looking up address…';
 export const addressUnavailable = 'No address on record';
+export const departmentFilterLabel = 'My departments:';
+export const addShelter = 'Add Shelter';
+export const drawingTitle = 'Drawing a shelter';
+export const drawingHint = 'Tap the map to outline the shelter area';
+export const drawingPoints = (n: number) => `${n} / 3 points`;
+export const drawingReady = (n: number) => `${n} points`;
+export const undoPoint = 'Undo';
+export const clearPoints = 'Clear';
+export const cancelDrawing = 'Cancel';
+export const finishDrawing = 'Save area';
+export const departmentShelterBadge = 'Department shelter';
+export const capacityLabel = (n: number) => `Holds ${n} people`;
+export const deleteShelter = 'Delete shelter';
+export const deleteShelterConfirm = 'Delete this shelter?';
+export const deleteShelterMessage = (name: string) => `"${name}" will be removed from the department map.`;

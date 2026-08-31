@@ -184,4 +184,14 @@
 	.ui-icon-btn {
 		@apply inline-flex items-center justify-center rounded transition-colors hover:bg-black/10;
 	}
+
+	.ui-map-drawing .leaflet-container {
+		@apply cursor-crosshair;
+	}
+
+	/* While drawing, every click must reach the map itself, not the shelters painted on top of it. */
+	.ui-map-drawing .leaflet-interactive,
+	.ui-map-drawing .leaflet-marker-icon {
+		pointer-events: none !important;
+	}
 }

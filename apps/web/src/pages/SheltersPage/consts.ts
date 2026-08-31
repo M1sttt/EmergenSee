@@ -91,3 +91,6 @@ export const CATEGORY_CONFIG: Record<ShelterCategory, CategoryConfig> = {
 };
 
 export const ALL_CATEGORIES: ShelterCategory[] = ['missile', 'nbc', 'assembly', 'flood', 'general'];
+
+export const minPolygonPoints = 3;
+export const departmentShelterColor = '#4f46e5';

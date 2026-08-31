@@ -18,3 +18,4 @@ export const noUsersFound = 'No users found for the selected criteria.';
 export const loading = 'Loading...';
 export const error = 'Error loading data. Please try again later.';
 export const alertDepartment = 'Alert Department';
+export const lastUpdatedTooltip = (eventTitle: string) => `Event: "${eventTitle}" — click to open`;

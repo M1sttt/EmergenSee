@@ -1,0 +1,17 @@
+export const title = 'Save Department Shelter';
+export const subtitle = (points: number) => `Polygon with ${points} points`;
+export const nameLabel = 'Shelter name';
+export const namePlaceholder = 'e.g. North wing basement';
+export const departmentLabel = 'Department';
+export const departmentPlaceholder = 'Select a department';
+export const categoryLabel = 'Protection type';
+export const capacityLabel = 'Capacity (optional)';
+export const capacityPlaceholder = 'How many people fit inside';
+export const descriptionLabel = 'Notes (optional)';
+export const descriptionPlaceholder = 'Entrance location, access code, anything useful';
+export const save = 'Save shelter';
+export const saving = 'Saving…';
+export const cancel = 'Cancel';
+export const nameRequired = 'Give the shelter a name.';
+export const departmentRequired = 'Pick the department this shelter belongs to.';
+export const noDepartments = 'You are not linked to any department, so you cannot add shelters yet.';
