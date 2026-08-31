@@ -38,3 +38,19 @@ export type StatusUpdateWithReferences = WithOptionalObjectId<StatusUpdate> & {
 export const toDate = (value: Date | string): Date => {
 	return value instanceof Date ? value : new Date(value);
 };
+
+export type PopulatedReference = {
+	id?: string;
+	_id?: string;
+	firstName?: string;
+	lastName?: string;
+	email?: string;
+	title?: string;
+};
+
+export const getReferenceName = (source: EntityIdSource): string => {
+	if (!source || typeof source === 'string') return '';
+	const reference = source as PopulatedReference;
+	const fullName = [reference.firstName, reference.lastName].filter(Boolean).join(' ');
+	return fullName || reference.title || reference.email || '';
+};
