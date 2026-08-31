@@ -37,3 +37,8 @@ export const departmentMembersUpdateError = 'Failed to update department members
 
 export const alertDepartmentSuccess = 'Department alerted successfully.';
 export const alertDepartmentError = 'Failed to alert department.';
+
+export const departmentShelterCreateSuccess = 'Shelter added to the department map.';
+export const departmentShelterCreateError = 'Failed to save the shelter.';
+export const departmentShelterDeleteSuccess = 'Shelter removed.';
+export const departmentShelterDeleteError = 'Failed to remove the shelter.';

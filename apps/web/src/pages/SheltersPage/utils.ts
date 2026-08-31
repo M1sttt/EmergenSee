@@ -1,3 +1,6 @@
+import { Department, User, UserRole } from '@emergensee/shared';
+import type { ShelterPolygon } from '@emergensee/shared';
+import { getEntityId } from '@/types/entities';
 import * as consts from './consts';
 import type { ShelterCategory } from './consts';
 
@@ -201,4 +204,24 @@ export const getGoogleMapsDirectionsUrl = (
 	});
 	if (origin) params.set('origin', `${origin[0]},${origin[1]}`);
 	return `https://www.google.com/maps/dir/?${params.toString()}`;
+};
+
+// ── Department shelters ──────────────────────────────────────────────────────
+
+export const getManageableDepartments = (departments: Department[], user: User | null): Department[] => {
+	if (!user) return [];
+	if (user.role === UserRole.ADMIN) return departments;
+
+	const linkedIds = new Set((user.departments || []).map(getEntityId));
+	return departments.filter(
+		department => linkedIds.has(getEntityId(department)) || (department.admins || []).includes(user.id),
+	);
+};
+
+export const getPolygonCenter = (polygon: ShelterPolygon): [number, number] => {
+	const total = polygon.reduce<[number, number]>(
+		(accumulator, [lat, lng]) => [accumulator[0] + lat, accumulator[1] + lng],
+		[0, 0],
+	);
+	return [total[0] / polygon.length, total[1] / polygon.length];
 };

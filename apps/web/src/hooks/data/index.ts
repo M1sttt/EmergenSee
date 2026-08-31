@@ -13,3 +13,4 @@ export * from './useDepartmentMembersModalData';
 export * from './useEventFormData';
 export * from './useUserFormData';
 export * from './useEventPreviewModalData';
+export * from './useDepartmentSheltersData';
