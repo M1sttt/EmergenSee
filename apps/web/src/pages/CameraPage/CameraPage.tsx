@@ -147,8 +147,11 @@ const CameraPage: React.FC = () => {
 	const confirmed = useMemo<User[]>(() => {
 		if (!eventId) return [];
 		return allStatuses
-			.filter(s => getEntityId(s.eventId) === eventId && s.status === ResponderStatus.SAFE)
-			.map(s => users.find(u => getEntityId(u) === getEntityId(s.userId)))
+			.filter(s => {
+				const sEventId = typeof s.eventId === 'object' ? (s.eventId as { _id?: string })._id : s.eventId;
+				return (sEventId === eventId || s.eventId === eventId) && s.status === ResponderStatus.SAFE;
+			})
+			.map(s => users.find(u => getEntityId(u) === s.userId))
 			.filter((u): u is User => u !== undefined);
 	}, [allStatuses, eventId, users]);
 
@@ -342,10 +345,11 @@ const CameraPage: React.FC = () => {
 	 * Fullscreen mode: fixed inset-0 overlay — same video node, just different wrapper.
 	 */
 	return (
-		<div className="flex flex-col gap-3 p-3 md:h-full md:p-6">
-			<div className="flex shrink-0 items-center justify-between">
-				<h1 className="flex items-center gap-2 text-xl font-bold text-gray-800 md:text-2xl">
-					<FaCamera className="text-blue-600" /> {strings.title}
+		<div className="flex h-full flex-col gap-2 p-3 sm:gap-3 sm:p-6">
+			{/* Page header — covered (not removed) by the fullscreen overlay */}
+			<div className="flex shrink-0 items-center justify-between gap-2">
+				<h1 className="flex min-w-0 items-center gap-2 text-xl font-bold text-gray-800 md:text-2xl">
+					<FaCamera className="shrink-0 text-blue-600" /> <span className="truncate">{strings.title}</span>
 				</h1>
 				{ongoingEvent ? (
 					<span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">{ongoingEvent.title}</span>
@@ -363,9 +367,9 @@ const CameraPage: React.FC = () => {
 			<div className={
 				isFullscreen
 					? 'fixed inset-0 z-50 flex gap-4 bg-gray-950 p-4'
-					: 'flex flex-col gap-4 md:min-h-0 md:flex-1 md:flex-row'
+					: 'flex min-h-0 flex-1 flex-col gap-3 md:flex-row md:gap-4'
 			}>
-				{/* Camera feed */}
+				{/* ── Camera ── */}
 				<div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-black shadow-xl md:aspect-auto md:min-h-0 md:flex-1">
 					<video
 						ref={videoRef}
@@ -397,7 +401,7 @@ const CameraPage: React.FC = () => {
 				<div className={
 					isFullscreen
 						? 'flex w-80 shrink-0 flex-col overflow-y-auto rounded-2xl bg-white p-4'
-						: 'flex flex-col md:w-80 md:shrink-0 md:overflow-hidden'
+						: 'flex min-h-0 flex-1 flex-col overflow-hidden md:w-80 md:flex-none'
 				}>
 					{isFullscreen && (
 						<div className="mb-3 flex shrink-0 items-center justify-between border-b border-gray-100 pb-3">
