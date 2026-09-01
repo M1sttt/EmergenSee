@@ -16,7 +16,12 @@ export function SidebarNavigation({
 	onNavigate,
 }: SidebarNavigationProps) {
 	return (
-		<nav className={cn('flex-1 space-y-1 py-4', isSidebarExpanded ? 'px-4' : 'px-2')}>
+		<nav
+			className={cn(
+				'flex-1 space-y-1 overflow-y-auto py-4',
+				isSidebarExpanded ? 'px-4' : 'px-2',
+			)}
+		>
 			{navigation.map(item => {
 				const active = currentPath === item.href;
 				const isEmergency = !!item.isEmergency;

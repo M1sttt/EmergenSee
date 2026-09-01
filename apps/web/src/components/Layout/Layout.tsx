@@ -85,7 +85,7 @@ export default function Layout() {
 	const CloseIcon = consts.closeIcon;
 
 	return (
-		<div className="flex h-screen bg-gray-100">
+		<div className="flex h-screen overflow-hidden bg-gray-100">
 			{isMobileSidebarOpen && (
 				<button
 					type="button"
@@ -120,7 +120,7 @@ export default function Layout() {
 					<CloseIcon />
 				</button>
 
-				<div className="flex h-full flex-col">
+				<div className="flex h-full min-h-0 flex-col">
 					<div
 						className={cn('border-b border-gray-200 py-4', isSidebarExpanded ? 'px-6' : 'px-3 text-center')}
 					>
